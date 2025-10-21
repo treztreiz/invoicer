@@ -434,7 +434,7 @@ RUN npm run build
 # ---- serve static ----
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY ops/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ops/conf.d/nginx.conf /etc/nginx/conf.d/default.conf
 ```
 
 **ops/nginx.conf**
@@ -461,7 +461,7 @@ services:
             POSTGRES_DB: app
         volumes: [ dbdata:/var/lib/postgresql/data ]
     backend:
-        build: { context: ., dockerfile: backend/Dockerfile }
+        build: { context: ., dockerfile: ops/Dockerfile }
         environment:
             DATABASE_URL: postgresql://app:app@db:5432/app?serverVersion=18&charset=utf8
         depends_on: [ db ]

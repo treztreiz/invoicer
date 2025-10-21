@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="DependencyValidationManager">
-    <scope name="Entities" pattern="file:src/Entity//*" />
-    <scope name="Migrations" pattern="file:migrations//*" />
-    <scope name="Config" pattern="file:config//*" />
-  </component>
-</project>

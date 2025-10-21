@@ -1,0 +1,44 @@
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Environment & secrets
+**/.env.local
+**/.env.*.local
+.env.test
+.env.test.local
+.php-version
+
+# Symfony / backend
+backend/var/
+backend/vendor/
+backend/public/bundles/
+backend/public/uploads/
+backend/.phpunit.result.cache
+backend/phpunit.xml
+
+# Node / frontend
+frontend/node_modules/
+frontend/.npm/
+frontend/.pnpm-store/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Logs & caches
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/composer-debug.log
+coverage/
+
+# Docker & build
+/docker-compose.override.yml
+.env.docker
