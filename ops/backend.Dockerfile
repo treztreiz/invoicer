@@ -1,11 +1,16 @@
  # syntax=docker/dockerfile:1
 
-ARG PHP_VERSION=8.4
+ARG PHP_VERSION
 
-# ---- base image (shared tooling) ----
-FROM php:${PHP_VERSION}-fpm-alpine AS base
+# ---- base image ----
+FROM php:${PHP_VERSION?} AS base
 
-# PHP extensions + composer (pdo_pgsql, intl for Symfony/L10n, opcache for prod)
+ENV APP_ENV=dev \
+  COMPOSER_ALLOW_SUPERUSER=1
+
+WORKDIR /app
+
+# packages & PHP extensions installation
 RUN set -eux; \
   apk add --no-cache \
       bash \
@@ -27,18 +32,20 @@ RUN set -eux; \
   apk del .build-deps; \
   rm -rf /tmp/* /var/cache/apk/*
 
+# composer installation
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# php main configuration
 COPY --link ops/conf.d/10-php.ini /usr/local/etc/php/conf.d/
 
-WORKDIR /app
-
-ENV APP_ENV=dev \
-  COMPOSER_ALLOW_SUPERUSER=1 \
-  SYMFONY_PHPUNIT_DIR=.symfony/phpunit
+EXPOSE 9000
+CMD ["php-fpm", "-F"]
 
 # ---- dev image (used by docker compose) ----
 FROM base AS dev
 
+ENV XDEBUG_MODE=off
+
+# xdebug installation
 RUN set -eux; \
     apk add --no-cache --virtual .xdebug-build \
         autoconf \
@@ -49,18 +56,13 @@ RUN set -eux; \
     apk del .xdebug-build; \
     rm -rf /tmp/* /var/cache/apk/*
 
+# php/xdebug configuration
 COPY --link ops/conf.d/20-php.dev.ini /usr/local/etc/php/conf.d/
-
-ENV XDEBUG_MODE=off
-
-# compose bind-mounts ./backend onto /app, so we just need php-fpm
-EXPOSE 9000
-CMD ["php-fpm", "-F"]
 
 # ---- vendor build (for prod) ----
 FROM base AS vendor
-ARG APP_ENV=prod
-ENV APP_ENV=${APP_ENV}
+
+ENV APP_ENV=prod
 
 # prevent the reinstallation of vendors at every changes in the source code
 COPY --link backend/composer.* backend/symfony.* ./
@@ -70,6 +72,7 @@ RUN set -eux; \
 # copy sources
 COPY --link backend/ .
 
+# bake the Symfony app for production
 RUN set -eux; \
     mkdir -p var/cache var/log; \
     composer dump-autoload --classmap-authoritative --no-dev; \
@@ -79,10 +82,10 @@ RUN set -eux; \
 
 # ---- production image ----
 FROM base AS prod
+
 ENV APP_ENV=prod
 
+# baked app
 COPY --from=vendor /app /app
+# php prod configuration
 COPY --link ops/conf.d/20-php.prod.ini /usr/local/etc/php/conf.d/
-
-EXPOSE 9000
-CMD ["php-fpm", "-F"]

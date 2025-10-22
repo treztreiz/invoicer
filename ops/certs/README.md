@@ -19,7 +19,7 @@ docker run --rm -v "$PWD/ops/certs/prod":/certs alpine/mkcert -key-file /certs/p
 After generating the certificates, restart nginx to pick them up (HTTPS on `https://localhost:8000`, HTTP redirect on `http://localhost:8080`):
 
 ```bash
-docker compose -f ops/compose.dev.yaml up -d --force-recreate web
+docker compose -f ops/compose.base.yaml -f ops/compose.dev.yaml up -d --force-recreate web
 ```
 
 For Swarm tests, seed the `invoicer_test_certs` volume (or the volume matching your stack name) so nginx can read the
