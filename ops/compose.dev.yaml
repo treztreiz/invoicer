@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: ops/backend.Dockerfile
+      dockerfile: ops/images/backend.Dockerfile
       target: dev
       args:
         PHP_VERSION: ${PHP_VERSION}
@@ -17,7 +17,7 @@ services:
   frontend:
     build:
       context: ..
-      dockerfile: ops/frontend.Dockerfile
+      dockerfile: ops/images/frontend.Dockerfile
       target: dev
       args:
         NODE_VERSION: ${NODE_VERSION}

@@ -9,7 +9,7 @@ export $(shell sed -n 's/^\([A-Za-z0-9_]\+\)=.*/\1/p' .env)
 endif
 
 # Expose all .env.local variables to the commands (overwrite .env variables)
-ifneq ("$(wildcard .env.local)","")
+ifneq (,$(wildcard .env.local))
 include .env.local
 export $(shell sed -n 's/^\([A-Za-z0-9_]\+\)=.*/\1/p' .env.local)
 endif
@@ -82,10 +82,10 @@ debug-off:
 	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate backend
 
 build-prod:
-	docker build -f ops/backend.Dockerfile --target prod \
+	docker build -f ops/images/backend.Dockerfile --target prod \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
 		-t $(PROJECT_NAME)-backend:$(PROD_TAG) .
-	docker build -f ops/frontend.Dockerfile --target prod \
+	docker build -f ops/images/frontend.Dockerfile --target prod \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg NGINX_VERSION=$(NGINX_VERSION) \
 		-t $(PROJECT_NAME)-web:$(PROD_TAG) .
