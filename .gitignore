@@ -42,3 +42,10 @@ coverage/
 # Docker & build
 /docker-compose.override.yml
 .env.docker
+ops/certbot/.env
+
+# TLS certificates (generated locally)
+ops/certs/**/*.pem
+ops/certs/**/*.crt
+ops/certs/**/*.cer
+ops/certs/**/*.key

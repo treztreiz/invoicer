@@ -73,6 +73,8 @@ repo/
 * Docker & Docker Compose
 * Make (optional)
 
+> For HTTPS in dev, generate local certificates following [`ops/certs/README.md`](ops/certs/README.md).
+
 ### Quick Start
 
 ```bash
@@ -208,6 +210,7 @@ cd web && npm test
 
 * Container images via CI → container registry
 * Reverse proxy (e.g., Nginx) terminating TLS → API & Web containers
+  * Production TLS issuance/renewal: see [`ops/certbot/README.md`](ops/certbot/README.md)
 * PostgreSQL managed service or stateful container + scheduled backups
 * Optional: Docker Swarm stack for simple orchestrated deploy
 

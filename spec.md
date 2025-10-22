@@ -72,9 +72,10 @@ while remaining **production-capable** and **contractor-implementable**.
 * **Reliability**: recurrence and installment jobs are idempotent; unique indices prevent duplicates.
 * **Performance**: list views return in <300ms P95 on 5k documents; PDF generation <2s P95 for 1–3 pages.
 * **Security**: local auth with salted hash; server-side input validation; audit fields (created/updated timestamps &
-  user).
+  user); HTTPS terminated at nginx with **HTTP/2** enabled; self-signed certs in dev (mkcert or equivalent) and managed
+  certs in prod.
 * **Operability**: Dockerized **dev and prod** with parity; one-command bootstrap; scheduled backups and documented
-  restore.
+  restore; production images built via GitHub Actions and published to GHCR; deployment secrets stored in GitHub Secrets.
 * **Testability**: unit tests on totals/reference rules; API contract tests for key endpoints; smoke tests for
   PDF/export.
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
@@ -362,12 +363,16 @@ InstallmentPlan ||--o{ Installment
   for frontend (immutable assets).
 * `compose.dev.yml` for local; `docker-stack.yml` for **Docker Swarm** single-host prod with the same
   services/entrypoints/envs; secrets via Swarm secrets.
-* Healthchecks for web/db; `.env` files only for local—secrets injected via env vars in prod.
+* Healthchecks for web/db; `.env` files only for local—secrets injected via env vars in prod; host-level dependencies
+  limited to Docker Engine and a certificate renewal timer.
+* TLS parity: dev stack runs nginx with self-signed certificates (supporting Vite HMR + PHP-FPM over HTTPS/HTTP/2);
+  prod uses real certificates with identical TLS config. Certbot renewals handled via host `cron`/`systemd` script that
+  runs the containerized `certbot` client and reloads nginx—no long-running socket access inside containers.
 
 **Security**
 
-* Password hashing via sodium/argon2id; rate-limit login; CORS locked to frontend origin; HTTPS enforced in reverse
-  proxy.
+* Password hashing via sodium/argon2id; rate-limit login; CORS locked to frontend origin; HTTPS + HTTP/2 enforced in
+  the reverse proxy; dev uses self-signed certs mirroring prod TLS behaviour.
 
 **Observability**
 
