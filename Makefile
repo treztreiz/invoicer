@@ -1,21 +1,33 @@
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# CONFIGURATION
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+# Expose all .env variables to the commands
 ifneq (,$(wildcard .env))
 include .env
 export $(shell sed -n 's/^\([A-Za-z0-9_]\+\)=.*/\1/p' .env)
 endif
 
-PROJECT_NAME ?= invoicer
-DEV_TAG ?= dev-local
-PROD_TAG ?= prod-local
+# Expose all .env.local variables to the commands (overwrite .env variables)
+ifneq ("$(wildcard .env.local)","")
+include .env.local
+export $(shell sed -n 's/^\([A-Za-z0-9_]\+\)=.*/\1/p' .env.local)
+endif
 
-dev_compose_files := -f ops/compose.base.yaml -f ops/compose.dev.yaml
-COMPOSE := docker compose $(dev_compose_files)
-
-DEV_BACKEND_IMAGE := $(PROJECT_NAME)-backend:$(DEV_TAG)
-DEV_FRONTEND_IMAGE := $(PROJECT_NAME)-frontend:$(DEV_TAG)
-PROD_BACKEND_IMAGE := $(PROJECT_NAME)-backend:$(PROD_TAG)
-PROD_WEB_IMAGE := $(PROJECT_NAME)-web:$(PROD_TAG)
-
+# Expose project name to the commands
+# (see https://docs.docker.com/compose/how-tos/project-name/#set-a-project-name)
 export COMPOSE_PROJECT_NAME := $(PROJECT_NAME)
+
+# compose/stack files
+DEV_FILES := -f ops/compose.base.yaml -f ops/compose.dev.yaml
+PROD_FILES := -c ops/compose.base.yaml -c ops/compose.prod.yaml
+
+# docker compose helper
+COMPOSE := docker compose $(DEV_FILES)
+
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# COMMANDS
+# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 .PHONY: help setup-certs build up down logs web-restart debug-on debug-off build-prod swarm-deploy swarm-remove
 
@@ -72,19 +84,17 @@ debug-off:
 build-prod:
 	docker build -f ops/backend.Dockerfile --target prod \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
-		-t $(PROD_BACKEND_IMAGE) .
+		-t $(PROJECT_NAME)-backend:$(PROD_TAG) .
 	docker build -f ops/frontend.Dockerfile --target prod \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg NGINX_VERSION=$(NGINX_VERSION) \
-		-t $(PROD_WEB_IMAGE) .
+		-t $(PROJECT_NAME)-web:$(PROD_TAG) .
 
 swarm-deploy:
-	WEB_PUBLISHED_PORT=80 WEB_PUBLISHED_TLS_PORT=443 \
-	PROD_BACKEND_IMAGE=$(PROD_BACKEND_IMAGE) \
-	PROD_WEB_IMAGE=$(PROD_WEB_IMAGE) \
-	PROJECT_NAME=$(PROJECT_NAME) \
-	docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml \
-		--with-registry-auth --resolve-image never $(PROJECT_NAME)
+	WEB_PUBLISHED_PORT=$(PROD_WEB_PUBLISHED_PORT) \
+    WEB_PUBLISHED_TLS_PORT=$(PROD_WEB_PUBLISHED_TLS_PORT) \
+	docker stack deploy $(PROD_FILES) \
+		--detach=true --with-registry-auth --resolve-image never $(PROJECT_NAME)
 
 swarm-remove:
 	docker stack rm $(PROJECT_NAME)

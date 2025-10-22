@@ -8,7 +8,6 @@ services:
         PHP_VERSION: ${PHP_VERSION}
     user: "${UID:-1000}:${GID:-1000}"
     environment:
-      APP_ENV: ${APP_ENV:-dev}
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
     volumes:
       - ../backend:/app

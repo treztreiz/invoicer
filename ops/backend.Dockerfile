@@ -83,8 +83,6 @@ RUN set -eux; \
 # ---- production image ----
 FROM base AS prod
 
-ENV APP_ENV=prod
-
 # baked app
 COPY --from=vendor /app /app
 # php prod configuration
