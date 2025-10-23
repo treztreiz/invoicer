@@ -101,8 +101,7 @@ while remaining **production-capable** and **contractor-implementable**.
 * **PDF**: server-side HTML → PDF via headless Chromium (containerized) for consistent rendering. Generated files
   streamed on-demand, not stored.
 * **Jobs**: Symfony Messenger + schedule (cron) to process recurrences and to mark overdue.
-* **Containers**: Dev **and** Prod run in Docker with the same entrypoints and envs (12‑factor); multi-stage images;
-  docker-compose for local and single-host prod.
+* **Containers**: Dev **and** Prod run in Docker with the same entrypoints and envs (12‑factor); multi-stage images; compose base + environment overlays reused for single-host Swarm deploy (parity between stages).
 
 ```plantuml
 @startuml
@@ -335,195 +334,91 @@ InstallmentPlan ||--o{ Installment
 
 ## Implementation
 
-### Global Implementation Plan & Standards (for scaffolding)
+### Repository & build overview
 
-**Repository structure**
+- `api/` – Symfony 7 API Platform (PHP-FPM), Doctrine, Messenger, configured via environment variables (`doc/config.md`,
+  `doc/php-runtime.md`).
+- `webapp/` – React 19 + Vite + TypeScript front end (HMR in dev, static bundle in prod).
+- `ops/`
+    - `images/` – multi-stage Dockerfiles (`api.Dockerfile`, `web.Dockerfile`) producing both dev and prod stages (
+      `doc/images.md`).
+    - `nginx/` – templated nginx config, entrypoint, TLS scripts (`doc/nginx.md`, `doc/certs.md`).
+    - `php/` – shared PHP ini fragments.
+    - `compose.base.yaml` + `compose.dev.yaml` + `compose.prod.yaml` – base definition with dev/prod overlays.
+- Makefile targets drive the workflow: `make setup-certs`, `make build`, `make up`, `make build-prod`,
+  `make swarm-deploy`.
 
-* `backend/` (Symfony), `frontend/` (Vite + React + TypeScript + Tailwind), `ops/` (Dockerfiles, compose, CI).
+### Coding standards
 
-**Coding standards**
+- PHP 8.4+, PSR-12, strict types, PHP-CS-Fixer, PHPStan; tests via PHPUnit.
+- TypeScript strict mode, ESLint + Prettier, TanStack Query, RHF + Zod for forms.
+- Conventional Commits for history hygiene.
 
-* PHP: PHP 8.4+, PSR-12, type-hints everywhere, strict types, Rector for refactors, PHP-CS-Fixer, PHPStan level max.
-* JS/TS: TypeScript **strict** mode, ESLint (typescript-eslint), Prettier, path aliases via `tsconfig.json`.
-* Commit style: Conventional Commits; enforce via commitlint (optional).
+### API guidelines
 
-**API standards**
+- API Platform resources documented via OpenAPI; surface consistent problem-details responses.
+- Avoid URI versioning (single-user scope); apply standard pagination/filter conventions.
+- Mirror validation on client (Zod) and server (Symfony validators).
 
-* API Platform resources with OpenAPI documented; consistent problem-details errors (`application/problem+json`).
-* No URI versioning (single-user app); keep a single API; pagination/filtering standards on list endpoints.
-* Input validation mirrored on client (Zod) and server (Symfony validators).
+### Containers & parity
 
-**Database & Migrations**
+- Dev: compose loads `ops/images/api.Dockerfile` (dev stage) and `ops/images/web.Dockerfile` (dev stage) mounting source
+  directories; nginx handles HTTPS locally using the shared cert volume.
+- Prod: `make build-prod` produces tagged images (`$(PROJECT_NAME)-api:$(PROD_TAG)` /
+  `$(PROJECT_NAME)-web:$(PROD_TAG)`); Swarm deploy (`ops/compose.prod.yaml`) reuses the same base compose file.
+- TLS parity: nginx always expects `/etc/nginx/certs/server.{crt,key}`; `generate-self-signed.sh` seeds the shared
+  volume for dev, future Let’s Encrypt will write into the same location.
+- Rate-limiting, security headers, gzip configured via the templated `nginx.base.conf`; dev include handles HMR extras (
+  no HSTS), prod include serves static bundle.
 
-* Doctrine migrations per change; naming: `V{timestamp}__{slug}`; no raw DDL outside migrations.
-* Naming: snake_case tables/columns; `id` as UUID v7; timestamps as `timestamptz`.
+### Security & observability
 
-**Containers & Dev/Prod parity**
+- Password hashing: sodium/Argon2id; login rate limiting is enforced at nginx layer; CORS locked to the SPA origin.
+- HTTPS everywhere via nginx (HTTP/2 enabled); self-signed certs in dev, real certs in prod.
+- Collect access logs and database slow log (planned); expose minimal Prometheus-style counters where feasible.
 
-* Multi-stage Dockerfiles: builder (deps, assets) → runtime (php-fpm/alpine) for backend; Node builder → Nginx static
-  for frontend (immutable assets).
-* `compose.dev.yml` for local; `docker-stack.yml` for **Docker Swarm** single-host prod with the same
-  services/entrypoints/envs; secrets via Swarm secrets.
-* Healthchecks for web/db; `.env` files only for local—secrets injected via env vars in prod; host-level dependencies
-  limited to Docker Engine and a certificate renewal timer.
-* TLS parity: dev stack runs nginx with self-signed certificates (supporting Vite HMR + PHP-FPM over HTTPS/HTTP/2);
-  prod uses real certificates with identical TLS config. Certbot renewals handled via host `cron`/`systemd` script that
-  runs the containerized `certbot` client and reloads nginx—no long-running socket access inside containers.
+### Symfony runtime
 
-**Security**
+- Environment variables sourced from `.env`/`.env.local` and exported via Makefile (APP_ENV, APP_SECRET, DATABASE_URL,
+  etc.).
+- Xdebug available via `make debug-on` / `debug-off` toggling `XDEBUG_MODE`; dev PHP ini lives in `ops/php/` (see
+  `doc/php-runtime.md`).
+- Doctrine migrations per change; UUIDv7 used for IDs; snake_case schema enforced.
 
-* Password hashing via sodium/argon2id; rate-limit login; CORS locked to frontend origin; HTTPS + HTTP/2 enforced in
-  the reverse proxy; dev uses self-signed certs mirroring prod TLS behaviour.
+### API/Frontend behavior (summary)
 
-**Observability**
+- API Platform resources cover customers, documents, recurrence/installment endpoints, etc. (functional scope unchanged
+  from requirements).
+- Frontend routes: Dashboard, Customers, Quotes, Invoices, Settings; Vite dev server proxied through nginx for TLS
+  parity.
 
-* Access logs, minimal app logs, DB slow query log; Prometheus-ready metrics counters (requests/jobs) where easy.
+### Documentation
 
-**Frontend stack**
+- `README.md` remains concise (overview, commands, directory tree) and links to detailed docs in `doc/`.
+- All technical documentation lives under `doc/`; each file focuses on current implementation (avoid speculative/future sections beyond short placeholders).
 
-* React 19 + Vite + **TypeScript/JSX** + **Tailwind**.
-* State/data: TanStack Query; forms: RHF + Zod; routing with React Router.
-* Tailwind: `@tailwind base; @tailwind components; @tailwind utilities;` with a small design token config.
+### CI & deployment (placeholder)
 
-**Build & CI/CD**
+- GitHub Actions workflows to be added; plan is to run lint/tests, build images (api/web), push to GHCR, deploy via
+  `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`.
 
-* GitHub Actions: PHP static analysis & tests; JS lint & typecheck; docker buildx multi-arch images; push to registry;
-  deploy via **Docker Swarm** (`docker stack deploy -c ops/docker-stack.yml app`).
+## Ops implementation
 
-**Scaffolding checklist**
-
-* Entities/resources: User (+ embedded CompanyProfile), Customer, Document (STI), DocumentLine, InvoiceRecurrence,
-  Installment, NumberSequence.
-* Controllers/processors: document actions; `/me` provider/processor; logo upload.
-* Services: NumberSequenceService, DefaultPricingService, SnapshotService, TotalsService, RecurrenceService,
-  PdfRenderer.
-* Frontend pages: Dashboard, Customers, Quotes, Invoices, Settings (user + company profile + logo).
-* Reusable UI: Form controls, table, pagination, date pickers, toast/alert components.
-
-## Ops Scaffold (minimal)
-
-> These are **skeletons** intended for quick start; teams can expand as needed.
-
-**backend/Dockerfile**
-
-```dockerfile
-# ---- builder ----
-FROM php:8.4-fpm-alpine AS builder
-RUN apk add --no-cache git unzip libpq-dev && docker-php-ext-install pdo_pgsql
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-WORKDIR /app
-COPY backend/composer.json backend/composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts
-COPY backend/ .
-RUN composer dump-autoload --optimize
-
-# ---- runtime ----
-FROM php:8.4-fpm-alpine AS runtime
-RUN apk add --no-cache libpq
-WORKDIR /app
-COPY --from=builder /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
-COPY --from=builder /app /app
-CMD ["php-fpm", "-F"]
-```
-
-**frontend/Dockerfile**
-
-```dockerfile
-# ---- build ----
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
-COPY frontend/ .
-RUN npm run build
-
-# ---- serve static ----
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY ops/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-```
-
-**ops/nginx.conf**
-
-```nginx
-server {
-  listen 80;
-  root /usr/share/nginx/html;
-  index index.html;
-  location /api/ { proxy_pass http://backend:8000/; }
-  location / { try_files $uri /index.html; }
-}
-```
-
-**ops/compose.dev.yml**
-
-```yaml
-services:
-  db:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
-    volumes: [ dbdata:/var/lib/postgresql/data ]
-  backend:
-    build: { context: ., dockerfile: ops/Dockerfile }
-    environment:
-      DATABASE_URL: postgresql://app:app@db:5432/app?serverVersion=18&charset=utf8
-    depends_on: [ db ]
-    ports: [ "8000:9000" ] # php-fpm behind caddy/nginx locally if desired
-  frontend:
-    build: { context: ., dockerfile: frontend/Dockerfile }
-    ports: [ "5173:80" ]
-volumes:
-  dbdata: { }
-```
-
-**ops/docker-stack.yml** (Swarm, single host)
-
-```yaml
-version: "3.8"
-services:
-  db:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-      POSTGRES_DB: app
-    volumes:
-      - dbdata:/var/lib/postgresql/data
-    secrets: [ db_password ]
-
-  backend:
-    image: ghcr.io/you/invoices-backend:latest
-    environment:
-      DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/app?serverVersion=18&charset=utf8
-    deploy: { replicas: 1 }
-    depends_on: [ db ]
-
-  frontend:
-    image: ghcr.io/you/invoices-frontend:latest
-    ports: [ "80:80" ]
-    deploy: { replicas: 1 }
-
-volumes: { dbdata: { } }
-secrets:
-  db_password:
-    external: true
-```
-
-**Makefile (optional, minimal)**
-
-```makefile
-up:
-	docker compose -f ops/compose.dev.yml up -d --build
-
-down:
-	docker compose -f ops/compose.dev.yml down
-
-deploy:
-	docker stack deploy -c ops/docker-stack.yml invoices
-```
+- **Compose layout**: shared base file (`ops/compose.base.yaml`) defines `api`, `web`, `database`, and shared volumes (
+  `database_data`, `certs`). Dev overlay adds Vite HMR (`webapp` service), bind mounts, and HTTPS port overrides. Prod
+  overlay references prebuilt images and mounts the same cert/acme volumes.
+- **make targets**:
+    - `make setup-certs` → seeds `${PROJECT_NAME}_certs` volume with self-signed certs (
+      `./ops/nginx/certs/generate-self-signed.sh`)
+    - `make build` / `make up` / `make down` / `make logs`
+    - `make build-prod` → builds `api` and `web` prod stages
+    - `make swarm-deploy` → `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`
+- **nginx**: templated config (`ops/nginx/nginx.base.conf`) + entrypoint renders `/etc/nginx/conf.d/default.conf`;
+  dev/prod includes provide webapp behavior; TLS certs always `/etc/nginx/certs/server.{crt,key}`. See `doc/nginx.md`.
+- **Images**: `ops/images/api.Dockerfile`, `ops/images/web.Dockerfile` provide multi-stage builds with dev/prod targets;
+  see `doc/images.md`.
+- **Configuration**: `.env` (tracked) + `.env.local` (ignored) merged/exported by Makefile, propagating to all services;
+  see `doc/config.md`.
 
 ## Milestones
 

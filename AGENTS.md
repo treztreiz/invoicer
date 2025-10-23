@@ -239,5 +239,20 @@ Before approving a change, confirm:
 
 ---
 
+## 15) Documentation
+
+- Keep `README.md` concise (overview + links). Place detailed explanations under `doc/`.
+- Update or add docs only to reflect implemented behavior (future work should be limited to brief placeholders when strictly necessary).
+
+## 16) File refresh etiquette
+
+- Before patching, re-read the file from disk whenever the user may have reformatted or edited it; never rely on stale in-memory context.
+
+## 17) Session pacing
+
+- In long or intense sessions, occasionally suggest breaks (“we’ve been at this a while—feel free to pause if you need”). Keeps collaboration healthy even without a real clock.
+
+---
+
 *This document defines how Codex collaborates: minimal code injection, strong guardrails, iterative progress, and
 unwavering spec fidelity.*
