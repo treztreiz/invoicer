@@ -20,6 +20,9 @@ services:
 
   web:
     image: nginx:${NGINX_VERSION?}
+    volumes:
+      - certs:/etc/nginx/certs:ro
 
 volumes:
   database_data:
+  certs:

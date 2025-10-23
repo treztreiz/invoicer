@@ -19,10 +19,8 @@ services:
         mode: ingress
     volumes:
       - uploads:/srv/uploads:ro
-      - certs:/etc/nginx/certs:ro
       - acme:/var/www/certbot:ro
 
 volumes:
   uploads:
-  certs:
   acme:

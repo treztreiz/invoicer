@@ -35,7 +35,6 @@ help:
 	@echo "Dev helpers:"
 	@echo "  make setup-certs    # Generate dev/prod self-signed certs and seed Swarm volume"
 	@echo "  make build          # Build dev images"
-	@echo "  make rebuild        # Build dev images without cache"
 	@echo "  make up             # Start dev stack"
 	@echo "  make down           # Stop dev stack"
 	@echo "  make logs           # Tail dev stack logs"
@@ -47,19 +46,7 @@ help:
 	@echo "  make swarm-remove   # Remove local stack"
 
 setup-certs:
-	mkdir -p ops/certs/dev ops/certs/prod
-	docker run --rm -v "$$PWD"/ops/certs/dev:/certs alpine/mkcert \
-		-key-file /certs/dev.key -cert-file /certs/dev.crt "localhost" 127.0.0.1 ::1
-	docker run --rm -v "$$PWD"/ops/certs/prod:/certs alpine/mkcert \
-		-key-file /certs/prod.key -cert-file /certs/prod.crt "invoices.local"
-	docker run --rm \
-		-v "$$PWD"/ops/certs/prod:/src \
-		-v $(PROJECT_NAME)_certs:/dest \
-		busybox:1.36.1 cp /src/prod.crt /dest/fullchain.pem
-	docker run --rm \
-		-v "$$PWD"/ops/certs/prod:/src \
-		-v $(PROJECT_NAME)_certs:/dest \
-		busybox:1.36.1 cp /src/prod.key /dest/privkey.pem
+	./ops/nginx/certs/generate-self-signed.sh
 
 build:
 	$(COMPOSE) build

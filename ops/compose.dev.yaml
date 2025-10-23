@@ -37,9 +37,9 @@ services:
     volumes:
       - ../api/public/uploads:/srv/uploads:ro
       - ./nginx/nginx.base.conf:/etc/nginx/templates/base.conf.tpl:ro
-      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/include:ro
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/webapp:ro
       - ./nginx/nginx-entrypoint.sh:/docker-entrypoint.d/00-envsubst.sh:ro
-      - ./certs/dev:/etc/nginx/certs:ro
+
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:

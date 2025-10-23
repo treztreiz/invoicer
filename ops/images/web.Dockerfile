@@ -24,6 +24,6 @@ RUN npm run build
 FROM nginx:${NGINX_VERSION?} AS prod
 RUN mkdir -p /etc/nginx/templates
 COPY ops/nginx/nginx.base.conf /etc/nginx/templates/base.conf.tpl
-COPY ops/nginx/nginx.prod.conf /etc/nginx/conf.d/include
+COPY ops/nginx/nginx.prod.conf /etc/nginx/conf.d/webapp
 COPY ops/nginx/nginx-entrypoint.sh /docker-entrypoint.d/00-envsubst.sh
 COPY --from=build /app/dist /usr/share/nginx/html
