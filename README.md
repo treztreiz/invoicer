@@ -37,7 +37,11 @@ ops/            # Dockerfiles, nginx configs, cert scripts
 
 ## Docs
 
+- [Configuration Overview](doc/config.md)
 - [TLS certificates & scripts](doc/certs.md)
+- [nginx runtime & templating](doc/nginx.md)
+- [Docker images & stages](doc/images.md)
+- [PHP runtime & Xdebug](doc/php-runtime.md)
 
 ## Toolchain
 
