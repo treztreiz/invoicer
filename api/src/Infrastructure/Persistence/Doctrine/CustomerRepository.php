@@ -35,9 +35,9 @@ class CustomerRepository extends ServiceEntityRepository implements CustomerRepo
 
     public function findOneById(Uuid $id): ?Customer
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.id = :id')
-            ->setParameter('user', $id, UuidType::NAME)
+        return $this->createQueryBuilder('customer')
+            ->andWhere('customer.id = :id')
+            ->setParameter('id', $id, UuidType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
     }
