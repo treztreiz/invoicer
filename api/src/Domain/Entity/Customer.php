@@ -5,6 +5,8 @@ namespace App\Domain\Entity;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\ValueObject\Address;
+use App\Domain\ValueObject\Contact;
+use App\Domain\ValueObject\Name;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -15,31 +17,13 @@ class Customer
     use TimestampableTrait;
 
     public function __construct(
-        #[ORM\Column(length: 150)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 150)]
-        #[Assert\Regex(pattern: '/\@|\d/', message: "Ce prénom n'est pas valide.", match: false)]
-        private string $firstName,
+        #[ORM\Embedded(columnPrefix: false)]
+        private Name $name,
 
-        #[ORM\Column(length: 150)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 150)]
-        #[Assert\Regex(pattern: '/\@|\d/', message: "Ce nom de famille n'est pas valide.", match: false)]
-        private string $lastName,
+        #[ORM\Embedded(columnPrefix: false)]
+        private Contact $contact,
 
-        #[ORM\Column(length: 180, nullable: true)]
-        #[Assert\NotBlank(allowNull: true)]
-        #[Assert\Email]
-        #[Assert\Length(max: 180)]
-        private ?string $email = null,
-
-        #[ORM\Column(length: 32, nullable: true)]
-        #[Assert\NotBlank(allowNull: true)]
-        #[Assert\Regex('/^(0|(\+[0-9]{2}[. -]?))[1-9]([. -]?[0-9][0-9]){4}$/', message: "Ce numéro n'est pas valide.")]
-        private ?string $phone = null,
-
-        #[ORM\Embedded(Address::class)]
-        #[Assert\Valid]
+        #[ORM\Embedded]
         private Address $address,
 
         #[ORM\Column]
@@ -50,50 +34,26 @@ class Customer
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function getFirstName(): string
+    public function getName(): Name
     {
-        return $this->firstName;
+        return $this->name;
     }
 
-    public function setFirstName(string $firstName): static
+    public function setName(Name $name): static
     {
-        $this->firstName = $firstName;
+        $this->name = $name;
 
         return $this;
     }
 
-    public function getLastName(): string
+    public function getContact(): Contact
     {
-        return $this->lastName;
+        return $this->contact;
     }
 
-    public function setLastName(string $lastName): static
+    public function setContact(Contact $contact): static
     {
-        $this->lastName = $lastName;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(?string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(?string $phone): static
-    {
-        $this->phone = $phone;
+        $this->contact = $contact;
 
         return $this;
     }
