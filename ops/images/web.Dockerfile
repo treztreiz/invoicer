@@ -6,9 +6,9 @@ ARG NGINX_VERSION
 # ---- base image ----
 FROM node:${NODE_VERSION?} AS base
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY webapp/package*.json ./
 RUN npm ci
-COPY frontend/ .
+COPY webapp/ .
 
 # ---- Dev image ----
 FROM base AS dev
@@ -22,5 +22,8 @@ RUN npm run build
 
 # ---- production image ----
 FROM nginx:${NGINX_VERSION?} AS prod
-COPY ops/conf.d/nginx.prod.conf /etc/nginx/conf.d/default.conf
+RUN mkdir -p /etc/nginx/templates
+COPY ops/nginx/nginx.base.conf /etc/nginx/templates/base.conf.tpl
+COPY ops/nginx/nginx.prod.conf /etc/nginx/conf.d/include
+COPY ops/nginx/nginx-entrypoint.sh /docker-entrypoint.d/00-envsubst.sh
 COPY --from=build /app/dist /usr/share/nginx/html

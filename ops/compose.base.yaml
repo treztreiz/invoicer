@@ -13,22 +13,13 @@ services:
     volumes:
       - database_data:/var/lib/postgresql/data
 
-  backend:
+  api:
     environment:
       APP_SECRET: ${APP_SECRET?}
       DATABASE_URL: postgresql://${POSTGRES_USER?}:${POSTGRES_PASSWORD?}@database:5432/${POSTGRES_DB?}?serverVersion=${POSTGRES_SERVER_VERSION?}&charset=utf8
 
   web:
     image: nginx:${NGINX_VERSION?}
-    ports:
-      - target: 80
-        published: ${WEB_PUBLISHED_PORT:-80}
-        protocol: tcp
-        mode: ingress
-      - target: 443
-        published: ${WEB_PUBLISHED_TLS_PORT:-443}
-        protocol: tcp
-        mode: ingress
 
 volumes:
   database_data:

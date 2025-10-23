@@ -15,21 +15,21 @@ Thumbs.db
 .env.test.local
 .php-version
 
-# Symfony / backend
-backend/var/
-backend/vendor/
-backend/public/bundles/
-backend/public/uploads/
-backend/.phpunit.result.cache
-backend/phpunit.xml
+# Symfony / api
+api/var/
+api/vendor/
+api/public/bundles/
+api/public/uploads/
+api/.phpunit.result.cache
+api/phpunit.xml
 
-# Node / frontend
-frontend/node_modules/
-frontend/.npm/
-frontend/.pnpm-store/
-frontend/dist/
-frontend/.vite/
-frontend/coverage/
+# Node / webapp
+webapp/node_modules/
+webapp/.npm/
+webapp/.pnpm-store/
+webapp/dist/
+webapp/.vite/
+webapp/coverage/
 
 # Logs & caches
 **/npm-debug.log*

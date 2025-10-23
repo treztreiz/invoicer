@@ -35,13 +35,14 @@ help:
 	@echo "Dev helpers:"
 	@echo "  make setup-certs    # Generate dev/prod self-signed certs and seed Swarm volume"
 	@echo "  make build          # Build dev images"
+	@echo "  make rebuild        # Build dev images without cache"
 	@echo "  make up             # Start dev stack"
 	@echo "  make down           # Stop dev stack"
 	@echo "  make logs           # Tail dev stack logs"
 	@echo "  make web-restart    # Recreate nginx (web) service"
-	@echo "  make debug-on       # Enable Xdebug (backend) and restart service"
+	@echo "  make debug-on       # Enable Xdebug (api) and restart service"
 	@echo "  make debug-off      # Disable Xdebug and restart service"
-	@echo "  make build-prod     # Build prod images (backend/frontend)"
+	@echo "  make build-prod     # Build prod images (api/web)"
 	@echo "  make swarm-deploy   # Deploy stack locally for prod rehearsal"
 	@echo "  make swarm-remove   # Remove local stack"
 
@@ -76,23 +77,21 @@ web-restart:
 	$(COMPOSE) up -d --force-recreate web
 
 debug-on:
-	XDEBUG_MODE=debug,develop $(COMPOSE) up -d --force-recreate backend
+	XDEBUG_MODE=debug,develop $(COMPOSE) up -d --force-recreate api
 
 debug-off:
-	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate backend
+	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate api
 
 build-prod:
-	docker build -f ops/images/backend.Dockerfile --target prod \
+	docker build -f ops/images/api.Dockerfile --target prod \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
-		-t $(PROJECT_NAME)-backend:$(PROD_TAG) .
-	docker build -f ops/images/frontend.Dockerfile --target prod \
+		-t $(PROJECT_NAME)-api:$(PROD_TAG) .
+	docker build -f ops/images/web.Dockerfile --target prod \
 		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg NGINX_VERSION=$(NGINX_VERSION) \
 		-t $(PROJECT_NAME)-web:$(PROD_TAG) .
 
 swarm-deploy:
-	WEB_PUBLISHED_PORT=$(PROD_WEB_PUBLISHED_PORT) \
-    WEB_PUBLISHED_TLS_PORT=$(PROD_WEB_PUBLISHED_TLS_PORT) \
 	docker stack deploy $(PROD_FILES) \
 		--detach=true --with-registry-auth --resolve-image never $(PROJECT_NAME)
 

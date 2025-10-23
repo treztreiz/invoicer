@@ -1,8 +1,8 @@
 services:
-  backend:
+  api:
     build:
       context: ..
-      dockerfile: ops/images/backend.Dockerfile
+      dockerfile: ops/images/api.Dockerfile
       target: dev
       args:
         PHP_VERSION: ${PHP_VERSION}
@@ -10,30 +10,37 @@ services:
     environment:
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
     volumes:
-      - ../backend:/app
+      - ../api:/app
     depends_on:
       - database
 
-  frontend:
+  webapp:
     build:
       context: ..
-      dockerfile: ops/images/frontend.Dockerfile
+      dockerfile: ops/images/web.Dockerfile
       target: dev
       args:
         NODE_VERSION: ${NODE_VERSION}
         NGINX_VERSION: ${NGINX_VERSION}
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
-      - ../frontend:/app
+      - ../webapp:/app
     depends_on:
-      - backend
+      - api
 
   web:
+    environment:
+      HTTPS_PORT: ${WEB_PUBLISHED_TLS_PORT:-443}
+    ports:
+      - "${WEB_PUBLISHED_PORT:-80}:80"
+      - "${WEB_PUBLISHED_TLS_PORT:-443}:443"
     volumes:
-      - ./conf.d/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../api/public/uploads:/srv/uploads:ro
+      - ./nginx/nginx.base.conf:/etc/nginx/templates/base.conf.tpl:ro
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/include:ro
+      - ./nginx/nginx-entrypoint.sh:/docker-entrypoint.d/00-envsubst.sh:ro
       - ./certs/dev:/etc/nginx/certs:ro
-      - ../backend/public/uploads:/srv/uploads:ro
     extra_hosts:
       - host.docker.internal:host-gateway
     depends_on:
-      - frontend
+      - webapp

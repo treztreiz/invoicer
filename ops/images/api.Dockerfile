@@ -35,7 +35,7 @@ RUN set -eux; \
 # composer installation
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # php main configuration
-COPY --link ops/conf.d/10-php.ini /usr/local/etc/php/conf.d/
+COPY --link ops/php/10-php.ini /usr/local/etc/php/conf.d/
 
 EXPOSE 9000
 CMD ["php-fpm", "-F"]
@@ -57,7 +57,7 @@ RUN set -eux; \
     rm -rf /tmp/* /var/cache/apk/*
 
 # php/xdebug configuration
-COPY --link ops/conf.d/20-php.dev.ini /usr/local/etc/php/conf.d/
+COPY --link ops/php/20-php.dev.ini /usr/local/etc/php/conf.d/
 
 # ---- vendor build (for prod) ----
 FROM base AS vendor
@@ -86,4 +86,4 @@ FROM base AS prod
 # baked app
 COPY --from=vendor /app /app
 # php prod configuration
-COPY --link ops/conf.d/20-php.prod.ini /usr/local/etc/php/conf.d/
+COPY --link ops/php/20-php.prod.ini /usr/local/etc/php/conf.d/

@@ -75,7 +75,8 @@ while remaining **production-capable** and **contractor-implementable**.
   user); HTTPS terminated at nginx with **HTTP/2** enabled; self-signed certs in dev (mkcert or equivalent) and managed
   certs in prod.
 * **Operability**: Dockerized **dev and prod** with parity; one-command bootstrap; scheduled backups and documented
-  restore; production images built via GitHub Actions and published to GHCR; deployment secrets stored in GitHub Secrets.
+  restore; production images built via GitHub Actions and published to GHCR; deployment secrets stored in GitHub
+  Secrets.
 * **Testability**: unit tests on totals/reference rules; API contract tests for key endpoints; smoke tests for
   PDF/export.
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
@@ -439,7 +440,7 @@ RUN npm run build
 # ---- serve static ----
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY ops/conf.d/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ops/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 ```
 
 **ops/nginx.conf**
@@ -458,24 +459,24 @@ server {
 
 ```yaml
 services:
-    db:
-        image: postgres:18-alpine
-        environment:
-            POSTGRES_USER: app
-            POSTGRES_PASSWORD: app
-            POSTGRES_DB: app
-        volumes: [ dbdata:/var/lib/postgresql/data ]
-    backend:
-        build: { context: ., dockerfile: ops/Dockerfile }
-        environment:
-            DATABASE_URL: postgresql://app:app@db:5432/app?serverVersion=18&charset=utf8
-        depends_on: [ db ]
-        ports: [ "8000:9000" ] # php-fpm behind caddy/nginx locally if desired
-    frontend:
-        build: { context: ., dockerfile: frontend/Dockerfile }
-        ports: [ "5173:80" ]
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    volumes: [ dbdata:/var/lib/postgresql/data ]
+  backend:
+    build: { context: ., dockerfile: ops/Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://app:app@db:5432/app?serverVersion=18&charset=utf8
+    depends_on: [ db ]
+    ports: [ "8000:9000" ] # php-fpm behind caddy/nginx locally if desired
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile }
+    ports: [ "5173:80" ]
 volumes:
-    dbdata: { }
+  dbdata: { }
 ```
 
 **ops/docker-stack.yml** (Swarm, single host)
@@ -483,32 +484,32 @@ volumes:
 ```yaml
 version: "3.8"
 services:
-    db:
-        image: postgres:18-alpine
-        environment:
-            POSTGRES_USER: app
-            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-            POSTGRES_DB: app
-        volumes:
-            - dbdata:/var/lib/postgresql/data
-        secrets: [ db_password ]
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: app
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    secrets: [ db_password ]
 
-    backend:
-        image: ghcr.io/you/invoices-backend:latest
-        environment:
-            DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/app?serverVersion=18&charset=utf8
-        deploy: { replicas: 1 }
-        depends_on: [ db ]
+  backend:
+    image: ghcr.io/you/invoices-backend:latest
+    environment:
+      DATABASE_URL: postgresql://app:${DB_PASSWORD}@db:5432/app?serverVersion=18&charset=utf8
+    deploy: { replicas: 1 }
+    depends_on: [ db ]
 
-    frontend:
-        image: ghcr.io/you/invoices-frontend:latest
-        ports: [ "80:80" ]
-        deploy: { replicas: 1 }
+  frontend:
+    image: ghcr.io/you/invoices-frontend:latest
+    ports: [ "80:80" ]
+    deploy: { replicas: 1 }
 
 volumes: { dbdata: { } }
 secrets:
-    db_password:
-        external: true
+  db_password:
+    external: true
 ```
 
 **Makefile (optional, minimal)**
