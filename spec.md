@@ -384,6 +384,7 @@ InstallmentPlan ||--o{ Installment
 - Xdebug available via `make debug-on` / `debug-off` toggling `XDEBUG_MODE`; dev PHP ini lives in `ops/php/` (see
   `doc/php-runtime.md`).
 - Doctrine migrations per change; UUIDv7 used for IDs; snake_case schema enforced.
+- Aggregates remain mutable (Doctrine friendly); invariants enforced via methods/validators rather than recreating objects; value objects (e.g., Address) stay immutable.
 
 ### API/Frontend behavior (summary)
 
@@ -391,6 +392,7 @@ InstallmentPlan ||--o{ Installment
   from requirements).
 - Frontend routes: Dashboard, Customers, Quotes, Invoices, Settings; Vite dev server proxied through nginx for TLS
   parity.
+- DTOs carry server-side validation (Symfony Validator). React forms use client validation for UX, but primitives are always validated on the backend before touching domain entities.
 
 ### Documentation
 
@@ -419,6 +421,7 @@ InstallmentPlan ||--o{ Installment
   see `doc/images.md`.
 - **Configuration**: `.env` (tracked) + `.env.local` (ignored) merged/exported by Makefile, propagating to all services;
   see `doc/config.md`.
+- **Autowiring strategy**: domain contracts live under `App\Domain\Contracts`; Symfony autowires the single implementation automatically (`App\Infrastructure\...`) while hexagonal boundaries remain intact. Explicit aliases only needed if multiple adapters appear.
 
 ## Milestones
 

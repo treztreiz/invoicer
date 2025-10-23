@@ -29,7 +29,7 @@ COMPOSE := docker compose $(DEV_FILES)
 # COMMANDS
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-.PHONY: help setup-certs build up down logs web-restart debug-on debug-off build-prod swarm-deploy swarm-remove
+.PHONY: help setup-certs build up down logs web-restart debug-on debug-off shell-api build-prod swarm-deploy swarm-remove
 
 help:
 	@echo "Dev helpers:"
@@ -68,6 +68,9 @@ debug-on:
 
 debug-off:
 	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate api
+
+shell-api:
+	$(COMPOSE) exec api bash
 
 build-prod:
 	docker build -f ops/images/api.Dockerfile --target prod \
