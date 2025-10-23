@@ -65,12 +65,12 @@ FROM base AS vendor
 ENV APP_ENV=prod
 
 # prevent the reinstallation of vendors at every changes in the source code
-COPY --link backend/composer.* backend/symfony.* ./
+COPY --link api/composer.* api/symfony.* ./
 RUN set -eux; \
 	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
 # copy sources
-COPY --link backend/ .
+COPY --link api/ .
 
 # bake the Symfony app for production
 RUN set -eux; \
