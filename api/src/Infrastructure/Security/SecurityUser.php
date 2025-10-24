@@ -2,7 +2,7 @@
 
 namespace App\Infrastructure\Security;
 
-use App\Domain\Entity\User;
+use App\Domain\Entity\User\User;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 

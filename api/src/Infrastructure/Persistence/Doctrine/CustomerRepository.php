@@ -3,14 +3,14 @@
 namespace App\Infrastructure\Persistence\Doctrine;
 
 use App\Domain\Contracts\CustomerRepositoryInterface;
-use App\Domain\Entity\Customer;
+use App\Domain\Entity\Customer\Customer;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @extends ServiceEntityRepository<Customer>
+ * @extends ServiceEntityRepository<\App\Domain\Entity\Customer\Customer>
  */
 class CustomerRepository extends ServiceEntityRepository implements CustomerRepositoryInterface
 {

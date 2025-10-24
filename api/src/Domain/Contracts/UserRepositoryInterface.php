@@ -2,7 +2,7 @@
 
 namespace App\Domain\Contracts;
 
-use App\Domain\Entity\User;
+use App\Domain\Entity\User\User;
 use Symfony\Component\Uid\Uuid;
 
 interface UserRepositoryInterface

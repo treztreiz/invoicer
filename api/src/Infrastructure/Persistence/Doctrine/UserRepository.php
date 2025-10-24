@@ -3,7 +3,7 @@
 namespace App\Infrastructure\Persistence\Doctrine;
 
 use App\Domain\Contracts\UserRepositoryInterface;
-use App\Domain\Entity\User;
+use App\Domain\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -13,7 +13,7 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @extends ServiceEntityRepository<User>
+ * @extends ServiceEntityRepository<\App\Domain\Entity\User\User>
  */
 class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface, PasswordUpgraderInterface
 {
