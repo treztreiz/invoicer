@@ -395,6 +395,7 @@ InstallmentPlan ||--o{ Installment
 - Frontend routes: Dashboard, Customers, Quotes, Invoices, Settings; Vite dev server proxied through nginx for TLS
   parity.
 - DTOs carry server-side validation (Symfony Validator). React forms use client validation for UX, but primitives are always validated on the backend before touching domain entities.
+- Custom routes live in `config/routes/` (grouped by feature) so the root `routes.yaml` remains an import hub.
 
 ### Documentation
 
@@ -405,6 +406,7 @@ InstallmentPlan ||--o{ Installment
 
 - GitHub Actions workflows to be added; plan is to run lint/tests, build images (api/web), push to GHCR, deploy via
   `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`.
+- JWT keys (`config/jwt/*.pem`) are generated at runtime (e.g., `lexik:jwt:generate-keypair` with `JWT_PASSPHRASE` from env). Never commit the key files or real passphrases; provision them during deploy/CI via secrets.
 
 ## Ops implementation
 

@@ -1,28 +1,32 @@
 services:
-  database:
-    image: postgres:${POSTGRES_VERSION?}
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB?}
-      POSTGRES_USER: ${POSTGRES_USER?}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?}
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-d", "${POSTGRES_DB?}", "-U", "${POSTGRES_USER?}" ]
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    volumes:
-      - database_data:/var/lib/postgresql/data
+    database:
+        image: postgres:${POSTGRES_VERSION?}
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB?}
+            POSTGRES_USER: ${POSTGRES_USER?}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?}
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-d", "${POSTGRES_DB?}", "-U", "${POSTGRES_USER?}" ]
+            timeout: 5s
+            retries: 5
+            start_period: 60s
+        volumes:
+            - database_data:/var/lib/postgresql/data
 
-  api:
-    environment:
-      APP_SECRET: ${APP_SECRET?}
-      DATABASE_URL: postgresql://${POSTGRES_USER?}:${POSTGRES_PASSWORD?}@database:5432/${POSTGRES_DB?}?serverVersion=${POSTGRES_SERVER_VERSION?}&charset=utf8
+    api:
+        environment:
+            DEFAULT_URI: ${DEFAULT_URI?}
+            APP_SECRET: ${APP_SECRET?}
+            JWT_SECRET_KEY: ${JWT_SECRET_KEY?}
+            JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY?}
+            JWT_PASSPHRASE: ${JWT_PASSPHRASE?}
+            DATABASE_URL: postgresql://${POSTGRES_USER?}:${POSTGRES_PASSWORD?}@database:5432/${POSTGRES_DB?}?serverVersion=${POSTGRES_SERVER_VERSION?}&charset=utf8
 
-  web:
-    image: nginx:${NGINX_VERSION?}
-    volumes:
-      - certs:/etc/nginx/certs:ro
+    web:
+        image: nginx:${NGINX_VERSION?}
+        volumes:
+            - certs:/etc/nginx/certs:ro
 
 volumes:
-  database_data:
-  certs:
+    database_data:
+    certs:

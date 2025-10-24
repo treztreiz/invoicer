@@ -61,7 +61,6 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
         }
 
         $user->password = $newHashedPassword;
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        $this->save($user);
     }
 }
