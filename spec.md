@@ -385,6 +385,8 @@ InstallmentPlan ||--o{ Installment
   `doc/php-runtime.md`).
 - Doctrine migrations per change; UUIDv7 used for IDs; snake_case schema enforced.
 - Aggregates remain mutable (Doctrine friendly); invariants enforced via methods/validators rather than recreating objects; value objects (e.g., Address) stay immutable.
+- Favor PHP 8.4 property hooks for simple getters/setters on aggregates; when domain rules apply expose explicit methods (e.g., `rename`, `archive`) and keep the hook `private` to force usage through the business API.
+- Prefer expressive property names (e.g., `isArchived`, `hasInstallments`) since properties are the primary read access; promote a property to a method when richer behavior is needed.
 
 ### API/Frontend behavior (summary)
 

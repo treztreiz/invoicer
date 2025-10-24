@@ -11,7 +11,7 @@ use App\Domain\ValueObject\Name;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-class Customer
+final class Customer
 {
     use UuidTrait;
     use TimestampableTrait;
@@ -19,51 +19,13 @@ class Customer
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
-        private Name $name,
+        public Name $name,
 
         #[ORM\Embedded(columnPrefix: false)]
-        private Contact $contact,
+        public Contact $contact,
 
         #[ORM\Embedded]
-        private Address $address,
+        public Address $address,
     ) {
-    }
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public function getName(): Name
-    {
-        return $this->name;
-    }
-
-    public function setName(Name $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getContact(): Contact
-    {
-        return $this->contact;
-    }
-
-    public function setContact(Contact $contact): static
-    {
-        $this->contact = $contact;
-
-        return $this;
-    }
-
-    public function getAddress(): Address
-    {
-        return $this->address;
-    }
-
-    public function setAddress(Address $address): static
-    {
-        $this->address = $address;
-
-        return $this;
     }
 }

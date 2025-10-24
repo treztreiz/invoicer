@@ -252,6 +252,11 @@ Before approving a change, confirm:
 
 - In long or intense sessions, occasionally suggest breaks (“we’ve been at this a while—feel free to pause if you need”). Keeps collaboration healthy even without a real clock.
 
+## 18) Entities & property hooks
+
+- When reviewing aggregates, remember we use PHP 8.4 property hooks for simple getters/setters. If the user introduces or changes domain methods, ensure setters are private and mutations go through explicit business methods. Value objects stay immutable (`readonly`).
+- Encourage descriptive property names (e.g., `isArchived`, `hasInstallments`) since properties act as the primary read access; request a dedicated method only when richer behavior is required.
+
 ---
 
 *This document defines how Codex collaborates: minimal code injection, strong guardrails, iterative progress, and

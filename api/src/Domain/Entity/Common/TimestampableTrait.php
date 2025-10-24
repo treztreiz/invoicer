@@ -11,17 +11,9 @@ trait TimestampableTrait
 {
     #[Gedmo\Timestampable(on: 'create')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
-    private ?DateTimeImmutable $createdAt = null {
-        get {
-            return $this->createdAt;
-        }
-    }
+    private(set) ?DateTimeImmutable $createdAt = null;
 
     #[Gedmo\Timestampable(on: 'update')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
-    private ?DateTimeImmutable $updatedAt = null {
-        get {
-            return $this->updatedAt;
-        }
-    }
+    private(set) ?DateTimeImmutable $updatedAt = null;
 }

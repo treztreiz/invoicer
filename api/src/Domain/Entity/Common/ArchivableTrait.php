@@ -7,18 +7,20 @@ use Doctrine\ORM\Mapping as ORM;
 trait ArchivableTrait
 {
     #[ORM\Column]
-    private bool $archived = false;
+    private(set) bool $isArchived = false;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function isArchived(): bool
+    public function archive(): static
     {
-        return $this->archived;
+        $this->isArchived = true;
+
+        return $this;
     }
 
-    public function setArchived(bool $archived): static
+    public function unarchive(): static
     {
-        $this->archived = $archived;
+        $this->isArchived = false;
 
         return $this;
     }
