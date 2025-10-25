@@ -2,11 +2,11 @@
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\ValueObject\Money;
-use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -75,25 +75,9 @@ abstract class Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected function addLine(
-        string $description,
-        Quantity $quantity,
-        Money $unitPrice,
-        Money $amountNet,
-        Money $amountTax,
-        Money $amountGross,
-        int $position
-    ): DocumentLine {
-        $line = new DocumentLine(
-            $this,
-            $description,
-            $quantity,
-            $unitPrice,
-            $amountNet,
-            $amountTax,
-            $amountGross,
-            $position
-        );
+    protected function addLine(DocumentLinePayload $payload): DocumentLine
+    {
+        $line = DocumentLine::fromPayload($this, $payload);
 
         $this->registerLine($line);
 

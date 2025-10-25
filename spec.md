@@ -165,30 +165,46 @@ entity Customer {
 entity Document {
   id: uuid
   type: enum(QUOTE, INVOICE)
-  status: enum(DRAFT, ISSUED, OVERDUE, PAID, VOIDED, SENT?, ACCEPTED?, REJECTED?)
-  reference: string?  ' set on ISSUE for invoices
+  reference: string?  ' set on issue/acceptance
   title: string
   subtitle: string?
   currency: string       ' ISO 4217
   vat_rate: numeric(5,2) ' single rate per document
   customer_snapshot: jsonb
   company_snapshot: jsonb
-  issued_at: timestamptz?
-  due_date: date?
-  paid_at: timestamptz?  ' used by revenue reports (per invoice)
+  subtotal_net_amount: numeric(12,2)
+  tax_total_amount: numeric(12,2)
+  grand_total_amount: numeric(12,2)
   created_at: timestamptz
   updated_at: timestamptz
+}
+
+entity Quote {
+  id: uuid PK/FK -> Document.id
+  status: enum(DRAFT, SENT, ACCEPTED, REJECTED)
+  sent_at: timestamptz?
+  accepted_at: timestamptz?
+  rejected_at: timestamptz?
+  converted_invoice_id: uuid?
+}
+
+entity Invoice {
+  id: uuid PK/FK -> Document.id
+  status: enum(DRAFT, ISSUED, OVERDUE, PAID, VOIDED)
+  issued_at: timestamptz?
+  due_date: date?
+  paid_at: timestamptz?
 }
 
 entity DocumentLine {
   id: uuid
   document_id: uuid FK -> Document.id
   description: text
-  quantity: numeric(12,3)
-  unit_price: numeric(12,2)
-  amount_net: numeric(12,2)
-  amount_tax: numeric(12,2)
-  amount_gross: numeric(12,2)
+  quantity_value: numeric(12,3)
+  unit_price_amount: numeric(12,2)
+  amount_net_amount: numeric(12,2)
+  amount_tax_amount: numeric(12,2)
+  amount_gross_amount: numeric(12,2)
   position: int
 }
 
@@ -237,26 +253,33 @@ InstallmentPlan ||--o{ Installment
 
 * **Document.customer_snapshot** contains a denormalized copy of the Customer fields at creation/conversion time (
   immutability of documents).
-* **Totals** are materialized on **Document** to speed up lists; lines also store `line_total_net` to avoid recompute.
+* **Totals & VAT** are stored through Doctrine embeddables (`Money`, `VatRate`, `Quantity`). Expect column names such as
+  `subtotal_net_amount` or `unit_price_amount` generated from those value objects, and lines keep denormalized net/tax/gross amounts.
+* **Statuses** live on the child tables: `Quote.status` covers `DRAFT/SENT/ACCEPTED/REJECTED`; `Invoice.status` covers
+  `DRAFT/ISSUED/OVERDUE/PAID/VOIDED`.
 * **Mutual exclusivity** enforced by DB constraints + domain checks: a document can have *either* a row in
   `InvoiceRecurrence` *or* in `InstallmentPlan` (but not both). Use partial unique indexes.
 
-### Doctrine Mapping Strategy (STI)
+### Doctrine Mapping Strategy (JOINED)
 
-**Goal:** keep a single `document` table while modeling `Quote` and `Invoice` as separate Doctrine entities.
+**Goal:** keep shared columns in `document` while giving `Quote`/`Invoice` their own tables for type-specific data.
 
-* **Inheritance:** Doctrine `SINGLE_TABLE` with discriminator column named `type` and values `QUOTE` / `INVOICE`.
+* **Inheritance:** Doctrine `JOINED` inheritance with discriminator column `type` (`QUOTE` / `INVOICE`).
+* **Child tables:** `quote` and `invoice` tables hold lifecycle/status fields and reuse the parent primary key.
 * **Lines relation:** `DocumentLine` → `Document` (ManyToOne), and `Document` → `DocumentLine` (OneToMany) defined on
   the abstract `Document` class.
-* **Invoice-only relations:** map recurrence and installment associations **to `Invoice` only** in the ORM. At the
-  database level the FK still targets `document.id`.
-* **Polymorphic queries:** use DQL `INSTANCE OF` (or API Platform subresources) to fetch only invoices or only quotes.
-* **DB guards:** keep a discriminator `CHECK` constraint on `document.type`. Add small constraint triggers on
-  `invoice_recurrence` and `installment_plan` that assert the referenced `document` row has `type = 'INVOICE'`.
-* **Repository guidance:** provide dedicated repository methods such as `InvoiceRepository::findOverdue()` that scope by
-  child type to avoid accidental mixed-type queries.
-* **Serialization:** expose parent `Document` with read‑only `type`, and optionally expose child resources (`/invoices`,
-  `/quotes`) for convenience.
+* **Invoice-only relations:** map recurrence and installment associations **to `Invoice` only** in the ORM. FKs still
+  point to `document.id`.
+* **Polymorphic queries:** use DQL `INSTANCE OF` (or dedicated repositories) to filter by type without duplicating logic.
+* **DB guards:** keep a discriminator `CHECK` constraint on `document.type` and enforce `invoice_recurrence` /
+  `installment_plan` to reference only invoices.
+* **Serialization:** expose parent `Document` with read-only `type`; child-specific resources (`/quotes`, `/invoices`)
+  surface their extra fields when needed.
+
+### Domain DTOs & Payloads
+
+* Use domain-level payloads (e.g., `DocumentLinePayload`) to hydrate aggregates without duplicating long constructor
+  signatures. Application services map API DTOs → domain payloads before invoking the domain layer.
 
 ### Numbering & Status Rules
 

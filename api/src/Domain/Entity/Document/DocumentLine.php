@@ -2,6 +2,7 @@
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
@@ -43,6 +44,23 @@ class DocumentLine
     ) {
         $this->assertDescription($description);
         $this->assertPosition($position);
+    }
+
+    public static function fromPayload(Document $document, DocumentLinePayload $payload): self
+    {
+        $ctor = new \ReflectionMethod(self::class, '__construct');
+        $params = \array_slice($ctor->getParameters(), 1); // skip `$document`
+        $arguments = [$document];
+
+        foreach ($params as $parameter) {
+            $name = $parameter->getName();
+
+            $arguments[] = property_exists($payload, $name)
+                ? $payload->$name
+                : throw new \InvalidArgumentException(sprintf('Payload missing `%s`.', $name));
+        }
+
+        return new self(...$arguments);
     }
 
     public function reassign(Document $document, int $position): void
