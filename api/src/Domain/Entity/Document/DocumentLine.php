@@ -25,19 +25,19 @@ class DocumentLine
         private(set) string $description,
 
         #[ORM\Embedded]
-        private(set) readonly Quantity $quantity,
+        public private(set) readonly Quantity $quantity,
 
         #[ORM\Embedded]
-        private(set) readonly Money $unitPrice,
+        public private(set) readonly Money $unitPrice,
 
         #[ORM\Embedded]
-        private(set) readonly Money $amountNet,
+        public private(set) readonly Money $amountNet,
 
         #[ORM\Embedded]
-        private(set) readonly Money $amountTax,
+        public private(set) readonly Money $amountTax,
 
         #[ORM\Embedded]
-        private(set) readonly Money $amountGross,
+        public private(set) readonly Money $amountGross,
 
         #[ORM\Column(type: Types::INTEGER)]
         private(set) int $position,

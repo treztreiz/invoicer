@@ -16,10 +16,10 @@ final class Company
         },
 
         #[ORM\Embedded(columnPrefix: false)]
-        private(set) readonly Contact $contact,
+        public private(set) readonly Contact $contact,
 
         #[ORM\Embedded]
-        private(set) readonly Address $address,
+        public private(set) readonly Address $address,
 
         #[ORM\Column(length: 3)]
         private(set) string $defaultCurrency {
@@ -27,13 +27,13 @@ final class Company
         },
 
         #[ORM\Embedded]
-        private(set) readonly Money $defaultHourlyRate,
+        public private(set) readonly Money $defaultHourlyRate,
 
         #[ORM\Embedded]
-        private(set) readonly Money $defaultDailyRate,
+        public private(set) readonly Money $defaultDailyRate,
 
         #[ORM\Embedded]
-        private(set) readonly VatRate $defaultVatRate,
+        public private(set) readonly VatRate $defaultVatRate,
 
         #[ORM\Column(type: Types::TEXT, nullable: true)]
         private(set) ?string $legalMention = null {

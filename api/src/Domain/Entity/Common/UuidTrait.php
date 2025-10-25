@@ -13,5 +13,5 @@ trait UuidTrait
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
-    protected(set) ?Uuid $id = null;
+    public protected(set) ?Uuid $id = null;
 }

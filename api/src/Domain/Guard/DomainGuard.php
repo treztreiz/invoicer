@@ -2,8 +2,6 @@
 
 namespace App\Domain\Guard;
 
-use InvalidArgumentException;
-
 final class DomainGuard
 {
     private function __construct()
@@ -14,8 +12,8 @@ final class DomainGuard
     {
         $trimmed = trim($value);
 
-        if ($trimmed === '') {
-            throw new InvalidArgumentException(sprintf('%s cannot be blank.', $label));
+        if ('' === $trimmed) {
+            throw new \InvalidArgumentException(sprintf('%s cannot be blank.', $label));
         }
 
         return $trimmed;
@@ -23,13 +21,13 @@ final class DomainGuard
 
     public static function optionalNonEmpty(?string $value, string $label): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
         $trimmed = trim($value);
 
-        return $trimmed === '' ? null : $trimmed;
+        return '' === $trimmed ? null : $trimmed;
     }
 
     public static function personName(string $value, string $label): string
@@ -37,7 +35,7 @@ final class DomainGuard
         $name = self::nonEmpty($value, sprintf('%s cannot be blank.', $label));
 
         if (!preg_match("/^[\p{L}'\-\s]+$/u", $name)) {
-            throw new InvalidArgumentException(sprintf('%s contains invalid characters.', $label));
+            throw new \InvalidArgumentException(sprintf('%s contains invalid characters.', $label));
         }
 
         return $name;
@@ -45,14 +43,14 @@ final class DomainGuard
 
     public static function email(?string $value, string $label = 'Email'): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
         $normalized = strtolower(self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
         if (!filter_var($normalized, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException(sprintf('%s is not valid.', $label));
+            throw new \InvalidArgumentException(sprintf('%s is not valid.', $label));
         }
 
         return $normalized;
@@ -60,14 +58,14 @@ final class DomainGuard
 
     public static function phone(?string $value, string $label = 'Phone'): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
         $normalized = preg_replace('/\s+/', '', self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
-        if ($normalized === null || !preg_match('/^\+?[0-9().-]{6,20}$/', $normalized)) {
-            throw new InvalidArgumentException(sprintf('%s is not valid.', $label));
+        if (null === $normalized || !preg_match('/^\+?[0-9().-]{6,20}$/', $normalized)) {
+            throw new \InvalidArgumentException(sprintf('%s is not valid.', $label));
         }
 
         return $normalized;
@@ -78,7 +76,7 @@ final class DomainGuard
         $code = strtoupper(self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
         if (!preg_match('/^[A-Z]{2}$/', $code)) {
-            throw new InvalidArgumentException(sprintf('%s must be a two-letter ISO 3166-1 alpha-2 code.', $label));
+            throw new \InvalidArgumentException(sprintf('%s must be a two-letter ISO 3166-1 alpha-2 code.', $label));
         }
 
         return $code;
@@ -88,8 +86,8 @@ final class DomainGuard
     {
         $code = strtoupper(self::nonEmpty($value, sprintf('%s code is required.', $label)));
 
-        if (strlen($code) !== 3) {
-            throw new InvalidArgumentException(sprintf('%s must be a 3-letter ISO 4217 code.', $label));
+        if (3 !== strlen($code)) {
+            throw new \InvalidArgumentException(sprintf('%s must be a 3-letter ISO 4217 code.', $label));
         }
 
         return $code;
@@ -98,7 +96,7 @@ final class DomainGuard
     public static function nonNegativeInt(int $value, string $label = 'Value'): int
     {
         if ($value < 0) {
-            throw new InvalidArgumentException(sprintf('%s cannot be negative.', $label));
+            throw new \InvalidArgumentException(sprintf('%s cannot be negative.', $label));
         }
 
         return $value;
@@ -110,38 +108,38 @@ final class DomainGuard
         string $label,
         bool $allowNegative = false,
         ?float $min = null,
-        ?float $max = null
+        ?float $max = null,
     ): string {
         $normalized = str_replace(' ', '', trim($value));
         $normalized = self::normalizeDecimalSeparator($normalized);
 
-        if ($normalized === '') {
-            throw new InvalidArgumentException(sprintf('%s must be provided.', $label));
+        if ('' === $normalized) {
+            throw new \InvalidArgumentException(sprintf('%s must be provided.', $label));
         }
 
         if (!is_numeric($normalized)) {
-            throw new InvalidArgumentException(sprintf('%s must be numeric.', $label));
+            throw new \InvalidArgumentException(sprintf('%s must be numeric.', $label));
         }
 
-        $number = (float)$normalized;
+        $number = (float) $normalized;
 
         if (!$allowNegative && $number < 0) {
-            throw new InvalidArgumentException(sprintf('%s cannot be negative.', $label));
+            throw new \InvalidArgumentException(sprintf('%s cannot be negative.', $label));
         }
 
-        if ($min !== null && $number < $min) {
-            throw new InvalidArgumentException(sprintf('%s must be at least %s.', $label, $min));
+        if (null !== $min && $number < $min) {
+            throw new \InvalidArgumentException(sprintf('%s must be at least %s.', $label, $min));
         }
 
-        if ($max !== null && $number > $max) {
-            throw new InvalidArgumentException(sprintf('%s must be %s or less.', $label, $max));
+        if (null !== $max && $number > $max) {
+            throw new \InvalidArgumentException(sprintf('%s must be %s or less.', $label, $max));
         }
 
         $parts = explode('.', $normalized);
         if (isset($parts[1])) {
             $decimals = rtrim($parts[1], '0');
             if (strlen($decimals) > $scale) {
-                throw new InvalidArgumentException(sprintf('%s must have at most %d decimal places.', $label, $scale));
+                throw new \InvalidArgumentException(sprintf('%s must have at most %d decimal places.', $label, $scale));
             }
         }
 

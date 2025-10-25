@@ -6,8 +6,6 @@ use App\Domain\Contracts\NumberSequenceRepositoryInterface;
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
 use App\Domain\Guard\DomainGuard;
-use DateTimeImmutable;
-use InvalidArgumentException;
 
 final class DocumentReferenceGenerator
 {
@@ -17,7 +15,7 @@ final class DocumentReferenceGenerator
     ];
 
     public function __construct(
-        private readonly NumberSequenceRepositoryInterface $sequenceRepository
+        private readonly NumberSequenceRepositoryInterface $sequenceRepository,
     ) {
     }
 
@@ -25,16 +23,16 @@ final class DocumentReferenceGenerator
     {
         $prefix = $this->prefixFor($type);
 
-        $year = $year ?? (int)new DateTimeImmutable()->format('Y');
+        $year = $year ?? (int) new \DateTimeImmutable()->format('Y');
         $year = DomainGuard::nonNegativeInt($year, 'Year');
 
         if ($year < 1000 || $year > 9999) {
-            throw new InvalidArgumentException('Year must be a four-digit value.');
+            throw new \InvalidArgumentException('Year must be a four-digit value.');
         }
 
         $sequence = $this->sequenceRepository->findOneByTypeAndYear($type, $year);
 
-        if ($sequence === null) {
+        if (null === $sequence) {
             $sequence = new NumberSequence($type, $year);
         }
 
@@ -45,13 +43,13 @@ final class DocumentReferenceGenerator
             '%s-%d-%s',
             $prefix,
             $year,
-            str_pad((string)$next, $padding, '0', STR_PAD_LEFT)
+            str_pad((string) $next, $padding, '0', STR_PAD_LEFT)
         );
     }
 
     private function prefixFor(DocumentType $type): string
     {
         return self::PREFIX_MAP[$type->value]
-            ?? throw new InvalidArgumentException(sprintf('No prefix defined for document type %s.', $type->value));
+            ?? throw new \InvalidArgumentException(sprintf('No prefix defined for document type %s.', $type->value));
     }
 }

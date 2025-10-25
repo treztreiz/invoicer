@@ -19,7 +19,7 @@ final class User
     use TimestampableTrait;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?\DateTimeImmutable $lastLogin = null;
+    public private(set) ?\DateTimeImmutable $lastLogin = null;
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
@@ -44,7 +44,7 @@ final class User
         public string $password,
 
         #[ORM\Column(length: 10)]
-        public string $locale
+        public string $locale,
     ) {
     }
 }

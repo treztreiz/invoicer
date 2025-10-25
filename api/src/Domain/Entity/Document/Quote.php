@@ -3,10 +3,8 @@
 namespace App\Domain\Entity\Document;
 
 use App\Domain\Enum\QuoteStatus;
-use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use LogicException;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -15,26 +13,26 @@ use Symfony\Component\Uid\Uuid;
 final class Quote extends Document
 {
     #[ORM\Column(enumType: QuoteStatus::class)]
-    private(set) QuoteStatus $status = QuoteStatus::DRAFT;
+    public private(set) QuoteStatus $status = QuoteStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $sentAt = null;
+    public private(set) ?\DateTimeImmutable $sentAt = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $acceptedAt = null;
+    public private(set) ?\DateTimeImmutable $acceptedAt = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $rejectedAt = null;
+    public private(set) ?\DateTimeImmutable $rejectedAt = null;
 
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
-    private(set) ?Uuid $convertedInvoiceId = null;
+    public private(set) ?Uuid $convertedInvoiceId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function send(DateTimeImmutable $sentAt): self
+    public function send(\DateTimeImmutable $sentAt): self
     {
-        if ($this->status !== QuoteStatus::DRAFT) {
-            throw new LogicException('Only draft quotes can be sent.');
+        if (QuoteStatus::DRAFT !== $this->status) {
+            throw new \LogicException('Only draft quotes can be sent.');
         }
 
         $this->status = QuoteStatus::SENT;
@@ -43,10 +41,10 @@ final class Quote extends Document
         return $this;
     }
 
-    public function markAccepted(DateTimeImmutable $acceptedAt): self
+    public function markAccepted(\DateTimeImmutable $acceptedAt): self
     {
-        if ($this->status !== QuoteStatus::SENT) {
-            throw new LogicException('Only sent quotes can be accepted.');
+        if (QuoteStatus::SENT !== $this->status) {
+            throw new \LogicException('Only sent quotes can be accepted.');
         }
 
         $this->status = QuoteStatus::ACCEPTED;
@@ -56,10 +54,10 @@ final class Quote extends Document
         return $this;
     }
 
-    public function markRejected(DateTimeImmutable $rejectedAt): self
+    public function markRejected(\DateTimeImmutable $rejectedAt): self
     {
-        if ($this->status !== QuoteStatus::SENT) {
-            throw new LogicException('Only sent quotes can be rejected.');
+        if (QuoteStatus::SENT !== $this->status) {
+            throw new \LogicException('Only sent quotes can be rejected.');
         }
 
         $this->status = QuoteStatus::REJECTED;
@@ -71,8 +69,8 @@ final class Quote extends Document
 
     public function linkConvertedInvoice(Uuid $invoiceId): self
     {
-        if ($this->status !== QuoteStatus::ACCEPTED) {
-            throw new LogicException('Only accepted quotes can be converted to an invoice.');
+        if (QuoteStatus::ACCEPTED !== $this->status) {
+            throw new \LogicException('Only accepted quotes can be converted to an invoice.');
         }
 
         $this->convertedInvoiceId = $invoiceId;

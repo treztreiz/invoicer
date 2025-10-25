@@ -3,37 +3,35 @@
 namespace App\Domain\Entity\Document;
 
 use App\Domain\Enum\InvoiceStatus;
-use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use LogicException;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
 final class Invoice extends Document
 {
     #[ORM\Column]
-    private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
+    public private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $issuedAt = null;
+    public private(set) ?\DateTimeImmutable $issuedAt = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $dueDate = null;
+    public private(set) ?\DateTimeImmutable $dueDate = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    private(set) ?DateTimeImmutable $paidAt = null;
+    public private(set) ?\DateTimeImmutable $paidAt = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function issue(DateTimeImmutable $issuedAt, DateTimeImmutable $dueDate): self
+    public function issue(\DateTimeImmutable $issuedAt, \DateTimeImmutable $dueDate): self
     {
         if (InvoiceStatus::DRAFT !== $this->status) {
-            throw new LogicException('Only draft invoices can be issued.');
+            throw new \LogicException('Only draft invoices can be issued.');
         }
 
         if ($dueDate < $issuedAt) {
-            throw new LogicException('Due date must be on or after the issue date.');
+            throw new \LogicException('Due date must be on or after the issue date.');
         }
 
         $this->status = InvoiceStatus::ISSUED;
@@ -46,7 +44,7 @@ final class Invoice extends Document
     public function markOverdue(): self
     {
         if (InvoiceStatus::ISSUED !== $this->status) {
-            throw new LogicException('Only issued invoices can become overdue.');
+            throw new \LogicException('Only issued invoices can become overdue.');
         }
 
         $this->status = InvoiceStatus::OVERDUE;
@@ -54,14 +52,14 @@ final class Invoice extends Document
         return $this;
     }
 
-    public function markPaid(DateTimeImmutable $paidAt): self
+    public function markPaid(\DateTimeImmutable $paidAt): self
     {
         if (!in_array($this->status, [InvoiceStatus::ISSUED, InvoiceStatus::OVERDUE], true)) {
-            throw new LogicException('Only issued or overdue invoices can be marked as paid.');
+            throw new \LogicException('Only issued or overdue invoices can be marked as paid.');
         }
 
         if (null !== $this->issuedAt && $paidAt < $this->issuedAt) {
-            throw new LogicException('Payment date cannot precede the issue date.');
+            throw new \LogicException('Payment date cannot precede the issue date.');
         }
 
         $this->status = InvoiceStatus::PAID;
@@ -73,11 +71,11 @@ final class Invoice extends Document
     public function void(): self
     {
         if (!in_array($this->status, [InvoiceStatus::DRAFT, InvoiceStatus::ISSUED], true)) {
-            throw new LogicException('Only draft or issued invoices can be voided.');
+            throw new \LogicException('Only draft or issued invoices can be voided.');
         }
 
         if (InvoiceStatus::ISSUED === $this->status && null !== $this->paidAt) {
-            throw new LogicException('Cannot void an invoice that has registered payments.');
+            throw new \LogicException('Cannot void an invoice that has registered payments.');
         }
 
         $this->status = InvoiceStatus::VOIDED;
@@ -90,7 +88,7 @@ final class Invoice extends Document
     public function revertToDraft(): self
     {
         if (InvoiceStatus::VOIDED !== $this->status) {
-            throw new LogicException('Only voided invoices can revert to draft.');
+            throw new \LogicException('Only voided invoices can revert to draft.');
         }
 
         $this->status = InvoiceStatus::DRAFT;

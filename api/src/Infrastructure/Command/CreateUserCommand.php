@@ -9,7 +9,9 @@ use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
 use App\Domain\ValueObject\Contact;
+use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
+use App\Domain\ValueObject\VatRate;
 use App\Infrastructure\Security\SecurityUser;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,7 +38,7 @@ final readonly class CreateUserCommand
     public function __invoke(
         SymfonyStyle $io,
         #[Argument('Email')] ?string $userIdentifier = null,
-        #[Argument('Plain password')] ?string $password = null
+        #[Argument('Plain password')] ?string $password = null,
     ): int {
         $io->title('User creation');
 
@@ -51,9 +53,9 @@ final readonly class CreateUserCommand
                 contact: new Contact($userIdentifier, null),
                 address: new Address('Main St', null, '00000', 'City', null, 'FR'),
                 defaultCurrency: 'EUR',
-                defaultHourlyRate: '0',
-                defaultDailyRate: '0',
-                defaultVatRate: '0'
+                defaultHourlyRate: new Money('0'),
+                defaultDailyRate: new Money('0'),
+                defaultVatRate: new VatRate('0'),
             ),
             userIdentifier: $userIdentifier,
             roles: ['ROLE_USER'],

@@ -13,7 +13,7 @@ final class Quantity
         #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
         private(set) string $value {
             set => DomainGuard::decimal($value, 3, 'Quantity');
-        }
+        },
     ) {
     }
 

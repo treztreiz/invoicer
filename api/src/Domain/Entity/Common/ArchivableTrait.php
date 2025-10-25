@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait ArchivableTrait
 {
     #[ORM\Column]
-    protected(set) bool $isArchived = false;
+    public protected(set) bool $isArchived = false;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

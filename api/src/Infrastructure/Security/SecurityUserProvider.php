@@ -19,7 +19,7 @@ final readonly class SecurityUserProvider implements UserProviderInterface
 
     public function supportsClass(string $class): bool
     {
-        return $class === SecurityUser::class || is_subclass_of($class, SecurityUser::class);
+        return SecurityUser::class === $class || is_subclass_of($class, SecurityUser::class);
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
@@ -27,7 +27,7 @@ final readonly class SecurityUserProvider implements UserProviderInterface
         $user = $this->userRepository->findOneByUserIdentifier($identifier);
 
         if (null === $user) {
-            throw new UserNotFoundException((sprintf('User "%s" not found.', $identifier)));
+            throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
 
         return new SecurityUser($user);

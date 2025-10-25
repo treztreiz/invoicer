@@ -29,7 +29,7 @@ COMPOSE := docker compose $(DEV_FILES)
 # COMMANDS
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-.PHONY: help setup-certs build up down logs web-restart debug-on debug-off shell-api build-prod swarm-deploy swarm-remove
+.PHONY: help setup-certs build up down logs web-restart debug-on debug-off shell-api build-prod swarm-deploy swarm-remove test
 
 help:
 	@echo "Dev helpers:"
@@ -41,6 +41,7 @@ help:
 	@echo "  make web-restart    # Recreate nginx (web) service"
 	@echo "  make debug-on       # Enable Xdebug (api) and restart service"
 	@echo "  make debug-off      # Disable Xdebug and restart service"
+	@echo "  make test           # Run backend test suite inside the api container"
 	@echo "  make build-prod     # Build prod images (api/web)"
 	@echo "  make swarm-deploy   # Deploy stack locally for prod rehearsal"
 	@echo "  make swarm-remove   # Remove local stack"
@@ -87,3 +88,6 @@ swarm-deploy:
 
 swarm-remove:
 	docker stack rm $(PROJECT_NAME)
+
+test:
+	$(COMPOSE) exec api vendor/bin/phpunit

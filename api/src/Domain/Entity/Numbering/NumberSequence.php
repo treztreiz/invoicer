@@ -17,7 +17,7 @@ class NumberSequence
 
     public function __construct(
         #[ORM\Column(enumType: DocumentType::class)]
-        private(set) readonly DocumentType $documentType,
+        public private(set) readonly DocumentType $documentType,
 
         #[ORM\Column(type: Types::SMALLINT)]
         private(set) int $year {

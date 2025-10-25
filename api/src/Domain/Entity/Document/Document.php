@@ -27,7 +27,7 @@ abstract class Document
 
     /** @var Collection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
-    protected(set) Collection $lines;
+    public protected(set) Collection $lines;
 
     /**
      * @param array<string, mixed> $customerSnapshot
@@ -36,12 +36,6 @@ abstract class Document
     public function __construct(
         #[ORM\Column(length: 200)]
         protected(set) string $title,
-
-        #[ORM\Column(length: 200, nullable: true)]
-        protected(set) ?string $subtitle = null,
-
-        #[ORM\Column(length: 30, nullable: true)]
-        protected(set) ?string $reference = null,
 
         #[ORM\Column(length: 3)]
         protected(set) string $currency {
@@ -65,6 +59,12 @@ abstract class Document
 
         #[ORM\Embedded]
         protected(set) Money $grandTotal,
+
+        #[ORM\Column(length: 200, nullable: true)]
+        protected(set) ?string $subtitle = null,
+
+        #[ORM\Column(length: 30, nullable: true)]
+        protected(set) ?string $reference = null,
     ) {
         $this->lines = new ArrayCollection();
     }
