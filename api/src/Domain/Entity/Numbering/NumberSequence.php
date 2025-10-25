@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'number_sequence')]
-#[ORM\UniqueConstraint(columns: ['document_type', 'year'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_NUMBER_SEQUENCE_DOC_YEAR', columns: ['document_type', 'year'])]
 class NumberSequence
 {
     use UuidTrait;
@@ -35,5 +35,20 @@ class NumberSequence
         $this->nextValue = DomainGuard::nonNegativeInt($this->nextValue + 1, 'Next value');
 
         return $current;
+    }
+
+    public function documentType(): DocumentType
+    {
+        return $this->documentType;
+    }
+
+    public function year(): int
+    {
+        return $this->year;
+    }
+
+    public function nextValue(): int
+    {
+        return $this->nextValue;
     }
 }

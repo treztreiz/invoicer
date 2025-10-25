@@ -26,14 +26,16 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
 
     public function save(User $user): void
     {
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        $em = $this->getEntityManager();
+        $em->persist($user);
+        $em->flush();
     }
 
     public function remove(User $user): void
     {
-        $this->getEntityManager()->remove($user);
-        $this->getEntityManager()->flush();
+        $em = $this->getEntityManager();
+        $em->remove($user);
+        $em->flush();
     }
 
     public function findOneById(Uuid $id): ?User
