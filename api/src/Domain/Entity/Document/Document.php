@@ -6,13 +6,13 @@ use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'document')]
@@ -45,11 +45,7 @@ abstract class Document
 
         #[ORM\Column(length: 3)]
         protected(set) string $currency {
-            get => $this->currency;
-            set {
-                $this->assertCurrency($value);
-                $this->currency = strtoupper($value);
-            }
+            set => DomainGuard::currency($value);
         },
 
         #[ORM\Embedded]
@@ -75,6 +71,11 @@ abstract class Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    protected function assignReference(string $reference): void
+    {
+        $this->reference = DomainGuard::nonEmpty($reference, 'Reference');
+    }
+
     protected function addLine(DocumentLinePayload $payload): DocumentLine
     {
         $line = DocumentLine::fromPayload($this, $payload);
@@ -82,15 +83,6 @@ abstract class Document
         $this->registerLine($line);
 
         return $line;
-    }
-
-    protected function assignReference(string $reference): void
-    {
-        if (trim($reference) === '') {
-            throw new InvalidArgumentException('Reference cannot be blank.');
-        }
-
-        $this->reference = $reference;
     }
 
     protected function registerLine(DocumentLine $line): void
@@ -110,12 +102,5 @@ abstract class Document
         $this->subtotalNet = $subtotalNet;
         $this->taxTotal = $taxTotal;
         $this->grandTotal = $grandTotal;
-    }
-
-    private function assertCurrency(string $currency): void
-    {
-        if (strlen($currency) !== 3) {
-            throw new InvalidArgumentException('Currency must be a 3-letter ISO 4217 code.');
-        }
     }
 }

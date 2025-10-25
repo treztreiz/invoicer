@@ -4,11 +4,11 @@ namespace App\Domain\Entity\Document;
 
 use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'document_line')]
@@ -22,7 +22,7 @@ class DocumentLine
         private(set) Document $document,
 
         #[ORM\Column(type: Types::TEXT)]
-        private(set) readonly string $description,
+        private(set) string $description,
 
         #[ORM\Embedded]
         private(set) readonly Quantity $quantity,
@@ -42,8 +42,8 @@ class DocumentLine
         #[ORM\Column(type: Types::INTEGER)]
         private(set) int $position,
     ) {
-        $this->assertDescription($description);
-        $this->assertPosition($position);
+        $this->description = DomainGuard::nonEmpty($description, 'Line description');
+        $this->position = DomainGuard::nonNegativeInt($position, 'Line position');
     }
 
     public static function fromPayload(Document $document, DocumentLinePayload $payload): self
@@ -65,23 +65,7 @@ class DocumentLine
 
     public function reassign(Document $document, int $position): void
     {
-        $this->assertPosition($position);
-
         $this->document = $document;
-        $this->position = $position;
-    }
-
-    private function assertPosition(int $position): void
-    {
-        if ($position < 0) {
-            throw new InvalidArgumentException('Position must be zero or positive.');
-        }
-    }
-
-    private function assertDescription(string $description): void
-    {
-        if (trim($description) === '') {
-            throw new InvalidArgumentException('Description cannot be empty.');
-        }
+        $this->position = DomainGuard::nonNegativeInt($position, 'Line position');
     }
 }

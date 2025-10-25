@@ -2,36 +2,43 @@
 
 namespace App\Domain\ValueObject;
 
+use App\Domain\Guard\DomainGuard;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
-final readonly class Company
+final class Company
 {
     public function __construct(
         #[ORM\Column(length: 255)]
-        public string $legalName,
+        private(set) string $legalName {
+            set => DomainGuard::nonEmpty($value, 'Legal name');
+        },
 
         #[ORM\Embedded(columnPrefix: false)]
-        public Contact $contact,
+        private(set) readonly Contact $contact,
 
         #[ORM\Embedded]
-        public Address $address,
+        private(set) readonly Address $address,
 
         #[ORM\Column(length: 3)]
-        public string $defaultCurrency,
+        private(set) string $defaultCurrency {
+            set => DomainGuard::currency($value);
+        },
 
-        #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-        public string $defaultHourlyRate,
+        #[ORM\Embedded]
+        private(set) readonly Money $defaultHourlyRate,
 
-        #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-        public string $defaultDailyRate,
+        #[ORM\Embedded]
+        private(set) readonly Money $defaultDailyRate,
 
-        #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
-        public string $defaultVatRate,
+        #[ORM\Embedded]
+        private(set) readonly VatRate $defaultVatRate,
 
         #[ORM\Column(type: Types::TEXT, nullable: true)]
-        public ?string $legalMention = null,
+        private(set) ?string $legalMention = null {
+            set => DomainGuard::optionalNonEmpty($value, 'Legal mention');
+        },
     ) {
     }
 }

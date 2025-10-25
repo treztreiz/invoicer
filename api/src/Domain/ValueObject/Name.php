@@ -2,30 +2,28 @@
 
 namespace App\Domain\ValueObject;
 
+use App\Domain\Guard\DomainGuard;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Embeddable]
-final readonly class Name
+final class Name
 {
     public function __construct(
         #[ORM\Column(length: 150)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 150)]
-        #[Assert\Regex(pattern: '/\@|\d/', message: "Ce prénom n'est pas valide.", match: false)]
-        public string $firstName,
+        private(set) string $firstName {
+            set => DomainGuard::personName($value, 'First name');
+        },
 
         #[ORM\Column(length: 150)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 150)]
-        #[Assert\Regex(pattern: '/\@|\d/', message: "Ce nom de famille n'est pas valide.", match: false)]
-        public string $lastName,
+        private(set) string $lastName {
+            set => DomainGuard::personName($value, 'Last name');
+        },
     ) {
     }
 
     // RICH METHODS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function getFullName(): string
+    public function fullName(): string
     {
         return sprintf('%s %s', $this->lastName, $this->firstName);
     }

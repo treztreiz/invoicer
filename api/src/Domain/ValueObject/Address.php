@@ -2,42 +2,42 @@
 
 namespace App\Domain\ValueObject;
 
+use App\Domain\Guard\DomainGuard;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Embeddable]
-final readonly class Address
+final class Address
 {
     public function __construct(
         #[ORM\Column]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 255)]
-        public string $streetLine1,
+        private(set) string $streetLine1 {
+            set => DomainGuard::nonEmpty($value, 'Street line 1');
+        },
 
         #[ORM\Column(nullable: true)]
-        #[Assert\NotBlank(allowNull: true)]
-        #[Assert\Length(max: 255)]
-        public ?string $streetLine2,
+        private(set) ?string $streetLine2 {
+            set => DomainGuard::optionalNonEmpty($value, 'Street line 2');
+        },
 
         #[ORM\Column(length: 20)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 20)]
-        public string $postalCode,
+        private(set) string $postalCode {
+            set => DomainGuard::nonEmpty($value, 'Postal code');
+        },
 
         #[ORM\Column(length: 150)]
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 150)]
-        public string $city,
+        private(set) string $city {
+            set => DomainGuard::nonEmpty($value, 'City');
+        },
 
         #[ORM\Column(length: 150, nullable: true)]
-        #[Assert\NotBlank(allowNull: true)]
-        #[Assert\Length(max: 150)]
-        public ?string $region,
+        private(set) ?string $region {
+            set => DomainGuard::optionalNonEmpty($value, 'Region');
+        },
 
         #[ORM\Column(length: 2)]
-        #[Assert\NotBlank]
-        #[Assert\Country]
-        public string $countryCode,
+        private(set) string $countryCode {
+            set => DomainGuard::countryCode($value);
+        },
     ) {
     }
 }
