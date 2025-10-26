@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Domain\Entity\Numbering;
 
 use App\Domain\Entity\Numbering\NumberSequence;

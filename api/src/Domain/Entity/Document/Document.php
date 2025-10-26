@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Entity\Document;
 
 use App\Domain\DTO\DocumentLinePayload;
@@ -45,12 +47,6 @@ abstract class Document
         #[ORM\Embedded]
         protected(set) VatRate $vatRate,
 
-        #[ORM\Column(type: Types::JSON)]
-        protected(set) array $customerSnapshot,
-
-        #[ORM\Column(type: Types::JSON)]
-        protected(set) array $companySnapshot,
-
         #[ORM\Embedded]
         protected(set) Money $subtotalNet,
 
@@ -59,6 +55,12 @@ abstract class Document
 
         #[ORM\Embedded]
         protected(set) Money $grandTotal,
+
+        #[ORM\Column(type: Types::JSON)]
+        protected(set) array $customerSnapshot,
+
+        #[ORM\Column(type: Types::JSON)]
+        protected(set) array $companySnapshot,
 
         #[ORM\Column(length: 200, nullable: true)]
         protected(set) ?string $subtitle = null,

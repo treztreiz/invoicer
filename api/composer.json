@@ -96,8 +96,8 @@
         "phpunit:integration": "bin/phpunit --testsuite=integration",
         "phpunit:functional": "bin/phpunit --testsuite=functional",
         "phpunit:tools": "bin/phpunit --testsuite=tools",
-        "lint": "vendor/bin/php-cs-fixer fix",
-        "lint:check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "lint": "vendor/bin/php-cs-fixer fix --allow-risky=yes",
+        "lint:check": "vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes",
         "post-install-cmd": [
             "@auto-scripts"
         ],

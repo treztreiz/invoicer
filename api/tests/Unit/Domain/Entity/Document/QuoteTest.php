@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Quote;
@@ -89,11 +91,11 @@ final class QuoteTest extends TestCase
             title: 'Sample quote',
             currency: 'EUR',
             vatRate: new VatRate('20'),
-            customerSnapshot: ['name' => 'Client'],
-            companySnapshot: ['name' => 'My Company'],
             subtotalNet: new Money('100'),
             taxTotal: new Money('20'),
-            grandTotal: new Money('120')
+            grandTotal: new Money('120'),
+            customerSnapshot: ['name' => 'Client'],
+            companySnapshot: ['name' => 'My Company']
         );
     }
 }

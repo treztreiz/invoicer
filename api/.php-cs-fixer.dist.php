@@ -13,6 +13,9 @@ return new PhpCsFixer\Config()
     ])
     ->setRules([
         '@Symfony' => true,
+        'declare_strict_types' => true,
+        'strict_comparison' => true,
+        'strict_param' => true,
         'php_unit_method_casing' => ['case' => 'snake_case'],
         'App/asymmetric_public_omission' => true,
     ])
