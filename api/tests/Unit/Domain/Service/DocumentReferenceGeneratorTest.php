@@ -32,7 +32,7 @@ final class DocumentReferenceGeneratorTest extends TestCase
 
         $stored = $this->repository->findOneByTypeAndYear(DocumentType::INVOICE, 2026);
         static::assertNotNull($stored);
-        static::assertSame(2, $stored->nextValue());
+        static::assertSame(2, $stored->nextValue);
     }
 
     public function test_subsequent_number_is_reserved(): void
@@ -44,7 +44,7 @@ final class DocumentReferenceGeneratorTest extends TestCase
 
         $stored = $this->repository->findOneByTypeAndYear(DocumentType::QUOTE, 2025);
         static::assertNotNull($stored);
-        static::assertSame(3, $stored->nextValue());
+        static::assertSame(3, $stored->nextValue);
     }
 
     public function test_invalid_year_is_rejected(): void
@@ -68,7 +68,7 @@ final class InMemorySequenceRepository implements NumberSequenceRepositoryInterf
 
     public function save(NumberSequence $sequence): void
     {
-        $key = $this->key($sequence->documentType(), $sequence->year());
+        $key = $this->key($sequence->documentType, $sequence->year);
         $this->storage[$key] = $sequence;
     }
 
