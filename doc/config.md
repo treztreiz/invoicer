@@ -27,8 +27,8 @@ dev-only behavior, while `ops/compose.prod.yaml` references built images. The Ma
 
 - `make build` → `docker compose -f ops/compose.base.yaml -f ops/compose.dev.yaml build`
 - `make up` → same with `up -d --wait`
-- `make build-prod` → explicit `docker build` for prod stages
-- `make swarm-deploy` → `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml`
+- `make build:prod` → explicit `docker build` for prod stages
+- `make swarm:deploy` → `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml`
 
 ## Symfony environment
 
@@ -41,7 +41,7 @@ see [PHP runtime & Xdebug](php-runtime.md).
 No GitHub Actions workflows are committed yet, but the structure supports CI-driven configuration:
 
 - Override or inject env vars in the pipeline (e.g., `PROJECT_NAME`, `PROD_TAG`, DB credentials, TLS certs).
-- Reuse `make build-prod` or calls to `docker build`/`docker stack deploy` with the same Compose files.
+- Reuse `make build:prod` or calls to `docker build`/`docker stack deploy` with the same Compose files.
 - Use the shared `certs` volume naming (`${PROJECT_NAME}_certs`) so the Let’s Encrypt/renewal process aligns between CI
   and production.
 

@@ -12,7 +12,7 @@
 4. **prod** – copies the baked `/app` from `vendor` plus prod `.ini` overrides (ops/php/20-php.prod.ini).
 
 `make build` → compose builds the `dev` stage.
-`make build-prod` → `docker build ... --target prod` to produce the deployable image.
+`make build:prod` → `docker build ... --target prod` to produce the deployable image.
 
 ## web / webapp (React + nginx)
 
@@ -31,7 +31,7 @@ behavior mirrors prod.
 
 - Dev compose (`ops/compose.dev.yaml`) targets the `dev` stage for `api` and `webapp`. Bind mounts provide hot
   reloading.
-- Prod compose (`ops/compose.prod.yaml`) references the images tagged by `make build-prod` (
+- Prod compose (`ops/compose.prod.yaml`) references the images tagged by `make build:prod` (
   `$(PROJECT_NAME)-api:$(PROD_TAG)` and `$(PROJECT_NAME)-web:$(PROD_TAG)`).
 - The Makefile exports build arguments from `.env` so both dev and prod builds stay consistent (PHP/Node/nginx versions,
   image tags, etc.).

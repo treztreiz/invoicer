@@ -29,24 +29,24 @@ COMPOSE := docker compose $(DEV_FILES)
 # COMMANDS
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-.PHONY: help setup-certs build up down logs web-restart debug-on debug-off shell-api build-prod swarm-deploy swarm-remove test
+.PHONY: help certs build up down logs restart\:web debug\:on debug\:off shell-api build\:prod swarm\:deploy swarm\:rm test
 
 help:
 	@echo "Dev helpers:"
-	@echo "  make setup-certs    # Generate dev/prod self-signed certs and seed Swarm volume"
+	@echo "  make certs          # Generate dev/prod self-signed certs and seed Swarm volume"
 	@echo "  make build          # Build dev images"
 	@echo "  make up             # Start dev stack"
 	@echo "  make down           # Stop dev stack"
 	@echo "  make logs           # Tail dev stack logs"
-	@echo "  make web-restart    # Recreate nginx (web) service"
-	@echo "  make debug-on       # Enable Xdebug (api) and restart service"
-	@echo "  make debug-off      # Disable Xdebug and restart service"
+	@echo "  make restart:web    # Recreate nginx (web) service"
+	@echo "  make debug:on       # Enable Xdebug (api) and restart service"
+	@echo "  make debug:off      # Disable Xdebug and restart service"
 	@echo "  make test           # Run backend test suite inside the api container"
-	@echo "  make build-prod     # Build prod images (api/web)"
-	@echo "  make swarm-deploy   # Deploy stack locally for prod rehearsal"
-	@echo "  make swarm-remove   # Remove local stack"
+	@echo "  make build:prod     # Build prod images (api/web)"
+	@echo "  make swarm:deploy   # Deploy stack locally for prod rehearsal"
+	@echo "  make swarm:rm       # Remove local stack"
 
-setup-certs:
+certs:
 	./ops/nginx/certs/generate-self-signed.sh
 
 build:
@@ -61,19 +61,19 @@ down:
 logs:
 	$(COMPOSE) logs -f
 
-web-restart:
+restart\:web:
 	$(COMPOSE) up -d --force-recreate web
 
-debug-on:
+debug\:on:
 	XDEBUG_MODE=coverage,develop,debug $(COMPOSE) up -d --force-recreate api
 
-debug-off:
+debug\:off:
 	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate api
 
 shell-api:
 	$(COMPOSE) exec api bash
 
-build-prod:
+build\:prod:
 	docker build -f ops/images/api.Dockerfile --target prod \
 		--build-arg PHP_VERSION=$(PHP_VERSION) \
 		-t $(PROJECT_NAME)-api:$(PROD_TAG) .
@@ -82,11 +82,11 @@ build-prod:
 		--build-arg NGINX_VERSION=$(NGINX_VERSION) \
 		-t $(PROJECT_NAME)-web:$(PROD_TAG) .
 
-swarm-deploy:
+swarm\:deploy:
 	docker stack deploy $(PROD_FILES) \
 		--detach=true --with-registry-auth --resolve-image never $(PROJECT_NAME)
 
-swarm-remove:
+swarm\:rm:
 	docker stack rm $(PROJECT_NAME)
 
 test:

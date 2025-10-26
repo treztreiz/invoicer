@@ -9,7 +9,7 @@ Generate the self-signed certificate used by nginx locally and during Swarm rehe
 ```
 
 The script writes `server.crt` and `server.key` into the Docker volume `${COMPOSE_PROJECT_NAME:-invoicer}_certs`. Both
-dev (`make up`) and production rehearsals (`make swarm-deploy`) mount this volume automatically, so no files stay in
+dev (`make up`) and production rehearsals (`make swarm:deploy`) mount this volume automatically, so no files stay in
 git.
 
 ## Production (Let's Encrypt)

@@ -78,7 +78,9 @@ while remaining **production-capable** and **contractor-implementable**.
   restore; production images built via GitHub Actions and published to GHCR; deployment secrets stored in GitHub
   Secrets.
 * **Testability**: unit tests on totals/reference rules; API contract tests for key endpoints; smoke tests for
-  PDF/export. PHPUnit suites (`composer phpunit:unit`, `composer phpunit:integration`, `composer phpunit:functional`, `composer phpunit:tools`) keep layers scoped; `composer phpunit` runs all suites (inside the api container, or use `make test` from the host).
+  PDF/export. PHPUnit suites (`composer phpunit:unit`, `composer phpunit:integration`, `composer phpunit:functional`,
+  `composer phpunit:tools`) keep layers scoped; `composer phpunit` runs all suites (inside the api container, or use
+  `make test` from the host).
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
   rendition for PDFs.
 
@@ -101,7 +103,8 @@ while remaining **production-capable** and **contractor-implementable**.
 * **PDF**: server-side HTML → PDF via headless Chromium (containerized) for consistent rendering. Generated files
   streamed on-demand, not stored.
 * **Jobs**: Symfony Messenger + schedule (cron) to process recurrences and to mark overdue.
-* **Containers**: Dev **and** Prod run in Docker with the same entrypoints and envs (12‑factor); multi-stage images; compose base + environment overlays reused for single-host Swarm deploy (parity between stages).
+* **Containers**: Dev **and** Prod run in Docker with the same entrypoints and envs (12‑factor); multi-stage images;
+  compose base + environment overlays reused for single-host Swarm deploy (parity between stages).
 
 ```plantuml
 @startuml
@@ -254,7 +257,8 @@ InstallmentPlan ||--o{ Installment
 * **Document.customer_snapshot** contains a denormalized copy of the Customer fields at creation/conversion time (
   immutability of documents).
 * **Totals & VAT** are stored through Doctrine embeddables (`Money`, `VatRate`, `Quantity`). Expect column names such as
-  `subtotal_net_amount` or `unit_price_amount` generated from those value objects, and lines keep denormalized net/tax/gross amounts.
+  `subtotal_net_amount` or `unit_price_amount` generated from those value objects, and lines keep denormalized
+  net/tax/gross amounts.
 * **Statuses** live on the child tables: `Quote.status` covers `DRAFT/SENT/ACCEPTED/REJECTED`; `Invoice.status` covers
   `DRAFT/ISSUED/OVERDUE/PAID/VOIDED`.
 * **Mutual exclusivity** enforced by DB constraints + domain checks: a document can have *either* a row in
@@ -270,7 +274,8 @@ InstallmentPlan ||--o{ Installment
   the abstract `Document` class.
 * **Invoice-only relations:** map recurrence and installment associations **to `Invoice` only** in the ORM. FKs still
   point to `document.id`.
-* **Polymorphic queries:** use DQL `INSTANCE OF` (or dedicated repositories) to filter by type without duplicating logic.
+* **Polymorphic queries:** use DQL `INSTANCE OF` (or dedicated repositories) to filter by type without duplicating
+  logic.
 * **DB guards:** keep a discriminator `CHECK` constraint on `document.type` and enforce `invoice_recurrence` /
   `installment_plan` to reference only invoices.
 * **Serialization:** expose parent `Document` with read-only `type`; child-specific resources (`/quotes`, `/invoices`)
@@ -368,8 +373,8 @@ InstallmentPlan ||--o{ Installment
     - `nginx/` – templated nginx config, entrypoint, TLS scripts (`doc/nginx.md`, `doc/certs.md`).
     - `php/` – shared PHP ini fragments.
     - `compose.base.yaml` + `compose.dev.yaml` + `compose.prod.yaml` – base definition with dev/prod overlays.
-- Makefile targets drive the workflow: `make setup-certs`, `make build`, `make up`, `make build-prod`,
-  `make swarm-deploy`.
+- Makefile targets drive the workflow: `make certs`, `make build`, `make up`, `make build:prod`,
+  `make swarm:deploy`.
 
 ### Coding standards
 
@@ -387,7 +392,7 @@ InstallmentPlan ||--o{ Installment
 
 - Dev: compose loads `ops/images/api.Dockerfile` (dev stage) and `ops/images/web.Dockerfile` (dev stage) mounting source
   directories; nginx handles HTTPS locally using the shared cert volume.
-- Prod: `make build-prod` produces tagged images (`$(PROJECT_NAME)-api:$(PROD_TAG)` /
+- Prod: `make build:prod` produces tagged images (`$(PROJECT_NAME)-api:$(PROD_TAG)` /
   `$(PROJECT_NAME)-web:$(PROD_TAG)`); Swarm deploy (`ops/compose.prod.yaml`) reuses the same base compose file.
 - TLS parity: nginx always expects `/etc/nginx/certs/server.{crt,key}`; `generate-self-signed.sh` seeds the shared
   volume for dev, future Let’s Encrypt will write into the same location.
@@ -404,12 +409,15 @@ InstallmentPlan ||--o{ Installment
 
 - Environment variables sourced from `.env`/`.env.local` and exported via Makefile (APP_ENV, APP_SECRET, DATABASE_URL,
   etc.).
-- Xdebug available via `make debug-on` / `debug-off` toggling `XDEBUG_MODE`; dev PHP ini lives in `ops/php/` (see
+- Xdebug available via `make debug:on` / `debug:off` toggling `XDEBUG_MODE`; dev PHP ini lives in `ops/php/` (see
   `doc/php-runtime.md`).
 - Doctrine migrations per change; UUIDv7 used for IDs; snake_case schema enforced.
-- Aggregates remain mutable (Doctrine friendly); invariants enforced via methods/validators rather than recreating objects; value objects (e.g., Address) stay immutable.
-- Favor PHP 8.4 property hooks for simple getters/setters on aggregates; when domain rules apply expose explicit methods (e.g., `rename`, `archive`) and keep the hook `private` to force usage through the business API.
-- Prefer expressive property names (e.g., `isArchived`, `hasInstallments`) since properties are the primary read access; promote a property to a method when richer behavior is needed.
+- Aggregates remain mutable (Doctrine friendly); invariants enforced via methods/validators rather than recreating
+  objects; value objects (e.g., Address) stay immutable.
+- Favor PHP 8.4 property hooks for simple getters/setters on aggregates; when domain rules apply expose explicit
+  methods (e.g., `rename`, `archive`) and keep the hook `private` to force usage through the business API.
+- Prefer expressive property names (e.g., `isArchived`, `hasInstallments`) since properties are the primary read access;
+  promote a property to a method when richer behavior is needed.
 
 ### API/Frontend behavior (summary)
 
@@ -417,20 +425,24 @@ InstallmentPlan ||--o{ Installment
   from requirements).
 - Frontend routes: Dashboard, Customers, Quotes, Invoices, Settings; Vite dev server proxied through nginx for TLS
   parity.
-- DTOs carry server-side validation (Symfony Validator). React forms use client validation for UX, but primitives are always validated on the backend before touching domain entities.
+- DTOs carry server-side validation (Symfony Validator). React forms use client validation for UX, but primitives are
+  always validated on the backend before touching domain entities.
 - Custom routes live in `config/routes/` (grouped by feature) so the root `routes.yaml` remains an import hub.
 
 ### Documentation
 
 - `README.md` remains concise (overview, commands, directory tree) and links to detailed docs in `doc/`.
-- All technical documentation lives under `doc/`; each file focuses on current implementation (avoid speculative/future sections beyond short placeholders).
+- All technical documentation lives under `doc/`; each file focuses on current implementation (avoid speculative/future
+  sections beyond short placeholders).
 
 ### CI & deployment (summary)
 
-- GitHub Actions workflow runs composer validate, `composer phpstan` (which warms dev & test containers before analysis of src/tests), php-cs-fixer (`--dry-run`), and `bin/phpunit` on every push/PR to `main`.
+- GitHub Actions workflow runs composer validate, `composer phpstan` (which warms dev & test containers before analysis
+  of src/tests), php-cs-fixer (`--dry-run`), and `bin/phpunit` on every push/PR to `main`.
 - Future enhancement: add build-and-publish jobs (api/web images → GHCR) and optional Swarm deployment step via
   `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`.
-- JWT keys (`config/jwt/*.pem`) are generated at runtime (e.g., `lexik:jwt:generate-keypair` with `JWT_PASSPHRASE` from env). Never commit the key files or real passphrases; provision them during deploy/CI via secrets.
+- JWT keys (`config/jwt/*.pem`) are generated at runtime (e.g., `lexik:jwt:generate-keypair` with `JWT_PASSPHRASE` from
+  env). Never commit the key files or real passphrases; provision them during deploy/CI via secrets.
 
 ## Ops implementation
 
@@ -438,18 +450,20 @@ InstallmentPlan ||--o{ Installment
   `database_data`, `certs`). Dev overlay adds Vite HMR (`webapp` service), bind mounts, and HTTPS port overrides. Prod
   overlay references prebuilt images and mounts the same cert/acme volumes.
 - **make targets**:
-    - `make setup-certs` → seeds `${PROJECT_NAME}_certs` volume with self-signed certs (
+    - `make certs` → seeds `${PROJECT_NAME}_certs` volume with self-signed certs (
       `./ops/nginx/certs/generate-self-signed.sh`)
     - `make build` / `make up` / `make down` / `make logs`
-    - `make build-prod` → builds `api` and `web` prod stages
-    - `make swarm-deploy` → `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`
+    - `make build:prod` → builds `api` and `web` prod stages
+    - `make swarm:deploy` → `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`
 - **nginx**: templated config (`ops/nginx/nginx.base.conf`) + entrypoint renders `/etc/nginx/conf.d/default.conf`;
   dev/prod includes provide webapp behavior; TLS certs always `/etc/nginx/certs/server.{crt,key}`. See `doc/nginx.md`.
 - **Images**: `ops/images/api.Dockerfile`, `ops/images/web.Dockerfile` provide multi-stage builds with dev/prod targets;
   see `doc/images.md`.
 - **Configuration**: `.env` (tracked) + `.env.local` (ignored) merged/exported by Makefile, propagating to all services;
   see `doc/config.md`.
-- **Autowiring strategy**: domain contracts live under `App\Domain\Contracts`; Symfony autowires the single implementation automatically (`App\Infrastructure\...`) while hexagonal boundaries remain intact. Explicit aliases only needed if multiple adapters appear.
+- **Autowiring strategy**: domain contracts live under `App\Domain\Contracts`; Symfony autowires the single
+  implementation automatically (`App\Infrastructure\...`) while hexagonal boundaries remain intact. Explicit aliases
+  only needed if multiple adapters appear.
 
 ## Milestones
 
@@ -485,13 +499,21 @@ InstallmentPlan ||--o{ Installment
 
 ## Git Workflow & CI Expectations
 
-* Branch model: `main` stays deployable; all work happens on short-lived feature branches (`feature/<desc>`, `fix/<desc>`, etc.) branched from `main`.
-* Pull Requests: every change enters `main` via PR. Use the PR template to describe scope, tests, and follow-ups. Mark drafts/WIP explicitly if not ready.
-* Reviews & CI: require at least one approving review and green GitHub Actions (composer validate, `composer phpstan`, php-cs-fixer `--dry-run`, PHPUnit via `bin/phpunit`) before merging. If new commits arrive after approval, re-request review.
-* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run inside `make shell-api`.
-* Local commands run inside the api container (`make shell-api`). From the host, use `make test` (full suite) or drop into the container before invoking `composer phpunit`, `composer phpstan`, `composer lint`, etc.
-* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run inside `make shell-api`.
-* Commits: conventional commit messages (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`, etc.). Squash on merge so `main` history stays clean; choose a conventional squash title.
+* Branch model: `main` stays deployable; all work happens on short-lived feature branches (`feature/<desc>`,
+  `fix/<desc>`, etc.) branched from `main`.
+* Pull Requests: every change enters `main` via PR. Use the PR template to describe scope, tests, and follow-ups. Mark
+  drafts/WIP explicitly if not ready.
+* Reviews & CI: require at least one approving review and green GitHub Actions (composer validate, `composer phpstan`,
+  php-cs-fixer `--dry-run`, PHPUnit via `bin/phpunit`) before merging. If new commits arrive after approval, re-request
+  review.
+* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run
+  inside `make shell-api`.
+* Local commands run inside the api container (`make shell-api`). From the host, use `make test` (full suite) or drop
+  into the container before invoking `composer phpunit`, `composer phpstan`, `composer lint`, etc.
+* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run
+  inside `make shell-api`.
+* Commits: conventional commit messages (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`, etc.). Squash on merge so
+  `main` history stays clean; choose a conventional squash title.
 * Hotfixes: branch from `main`, go through PR like any other change. No direct pushes to `main`.
 * Optional enhancements (later): layer static analysis (PHPStan) or containerised integration tests in separate CI jobs.
 

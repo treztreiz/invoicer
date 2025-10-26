@@ -7,7 +7,7 @@ Vite/React (web UI). Docker drives both development and the single-host (Swarm) 
 
 ```bash
 # install dependencies, build images, run stack
-make setup-certs
+make certs
 make build
 make up
 
