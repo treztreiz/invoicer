@@ -17,4 +17,4 @@ return new PhpCsFixer\Config()
         'App/asymmetric_public_omission' => true,
     ])
     ->setFinder($finder)
-    ->setCacheFile(__DIR__.'/cache/.php-cs-fixer.cache');
+    ->setCacheFile(__DIR__.'/var/cache/.php-cs-fixer.cache');

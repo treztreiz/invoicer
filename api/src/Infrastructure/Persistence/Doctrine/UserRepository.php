@@ -4,13 +4,9 @@ namespace App\Infrastructure\Persistence\Doctrine;
 
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
-use App\Infrastructure\Security\SecurityUser;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -56,5 +52,4 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
             ->getQuery()
             ->getOneOrNullResult();
     }
-
 }

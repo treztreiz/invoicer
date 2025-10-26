@@ -15,7 +15,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
 
     public function getUserIdentifier(): string
     {
-        if ($this->user->userIdentifier === '') {
+        if ('' === $this->user->userIdentifier) {
             throw new \LogicException('User identifier cannot be empty.');
         }
 
@@ -29,7 +29,7 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
 
     public function getPassword(): string
     {
-        if ($this->user->password === '') {
+        if ('' === $this->user->password) {
             throw new \LogicException('Password cannot be empty.');
         }
 

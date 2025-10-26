@@ -21,7 +21,7 @@ final class DocumentReferenceGenerator
 
     public function generate(DocumentType $type, ?int $year = null, int $padding = 4): string
     {
-        $year = $year ?? (int)new \DateTimeImmutable()->format('Y');
+        $year = $year ?? (int) new \DateTimeImmutable()->format('Y');
         $year = DomainGuard::nonNegativeInt($year, 'Year');
 
         if ($year < 1000 || $year > 9999) {
@@ -43,7 +43,7 @@ final class DocumentReferenceGenerator
             '%s-%d-%s',
             $prefix,
             $year,
-            str_pad((string)$next, $padding, '0', STR_PAD_LEFT)
+            str_pad((string) $next, $padding, '0', STR_PAD_LEFT)
         );
     }
 

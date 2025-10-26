@@ -45,7 +45,7 @@ final readonly class CreateUserCommand
         $userIdentifier = $userIdentifier ?? $io->ask('Choose an email', self::DEFAULT_USER_IDENTIFIER);
         $password = $password ?? $io->askHidden('Choose a password');
 
-        if ($password === null || $password === '') {
+        if (null === $password || '' === $password) {
             $password = self::DEFAULT_PASSWORD;
         }
 
