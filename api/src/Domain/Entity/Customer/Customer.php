@@ -11,7 +11,7 @@ use App\Domain\ValueObject\Name;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-final class Customer
+class Customer
 {
     use UuidTrait;
     use TimestampableTrait;

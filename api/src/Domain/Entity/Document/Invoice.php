@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
-final class Invoice extends Document
+class Invoice extends Document
 {
     #[ORM\Column]
     private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;

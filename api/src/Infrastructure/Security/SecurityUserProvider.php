@@ -5,10 +5,15 @@ namespace App\Infrastructure\Security;
 use App\Infrastructure\Persistence\Doctrine\UserRepository;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
-final readonly class SecurityUserProvider implements UserProviderInterface
+/**
+ * @implements UserProviderInterface<SecurityUser>
+ */
+final readonly class SecurityUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     public function __construct(
         private UserRepository $userRepository,
@@ -46,5 +51,16 @@ final readonly class SecurityUserProvider implements UserProviderInterface
         }
 
         return new SecurityUser($domainUser);
+    }
+
+    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    {
+        if (!$user instanceof SecurityUser) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+        }
+
+        $domainUser = $user->getDomainUser();
+        $domainUser->password = $newHashedPassword;
+        $this->userRepository->save($domainUser);
     }
 }

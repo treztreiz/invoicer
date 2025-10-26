@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'app_user')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USER', fields: ['userIdentifier'])]
-final class User
+class User
 {
     use UuidTrait;
     use TimestampableTrait;
@@ -34,6 +34,7 @@ final class User
         #[ORM\Column(length: 180, unique: true)]
         public string $userIdentifier,
 
+        /** @var array<int, string> */
         #[ORM\Column]
         public array $roles {
             get => array_unique([...$this->roles, 'ROLE_USER']);

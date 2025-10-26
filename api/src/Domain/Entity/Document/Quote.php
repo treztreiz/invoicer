@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'quote')]
-final class Quote extends Document
+class Quote extends Document
 {
     #[ORM\Column(enumType: QuoteStatus::class)]
     private(set) QuoteStatus $status = QuoteStatus::DRAFT;

@@ -24,7 +24,7 @@ class NumberSequence
             set => DomainGuard::nonNegativeInt($value, 'Year');
         },
 
-        #[ORM\Column(type: Types::BIGINT)]
+        #[ORM\Column(type: Types::INTEGER)]
         private(set) int $nextValue = 1,
     ) {
     }

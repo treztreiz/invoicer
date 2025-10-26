@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Doctrine;
 
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
+use App\Infrastructure\Security\SecurityUser;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -15,7 +16,7 @@ use Symfony\Component\Uid\Uuid;
 /**
  * @extends ServiceEntityRepository<\App\Domain\Entity\User\User>
  */
-class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface, PasswordUpgraderInterface
+class UserRepository extends ServiceEntityRepository implements UserRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -56,13 +57,4 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
             ->getOneOrNullResult();
     }
 
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
-    {
-        if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
-        $user->password = $newHashedPassword;
-        $this->save($user);
-    }
 }

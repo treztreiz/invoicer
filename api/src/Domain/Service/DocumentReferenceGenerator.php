@@ -21,14 +21,14 @@ final class DocumentReferenceGenerator
 
     public function generate(DocumentType $type, ?int $year = null, int $padding = 4): string
     {
-        $prefix = $this->prefixFor($type);
-
-        $year = $year ?? (int) new \DateTimeImmutable()->format('Y');
+        $year = $year ?? (int)new \DateTimeImmutable()->format('Y');
         $year = DomainGuard::nonNegativeInt($year, 'Year');
 
         if ($year < 1000 || $year > 9999) {
             throw new \InvalidArgumentException('Year must be a four-digit value.');
         }
+
+        $prefix = $this->prefixFor($type);
 
         $sequence = $this->sequenceRepository->findOneByTypeAndYear($type, $year);
 
@@ -43,13 +43,15 @@ final class DocumentReferenceGenerator
             '%s-%d-%s',
             $prefix,
             $year,
-            str_pad((string) $next, $padding, '0', STR_PAD_LEFT)
+            str_pad((string)$next, $padding, '0', STR_PAD_LEFT)
         );
     }
 
     private function prefixFor(DocumentType $type): string
     {
-        return self::PREFIX_MAP[$type->value]
-            ?? throw new \InvalidArgumentException(sprintf('No prefix defined for document type %s.', $type->value));
+        return match ($type) {
+            DocumentType::INVOICE => self::PREFIX_MAP[DocumentType::INVOICE->value],
+            DocumentType::QUOTE => self::PREFIX_MAP[DocumentType::QUOTE->value],
+        };
     }
 }
