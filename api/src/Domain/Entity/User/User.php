@@ -25,29 +25,29 @@ class User
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
-        private(set) Name $name,
+        public Name $name,
 
         #[ORM\Embedded(columnPrefix: false)]
-        private(set) Contact $contact,
+        public Contact $contact,
 
         #[ORM\Embedded]
-        private(set) Company $company,
+        public Company $company,
 
         #[ORM\Column(length: 180, unique: true)]
-        private(set) string $userIdentifier,
+        public string $userIdentifier,
 
         /** @var array<int, string> */
         #[ORM\Column]
-        private(set) array $roles {
+        public array $roles {
             get => array_unique([...$this->roles, 'ROLE_USER']);
             set => array_unique($value);
         },
 
         #[ORM\Column]
-        private(set) string $password,
+        public string $password,
 
         #[ORM\Column(length: 10)]
-        private(set) string $locale,
+        public string $locale,
     ) {
     }
 }
