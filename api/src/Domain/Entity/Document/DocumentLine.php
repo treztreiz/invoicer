@@ -8,6 +8,7 @@ use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Enum\RateUnit;
 use App\Domain\Guard\DomainGuard;
+use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
 use Doctrine\DBAL\Types\Types;
@@ -37,13 +38,7 @@ class DocumentLine
         private(set) readonly Money $rate,
 
         #[ORM\Embedded]
-        private(set) readonly Money $amountNet,
-
-        #[ORM\Embedded]
-        private(set) readonly Money $amountTax,
-
-        #[ORM\Embedded]
-        private(set) readonly Money $amountGross,
+        private(set) readonly AmountBreakdown $amount,
 
         #[ORM\Column(type: Types::INTEGER)]
         private(set) int $position,

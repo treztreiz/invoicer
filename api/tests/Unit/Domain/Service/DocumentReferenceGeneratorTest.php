@@ -49,8 +49,8 @@ final class DocumentReferenceGeneratorTest extends TestCase
 
     public function test_invalid_year_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Year must be a four-digit value.');
+        static::expectException(\InvalidArgumentException::class);
+        static::expectExceptionMessage('Year must be a four-digit value.');
 
         $this->generator->generate(DocumentType::INVOICE, 999);
     }

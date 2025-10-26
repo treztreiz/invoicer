@@ -104,6 +104,7 @@ final class DomainGuard
         return $value;
     }
 
+    /** @return numeric-string */
     public static function decimal(
         string $value,
         int $scale,
@@ -123,7 +124,7 @@ final class DomainGuard
             throw new \InvalidArgumentException(sprintf('%s must be numeric.', $label));
         }
 
-        $number = (float) $normalized;
+        $number = (float)$normalized;
 
         if (!$allowNegative && $number < 0) {
             throw new \InvalidArgumentException(sprintf('%s cannot be negative.', $label));

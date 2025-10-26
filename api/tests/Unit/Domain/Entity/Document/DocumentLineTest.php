@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Domain\Entity\Document;
 use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\RateUnit;
+use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
@@ -31,9 +32,11 @@ final class DocumentLineTest extends TestCase
             quantity: new Quantity('10'),
             rateUnit: RateUnit::HOURLY,
             rate: new Money('100'),
-            amountNet: new Money('1000'),
-            amountTax: new Money('200'),
-            amountGross: new Money('1200'),
+            amount: new AmountBreakdown(
+                net: new Money('1000'),
+                tax: new Money('200'),
+                gross: new Money('1200'),
+            ),
             position: 1
         );
 
@@ -43,7 +46,7 @@ final class DocumentLineTest extends TestCase
 
     public function test_blank_description_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        static::expectException(\InvalidArgumentException::class);
 
         new DocumentLine(
             document: $this->quote,
@@ -51,16 +54,18 @@ final class DocumentLineTest extends TestCase
             quantity: new Quantity('1'),
             rateUnit: RateUnit::HOURLY,
             rate: new Money('10'),
-            amountNet: new Money('10'),
-            amountTax: new Money('2'),
-            amountGross: new Money('12'),
+            amount: new AmountBreakdown(
+                net: new Money('10'),
+                tax: new Money('2'),
+                gross: new Money('12'),
+            ),
             position: 0
         );
     }
 
     public function test_negative_position_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        static::expectException(\InvalidArgumentException::class);
 
         new DocumentLine(
             document: $this->quote,
@@ -68,9 +73,11 @@ final class DocumentLineTest extends TestCase
             quantity: new Quantity('1'),
             rateUnit: RateUnit::DAILY,
             rate: new Money('10'),
-            amountNet: new Money('10'),
-            amountTax: new Money('2'),
-            amountGross: new Money('12'),
+            amount: new AmountBreakdown(
+                net: new Money('10'),
+                tax: new Money('2'),
+                gross: new Money('12'),
+            ),
             position: -1
         );
     }
@@ -83,9 +90,11 @@ final class DocumentLineTest extends TestCase
             title: 'Quote',
             currency: 'EUR',
             vatRate: new VatRate('20'),
-            subtotalNet: new Money('100'),
-            taxTotal: new Money('20'),
-            grandTotal: new Money('120'),
+            total: new AmountBreakdown(
+                net: new Money('100'),
+                tax: new Money('20'),
+                gross: new Money('120'),
+            ),
             customerSnapshot: ['name' => 'Customer'],
             companySnapshot: ['name' => 'Company']
         );

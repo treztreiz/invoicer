@@ -32,7 +32,7 @@ jobs:
                 with:
                     php-version: '8.4'
                     coverage: none
-                    extensions: intl, mbstring, pdo_pgsql
+                    extensions: intl, mbstring, bcmath, pdo_pgsql
                     tools: composer
 
             -   name: Validate composer manifest
@@ -46,6 +46,6 @@ jobs:
 
             -   name: Lint (php-cs-fixer)
                 run: composer lint:check
-                
+
             -   name: Run unit tests
                 run: composer phpunit

@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
@@ -37,13 +38,13 @@ final class InvoiceTest extends TestCase
     {
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
 
-        $this->expectException(\LogicException::class);
+        static::expectException(\LogicException::class);
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
     }
 
     public function test_mark_overdue_only_from_issued(): void
     {
-        $this->expectException(\LogicException::class);
+        static::expectException(\LogicException::class);
         $this->invoice->markOverdue();
     }
 
@@ -79,7 +80,7 @@ final class InvoiceTest extends TestCase
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
         $this->invoice->markPaid(new \DateTimeImmutable('+1 day'));
 
-        $this->expectException(\LogicException::class);
+        static::expectException(\LogicException::class);
         $this->invoice->void();
     }
 
@@ -91,9 +92,11 @@ final class InvoiceTest extends TestCase
             title: 'Sample invoice',
             currency: 'EUR',
             vatRate: new VatRate('20'),
-            subtotalNet: new Money('100'),
-            taxTotal: new Money('20'),
-            grandTotal: new Money('120'),
+            total: new AmountBreakdown(
+                net: new Money('100'),
+                tax: new Money('20'),
+                gross: new Money('120'),
+            ),
             customerSnapshot: ['name' => 'Client'],
             companySnapshot: ['name' => 'My Company']
         );

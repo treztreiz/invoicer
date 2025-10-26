@@ -9,7 +9,7 @@ use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Guard\DomainGuard;
-use App\Domain\ValueObject\Money;
+use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -37,7 +37,9 @@ abstract class Document
      */
     public function __construct(
         #[ORM\Column(length: 200)]
-        protected(set) string $title,
+        protected(set) string $title {
+            set => DomainGuard::nonEmpty($value, 'Title');
+        },
 
         #[ORM\Column(length: 3)]
         protected(set) string $currency {
@@ -48,13 +50,7 @@ abstract class Document
         protected(set) VatRate $vatRate,
 
         #[ORM\Embedded]
-        protected(set) Money $subtotalNet,
-
-        #[ORM\Embedded]
-        protected(set) Money $taxTotal,
-
-        #[ORM\Embedded]
-        protected(set) Money $grandTotal,
+        protected(set) AmountBreakdown $total,
 
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $customerSnapshot,
@@ -63,10 +59,14 @@ abstract class Document
         protected(set) array $companySnapshot,
 
         #[ORM\Column(length: 200, nullable: true)]
-        protected(set) ?string $subtitle = null,
+        protected(set) ?string $subtitle = null {
+            set => DomainGuard::optionalNonEmpty($value, 'Subtitle');
+        },
 
         #[ORM\Column(length: 30, nullable: true)]
-        protected(set) ?string $reference = null,
+        protected(set) ?string $reference = null {
+            set => DomainGuard::optionalNonEmpty($value, 'Reference');
+        },
     ) {
         $this->lines = new ArrayCollection();
     }
@@ -97,12 +97,5 @@ abstract class Document
     protected function removeLine(DocumentLine $line): void
     {
         $this->lines->removeElement($line);
-    }
-
-    protected function updateTotals(Money $subtotalNet, Money $taxTotal, Money $grandTotal): void
-    {
-        $this->subtotalNet = $subtotalNet;
-        $this->taxTotal = $taxTotal;
-        $this->grandTotal = $grandTotal;
     }
 }

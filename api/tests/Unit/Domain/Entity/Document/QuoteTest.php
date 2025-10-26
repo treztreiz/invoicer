@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\QuoteStatus;
+use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +37,7 @@ final class QuoteTest extends TestCase
     {
         $this->quote->send(new \DateTimeImmutable());
 
-        $this->expectException(\LogicException::class);
+        static::expectException(\LogicException::class);
         $this->quote->send(new \DateTimeImmutable());
     }
 
@@ -79,7 +80,7 @@ final class QuoteTest extends TestCase
     {
         $this->quote->send(new \DateTimeImmutable());
 
-        $this->expectException(\LogicException::class);
+        static::expectException(\LogicException::class);
         $this->quote->linkConvertedInvoice(Uuid::v7());
     }
 
@@ -91,9 +92,11 @@ final class QuoteTest extends TestCase
             title: 'Sample quote',
             currency: 'EUR',
             vatRate: new VatRate('20'),
-            subtotalNet: new Money('100'),
-            taxTotal: new Money('20'),
-            grandTotal: new Money('120'),
+            total: new AmountBreakdown(
+                net: new Money('100'),
+                tax: new Money('20'),
+                gross: new Money('120'),
+            ),
             customerSnapshot: ['name' => 'Client'],
             companySnapshot: ['name' => 'My Company']
         );

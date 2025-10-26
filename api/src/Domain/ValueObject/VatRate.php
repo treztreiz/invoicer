@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 final class VatRate
 {
     public function __construct(
+        /** @var numeric-string */
         #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
         private(set) string $value {
             set => DomainGuard::decimal($value, 2, 'VAT rate', false, 0.0, 100.0);

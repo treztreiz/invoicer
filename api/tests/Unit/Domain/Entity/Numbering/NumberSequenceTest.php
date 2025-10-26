@@ -23,7 +23,7 @@ final class NumberSequenceTest extends TestCase
 
     public function test_negative_year_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        static::expectException(\InvalidArgumentException::class);
         new NumberSequence(DocumentType::QUOTE, -1);
     }
 }

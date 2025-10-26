@@ -29,6 +29,7 @@ RUN set -eux; \
   docker-php-ext-install \
       intl \
       opcache \
+      bcmath \
       pdo_pgsql; \
   apk del .build-deps; \
   rm -rf /tmp/* /var/cache/apk/*

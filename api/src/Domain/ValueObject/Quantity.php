@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 final class Quantity
 {
     public function __construct(
+        /** @var numeric-string */
         #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
         private(set) string $value {
             set => DomainGuard::decimal($value, 3, 'Quantity');
