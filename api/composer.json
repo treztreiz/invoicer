@@ -89,8 +89,8 @@
             "@phpstan-src",
             "@phpstan-tests"
         ],
-        "phpstan-src": "phpstan analyse -c phpstan.dist.neon",
-        "phpstan-tests": "phpstan analyse -c phpstan-tests.neon",
+        "phpstan:src": "phpstan analyse -c phpstan.dist.neon",
+        "phpstan:tests": "phpstan analyse -c phpstan-tests.neon",
         "phpunit": "bin/phpunit",
         "phpunit:unit": "bin/phpunit --testsuite=unit",
         "phpunit:integration": "bin/phpunit --testsuite=integration",
