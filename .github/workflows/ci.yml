@@ -45,7 +45,7 @@ jobs:
                 run: composer phpstan
 
             -   name: Lint (php-cs-fixer)
-                run: vendor/bin/php-cs-fixer fix --dry-run --diff
-
+                run: composer lint:check
+                
             -   name: Run unit tests
-                run: bin/phpunit
+                run: composer phpunit
