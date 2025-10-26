@@ -21,13 +21,13 @@ class Customer
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
-        public Name $name,
+        private(set) Name $name,
 
         #[ORM\Embedded(columnPrefix: false)]
-        public Contact $contact,
+        private(set) Contact $contact,
 
         #[ORM\Embedded]
-        public Address $address,
+        private(set) Address $address,
     ) {
     }
 }
