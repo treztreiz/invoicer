@@ -77,7 +77,7 @@ Findings:
 Minimal patch (if strictly needed):
 ```diff
 <only the changed lines>
-````
+```
 
 Tests to add/update:
 
@@ -85,7 +85,7 @@ Tests to add/update:
 
 Next step: <1 concise action>
 
-```
+````
 
 ---
 
