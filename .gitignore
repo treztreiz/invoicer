@@ -39,13 +39,8 @@ webapp/coverage/
 **/composer-debug.log
 coverage/
 
-# Docker & build
-/docker-compose.override.yml
-.env.docker
-ops/certbot/.env
-
 # TLS certificates (generated locally)
-ops/certs/**/*.pem
-ops/certs/**/*.crt
-ops/certs/**/*.cer
-ops/certs/**/*.key
+ops/nginx/certs/**/*.pem
+ops/nginx/certs/**/*.crt
+ops/nginx/certs/**/*.cer
+ops/nginx/certs/**/*.key
