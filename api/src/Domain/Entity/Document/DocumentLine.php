@@ -4,6 +4,7 @@ namespace App\Domain\Entity\Document;
 
 use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Enum\RateUnit;
 use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
@@ -27,8 +28,11 @@ class DocumentLine
         #[ORM\Embedded]
         private(set) readonly Quantity $quantity,
 
+        #[ORM\Column]
+        private(set) readonly RateUnit $rateUnit,
+
         #[ORM\Embedded]
-        private(set) readonly Money $unitPrice,
+        private(set) readonly Money $rate,
 
         #[ORM\Embedded]
         private(set) readonly Money $amountNet,

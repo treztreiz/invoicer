@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'refactor/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+    backend:
+        name: Backend checks
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: api
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.4'
+                    coverage: none
+                    extensions: intl, mbstring, pdo_pgsql
+                    tools: composer
+
+            -   name: Validate composer manifest
+                run: composer validate --strict
+
+            -   name: Install dependencies
+                run: composer install --no-progress --prefer-dist --no-interaction
+
+            -   name: Static analysis (PHPStan)
+                run: composer phpstan
+
+            -   name: Lint (php-cs-fixer)
+                run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+            -   name: Run unit tests
+                run: bin/phpunit

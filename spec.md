@@ -78,7 +78,7 @@ while remaining **production-capable** and **contractor-implementable**.
   restore; production images built via GitHub Actions and published to GHCR; deployment secrets stored in GitHub
   Secrets.
 * **Testability**: unit tests on totals/reference rules; API contract tests for key endpoints; smoke tests for
-  PDF/export.
+  PDF/export. PHPUnit suites (`composer phpunit:unit`, `composer phpunit:integration`, `composer phpunit:functional`, `composer phpunit:tools`) keep layers scoped; `composer phpunit` runs all suites (inside the api container, or use `make test` from the host).
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
   rendition for PDFs.
 
@@ -425,9 +425,10 @@ InstallmentPlan ||--o{ Installment
 - `README.md` remains concise (overview, commands, directory tree) and links to detailed docs in `doc/`.
 - All technical documentation lives under `doc/`; each file focuses on current implementation (avoid speculative/future sections beyond short placeholders).
 
-### CI & deployment (placeholder)
+### CI & deployment (summary)
 
-- GitHub Actions workflows to be added; plan is to run lint/tests, build images (api/web), push to GHCR, deploy via
+- GitHub Actions workflow runs composer validate, `composer phpstan` (which warms dev & test containers before analysis of src/tests), php-cs-fixer (`--dry-run`), and `bin/phpunit` on every push/PR to `main`.
+- Future enhancement: add build-and-publish jobs (api/web images → GHCR) and optional Swarm deployment step via
   `docker stack deploy -c ops/compose.base.yaml -c ops/compose.prod.yaml $(PROJECT_NAME)`.
 - JWT keys (`config/jwt/*.pem`) are generated at runtime (e.g., `lexik:jwt:generate-keypair` with `JWT_PASSPHRASE` from env). Never commit the key files or real passphrases; provision them during deploy/CI via secrets.
 
@@ -481,6 +482,18 @@ InstallmentPlan ||--o{ Installment
 
 * Tests (unit/API/E2E smoke), a11y pass, performance pass on lists & PDF, logging/metrics.
 * Swarm deploy script & checklist.
+
+## Git Workflow & CI Expectations
+
+* Branch model: `main` stays deployable; all work happens on short-lived feature branches (`feature/<desc>`, `fix/<desc>`, etc.) branched from `main`.
+* Pull Requests: every change enters `main` via PR. Use the PR template to describe scope, tests, and follow-ups. Mark drafts/WIP explicitly if not ready.
+* Reviews & CI: require at least one approving review and green GitHub Actions (composer validate, `composer phpstan`, php-cs-fixer `--dry-run`, PHPUnit via `bin/phpunit`) before merging. If new commits arrive after approval, re-request review.
+* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run inside `make shell-api`.
+* Local commands run inside the api container (`make shell-api`). From the host, use `make test` (full suite) or drop into the container before invoking `composer phpunit`, `composer phpstan`, `composer lint`, etc.
+* Local static analysis: `composer phpstan` warms dev/test caches and runs both analysis configs (src + tests). Run inside `make shell-api`.
+* Commits: conventional commit messages (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`, etc.). Squash on merge so `main` history stays clean; choose a conventional squash title.
+* Hotfixes: branch from `main`, go through PR like any other change. No direct pushes to `main`.
+* Optional enhancements (later): layer static analysis (PHPStan) or containerised integration tests in separate CI jobs.
 
 ## Gathering Results
 

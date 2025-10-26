@@ -1,0 +1,13 @@
+parameters:
+    level: 7
+    paths:
+        - tests
+    tmpDir: var/cache/phpstan/tests
+    bootstrapFiles:
+        - vendor/autoload.php
+    symfony:
+        containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
+    ignoreErrors:
+        -
+              identifier: function.alreadyNarrowedType
+              path: tests/bootstrap.php

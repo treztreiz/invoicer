@@ -108,6 +108,11 @@ Next step: <1 concise action>
 - **Logs/Metrics:** basic request logs, job outcomes; avoid PII in logs.
 - **Backups:** Mention schedule for PostgreSQL.
 
+**Workflow reminder**
+- All work lands via feature branches + PR into `main`; no direct pushes. CI (composer validate, `composer phpstan` – warms dev/test caches & analyses src/tests, php-cs-fixer `--dry-run`, `bin/phpunit`) must be green before merge. Remind the human to run composer scripts inside the api container (`make shell-api`) or use provided make targets (`make test`).
+- Commit style: Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`...). Squash on merge with a conventional summary.
+- Call out if PR lacks tests/CI or deviates from the documented workflow.
+
 ---
 
 ## 8) Testing Expectations

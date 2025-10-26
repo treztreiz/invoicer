@@ -90,4 +90,4 @@ swarm-remove:
 	docker stack rm $(PROJECT_NAME)
 
 test:
-	$(COMPOSE) exec api vendor/bin/phpunit
+	$(COMPOSE) exec api composer phpunit

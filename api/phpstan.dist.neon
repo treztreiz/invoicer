@@ -1,0 +1,9 @@
+parameters:
+    level: 7
+    paths:
+        - src
+    tmpDir: var/cache/phpstan
+    bootstrapFiles:
+        - vendor/autoload.php
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
