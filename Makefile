@@ -29,7 +29,7 @@ COMPOSE := docker compose $(DEV_FILES)
 # COMMANDS
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-.PHONY: help certs build up down logs restart\:web debug\:on debug\:off shell-api build\:prod swarm\:deploy swarm\:rm test
+.PHONY: help certs build up down logs restart\:web debug\:on debug\:off shell\:api build\:prod swarm\:deploy swarm\:rm test
 
 help:
 	@echo "Dev helpers:"
@@ -39,6 +39,7 @@ help:
 	@echo "  make down           # Stop dev stack"
 	@echo "  make logs           # Tail dev stack logs"
 	@echo "  make restart:web    # Recreate nginx (web) service"
+	@echo "  make shell:api      # Enter backend container (api)"
 	@echo "  make debug:on       # Enable Xdebug (api) and restart service"
 	@echo "  make debug:off      # Disable Xdebug and restart service"
 	@echo "  make test           # Run backend test suite inside the api container"
@@ -70,7 +71,7 @@ debug\:on:
 debug\:off:
 	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate api
 
-shell-api:
+shell\:api:
 	$(COMPOSE) exec api bash
 
 build\:prod:
