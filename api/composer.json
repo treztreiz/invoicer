@@ -1,4 +1,6 @@
 {
+    "name": "treztreiz/invoicer-api",
+    "description": "Single-user invoicing/quoting API built with Symfony/Doctrine (Hexagonal Architecture demo).",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
