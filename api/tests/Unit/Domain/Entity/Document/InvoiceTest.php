@@ -28,9 +28,9 @@ final class InvoiceTest extends TestCase
 
         $this->invoice->issue($issuedAt, $dueDate);
 
-        self::assertSame(InvoiceStatus::ISSUED, $this->invoice->status);
-        self::assertSame($issuedAt, $this->invoice->issuedAt);
-        self::assertSame($dueDate, $this->invoice->dueDate);
+        static::assertSame(InvoiceStatus::ISSUED, $this->invoice->status);
+        static::assertSame($issuedAt, $this->invoice->issuedAt);
+        static::assertSame($dueDate, $this->invoice->dueDate);
     }
 
     public function test_issue_rejected_when_not_draft(): void
@@ -53,7 +53,7 @@ final class InvoiceTest extends TestCase
 
         $this->invoice->markOverdue();
 
-        self::assertSame(InvoiceStatus::OVERDUE, $this->invoice->status);
+        static::assertSame(InvoiceStatus::OVERDUE, $this->invoice->status);
     }
 
     public function test_mark_paid(): void
@@ -63,15 +63,15 @@ final class InvoiceTest extends TestCase
         $paidAt = new \DateTimeImmutable('2025-01-15');
         $this->invoice->markPaid($paidAt);
 
-        self::assertSame(InvoiceStatus::PAID, $this->invoice->status);
-        self::assertSame($paidAt, $this->invoice->paidAt);
+        static::assertSame(InvoiceStatus::PAID, $this->invoice->status);
+        static::assertSame($paidAt, $this->invoice->paidAt);
     }
 
     public function test_void_draft(): void
     {
         $this->invoice->void();
 
-        self::assertSame(InvoiceStatus::VOIDED, $this->invoice->status);
+        static::assertSame(InvoiceStatus::VOIDED, $this->invoice->status);
     }
 
     public function test_void_issued_with_payment_is_rejected(): void

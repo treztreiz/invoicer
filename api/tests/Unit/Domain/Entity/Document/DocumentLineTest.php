@@ -37,8 +37,8 @@ final class DocumentLineTest extends TestCase
             position: 1
         );
 
-        self::assertSame($this->quote, $line->document);
-        self::assertSame(1, $line->position);
+        static::assertSame($this->quote, $line->document);
+        static::assertSame(1, $line->position);
     }
 
     public function test_blank_description_is_rejected(): void

@@ -16,7 +16,7 @@ final class DocumentReferenceGeneratorTest extends TestCase
 
     private InMemorySequenceRepository $repository;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->repository = new InMemorySequenceRepository();
         $this->generator = new DocumentReferenceGenerator($this->repository);
@@ -28,11 +28,11 @@ final class DocumentReferenceGeneratorTest extends TestCase
     {
         $reference = $this->generator->generate(DocumentType::INVOICE, 2026);
 
-        self::assertSame('INV-2026-0001', $reference);
+        static::assertSame('INV-2026-0001', $reference);
 
         $stored = $this->repository->findOneByTypeAndYear(DocumentType::INVOICE, 2026);
-        self::assertNotNull($stored);
-        self::assertSame(2, $stored->nextValue());
+        static::assertNotNull($stored);
+        static::assertSame(2, $stored->nextValue());
     }
 
     public function test_subsequent_number_is_reserved(): void
@@ -40,11 +40,11 @@ final class DocumentReferenceGeneratorTest extends TestCase
         $this->generator->generate(DocumentType::QUOTE, 2025, padding: 3);
         $reference = $this->generator->generate(DocumentType::QUOTE, 2025, padding: 3);
 
-        self::assertSame('Q-2025-002', $reference);
+        static::assertSame('Q-2025-002', $reference);
 
         $stored = $this->repository->findOneByTypeAndYear(DocumentType::QUOTE, 2025);
-        self::assertNotNull($stored);
-        self::assertSame(3, $stored->nextValue());
+        static::assertNotNull($stored);
+        static::assertSame(3, $stored->nextValue());
     }
 
     public function test_invalid_year_is_rejected(): void

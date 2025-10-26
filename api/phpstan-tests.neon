@@ -8,6 +8,6 @@ parameters:
     symfony:
         containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
     ignoreErrors:
-        -
-              identifier: function.alreadyNarrowedType
-              path: tests/bootstrap.php
+        - identifier: missingType.iterableValue
+        - identifier: function.alreadyNarrowedType
+          path: tests/bootstrap.php

@@ -86,8 +86,8 @@
         "phpstan": [
             "@php bin/console cache:warmup --env=dev --no-optional-warmers",
             "@php bin/console cache:warmup --env=test --no-optional-warmers",
-            "@phpstan-src",
-            "@phpstan-tests"
+            "@phpstan:src",
+            "@phpstan:tests"
         ],
         "phpstan:src": "phpstan analyse -c phpstan.dist.neon",
         "phpstan:tests": "phpstan analyse -c phpstan-tests.neon",

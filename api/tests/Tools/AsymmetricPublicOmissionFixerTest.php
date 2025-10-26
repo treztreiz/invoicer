@@ -22,14 +22,16 @@ final class AsymmetricPublicOmissionFixerTest extends TestCase
     public function test_fix(string $input, string $expected): void
     {
         $actual = $this->applyFixToCode($input);
-        $this->assertSame($expected, $actual, 'Single pass should produce expected output.');
+        static::assertSame($expected, $actual, 'Single pass should produce expected output.');
 
         // Idempotency: running again should keep code unchanged
         $again = $this->applyFixToCode($actual);
-        $this->assertSame($expected, $again, 'Fixer must be idempotent.');
+        static::assertSame($expected, $again, 'Fixer must be idempotent.');
     }
 
-    public static function provideFixCases(): \Generator
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function provideFixCases(): iterable
     {
         yield 'simple property private(set)' => [
             <<<'PHP'

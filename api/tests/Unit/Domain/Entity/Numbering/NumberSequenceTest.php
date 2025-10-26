@@ -14,11 +14,11 @@ final class NumberSequenceTest extends TestCase
     {
         $sequence = new NumberSequence(DocumentType::INVOICE, 2026);
 
-        self::assertSame(1, $sequence->reserveNext());
-        self::assertSame(2, $sequence->nextValue());
+        static::assertSame(1, $sequence->reserveNext());
+        static::assertSame(2, $sequence->nextValue());
 
-        self::assertSame(2, $sequence->reserveNext());
-        self::assertSame(3, $sequence->nextValue());
+        static::assertSame(2, $sequence->reserveNext());
+        static::assertSame(3, $sequence->nextValue());
     }
 
     public function test_negative_year_is_rejected(): void

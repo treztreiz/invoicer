@@ -28,8 +28,8 @@ final class QuoteTest extends TestCase
 
         $this->quote->send($sentAt);
 
-        self::assertSame(QuoteStatus::SENT, $this->quote->status);
-        self::assertSame($sentAt, $this->quote->sentAt);
+        static::assertSame(QuoteStatus::SENT, $this->quote->status);
+        static::assertSame($sentAt, $this->quote->sentAt);
     }
 
     public function test_send_only_allowed_from_draft(): void
@@ -47,9 +47,9 @@ final class QuoteTest extends TestCase
 
         $this->quote->markAccepted($acceptedAt);
 
-        self::assertSame(QuoteStatus::ACCEPTED, $this->quote->status);
-        self::assertSame($acceptedAt, $this->quote->acceptedAt);
-        self::assertNull($this->quote->rejectedAt);
+        static::assertSame(QuoteStatus::ACCEPTED, $this->quote->status);
+        static::assertSame($acceptedAt, $this->quote->acceptedAt);
+        static::assertNull($this->quote->rejectedAt);
     }
 
     public function test_reject(): void
@@ -59,9 +59,9 @@ final class QuoteTest extends TestCase
 
         $this->quote->markRejected($rejectedAt);
 
-        self::assertSame(QuoteStatus::REJECTED, $this->quote->status);
-        self::assertSame($rejectedAt, $this->quote->rejectedAt);
-        self::assertNull($this->quote->acceptedAt);
+        static::assertSame(QuoteStatus::REJECTED, $this->quote->status);
+        static::assertSame($rejectedAt, $this->quote->rejectedAt);
+        static::assertNull($this->quote->acceptedAt);
     }
 
     public function test_link_converted_invoice_only_when_accepted(): void
@@ -72,7 +72,7 @@ final class QuoteTest extends TestCase
         $invoiceId = Uuid::v7();
         $this->quote->linkConvertedInvoice($invoiceId);
 
-        self::assertEquals($invoiceId, $this->quote->convertedInvoiceId);
+        static::assertEquals($invoiceId, $this->quote->convertedInvoiceId);
     }
 
     public function test_link_converted_invoice_requires_accepted_status(): void
