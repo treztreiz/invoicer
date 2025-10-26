@@ -13,19 +13,19 @@ use Symfony\Component\Uid\Uuid;
 final class Quote extends Document
 {
     #[ORM\Column(enumType: QuoteStatus::class)]
-    public private(set) QuoteStatus $status = QuoteStatus::DRAFT;
+    private(set) QuoteStatus $status = QuoteStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $sentAt = null;
+    private(set) ?\DateTimeImmutable $sentAt = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $acceptedAt = null;
+    private(set) ?\DateTimeImmutable $acceptedAt = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $rejectedAt = null;
+    private(set) ?\DateTimeImmutable $rejectedAt = null;
 
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
-    public private(set) ?Uuid $convertedInvoiceId = null;
+    private(set) ?Uuid $convertedInvoiceId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

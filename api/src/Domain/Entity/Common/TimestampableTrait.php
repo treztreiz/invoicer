@@ -10,9 +10,9 @@ trait TimestampableTrait
 {
     #[Gedmo\Timestampable(on: 'create')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
-    public protected(set) ?\DateTimeImmutable $createdAt = null;
+    protected(set) ?\DateTimeImmutable $createdAt = null;
 
     #[Gedmo\Timestampable(on: 'update')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
-    public protected(set) ?\DateTimeImmutable $updatedAt = null;
+    protected(set) ?\DateTimeImmutable $updatedAt = null;
 }

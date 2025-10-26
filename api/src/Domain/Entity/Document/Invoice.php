@@ -11,16 +11,16 @@ use Doctrine\ORM\Mapping as ORM;
 final class Invoice extends Document
 {
     #[ORM\Column]
-    public private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
+    private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $issuedAt = null;
+    private(set) ?\DateTimeImmutable $issuedAt = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $dueDate = null;
+    private(set) ?\DateTimeImmutable $dueDate = null;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $paidAt = null;
+    private(set) ?\DateTimeImmutable $paidAt = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

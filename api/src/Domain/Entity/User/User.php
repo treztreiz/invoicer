@@ -19,7 +19,7 @@ final class User
     use TimestampableTrait;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-    public private(set) ?\DateTimeImmutable $lastLogin = null;
+    private(set) ?\DateTimeImmutable $lastLogin = null;
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]

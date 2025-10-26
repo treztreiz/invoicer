@@ -27,7 +27,7 @@ abstract class Document
 
     /** @var Collection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
-    public protected(set) Collection $lines;
+    protected(set) Collection $lines;
 
     /**
      * @param array<string, mixed> $customerSnapshot
