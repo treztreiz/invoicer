@@ -27,7 +27,7 @@ abstract class Document
     use TimestampableTrait;
     use ArchivableTrait;
 
-    /** @var Collection<int, DocumentLine> */
+    /** @var ArrayCollection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
     protected(set) Collection $lines;
 

@@ -24,11 +24,6 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
         return $this->user->userIdentifier;
     }
 
-    public function getRoles(): array
-    {
-        return $this->user->roles;
-    }
-
     public function getPassword(): string
     {
         if ('' === $this->user->password) {
@@ -41,6 +36,11 @@ final readonly class SecurityUser implements UserInterface, PasswordAuthenticate
     public function eraseCredentials(): void
     {
         // no temporary credentials stored on the domain entity
+    }
+
+    public function getRoles(): array
+    {
+        return $this->user->roles;
     }
 
     public function getDomainUser(): User
