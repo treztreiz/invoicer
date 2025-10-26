@@ -1,16 +1,16 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - 'feature/**'
-      - 'fix/**'
-      - 'chore/**'
-      - 'refactor/**'
-  pull_request:
-    branches:
-      - main
+    push:
+        branches:
+            - main
+            - 'feature/**'
+            - 'fix/**'
+            - 'chore/**'
+            - 'refactor/**'
+    pull_request:
+        branches:
+            - main
 
 jobs:
     backend:
@@ -19,10 +19,20 @@ jobs:
         defaults:
             run:
                 working-directory: api
+        env:
+            APP_ENV: test
+            APP_SECRET: 0a642d790958ecf892ee1efc7cd6d3f2
+            DATABASE_URL: 'sqlite:///%kernel.project_dir%/var/test.db'
+            JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+            JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+            JWT_PASSPHRASE: change-me
 
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
+
+            -   name: Prepare var directory
+                run: mkdir -p var
 
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
