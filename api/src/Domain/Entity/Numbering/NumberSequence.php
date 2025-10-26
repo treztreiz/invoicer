@@ -22,12 +22,12 @@ class NumberSequence
         private(set) readonly DocumentType $documentType,
 
         #[ORM\Column(type: Types::SMALLINT)]
-        private(set) int $year {
+        public int $year {
             set => DomainGuard::nonNegativeInt($value, 'Year');
         },
 
         #[ORM\Column(type: Types::INTEGER)]
-        private(set) int $nextValue = 1 {
+        public int $nextValue = 1 {
             set => DomainGuard::nonNegativeInt($value, 'Next value');
         },
     ) {
@@ -39,20 +39,5 @@ class NumberSequence
         $this->nextValue = DomainGuard::nonNegativeInt($this->nextValue + 1, 'Next value');
 
         return $current;
-    }
-
-    public function documentType(): DocumentType
-    {
-        return $this->documentType;
-    }
-
-    public function year(): int
-    {
-        return $this->year;
-    }
-
-    public function nextValue(): int
-    {
-        return $this->nextValue;
     }
 }
