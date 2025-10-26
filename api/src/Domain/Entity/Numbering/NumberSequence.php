@@ -27,7 +27,9 @@ class NumberSequence
         },
 
         #[ORM\Column(type: Types::INTEGER)]
-        private(set) int $nextValue = 1,
+        private(set) int $nextValue = 1 {
+            set => DomainGuard::nonNegativeInt($value, 'Next value');
+        },
     ) {
     }
 

@@ -31,10 +31,6 @@ abstract class Document
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
     protected(set) Collection $lines;
 
-    /**
-     * @param array<string, mixed> $customerSnapshot
-     * @param array<string, mixed> $companySnapshot
-     */
     public function __construct(
         #[ORM\Column(length: 200)]
         protected(set) string $title {
@@ -52,9 +48,11 @@ abstract class Document
         #[ORM\Embedded]
         protected(set) AmountBreakdown $total,
 
+        /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $customerSnapshot,
 
+        /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $companySnapshot,
 

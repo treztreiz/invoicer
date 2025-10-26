@@ -6,6 +6,7 @@ namespace App\Domain\Entity\User;
 
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\Company;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Name;
@@ -34,7 +35,9 @@ class User
         public Company $company,
 
         #[ORM\Column(length: 180, unique: true)]
-        public string $userIdentifier,
+        public string $userIdentifier {
+            set => DomainGuard::email($value, 'User identifier');
+        },
 
         /** @var array<int, string> */
         #[ORM\Column]
@@ -44,10 +47,14 @@ class User
         },
 
         #[ORM\Column]
-        public string $password,
+        public string $password {
+            set => DomainGuard::nonEmpty($value, 'Password');
+        },
 
         #[ORM\Column(length: 10)]
-        public string $locale,
+        public string $locale {
+            set => DomainGuard::nonEmpty($value, 'Locale');
+        },
     ) {
     }
 }
