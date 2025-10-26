@@ -1,26 +1,32 @@
 services:
-  api:
-    image: ${PROJECT_NAME}-api:${PROD_TAG}
-    volumes:
-      - uploads:/app/public/uploads
+    api:
+        image: ${PROJECT_NAME}-api:${PROD_TAG}
+        environment:
+            DEFAULT_URI: ${DEFAULT_URI?}
+            APP_SECRET: ${APP_SECRET?}
+            JWT_SECRET_KEY: ${JWT_SECRET_KEY?}
+            JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY?}
+            JWT_PASSPHRASE: ${JWT_PASSPHRASE?}
+        volumes:
+            - uploads:/app/public/uploads
 
-  web:
-    image: ${PROJECT_NAME}-web:${PROD_TAG}
-    environment:
-      HTTPS_PORT: 443
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: ingress
-      - target: 443
-        published: 443
-        protocol: tcp
-        mode: ingress
-    volumes:
-      - uploads:/srv/uploads:ro
-      - acme:/var/www/certbot:ro
+    web:
+        image: ${PROJECT_NAME}-web:${PROD_TAG}
+        environment:
+            HTTPS_PORT: 443
+        ports:
+            -   target: 80
+                published: 80
+                protocol: tcp
+                mode: ingress
+            -   target: 443
+                published: 443
+                protocol: tcp
+                mode: ingress
+        volumes:
+            - uploads:/srv/uploads:ro
+            - acme:/var/www/certbot:ro
 
 volumes:
-  uploads:
-  acme:
+    uploads:
+    acme:
