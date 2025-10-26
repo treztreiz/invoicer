@@ -38,9 +38,3 @@ webapp/coverage/
 **/pnpm-debug.log*
 **/composer-debug.log
 coverage/
-
-# TLS certificates (generated locally)
-ops/nginx/certs/**/*.pem
-ops/nginx/certs/**/*.crt
-ops/nginx/certs/**/*.cer
-ops/nginx/certs/**/*.key
