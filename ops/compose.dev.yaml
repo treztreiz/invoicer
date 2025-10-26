@@ -5,8 +5,7 @@ services:
             dockerfile: ops/images/api.Dockerfile
             target: dev
             args:
-                PHP_VERSION: ${PHP_VERSION}
-        user: "${UID:-1000}:${GID:-1000}"
+                PHP_VERSION: ${PHP_VERSION:-8.4-fpm-alpine}
         environment:
             XDEBUG_MODE: ${XDEBUG_MODE:-off}
         volumes:
@@ -20,8 +19,8 @@ services:
             dockerfile: ops/images/web.Dockerfile
             target: dev
             args:
-                NODE_VERSION: ${NODE_VERSION}
-                NGINX_VERSION: ${NGINX_VERSION}
+                NODE_VERSION: ${NODE_VERSION:-20-alpine}
+                NGINX_VERSION: ${NGINX_VERSION:-1.29-alpine}
         user: "${UID:-1000}:${GID:-1000}"
         volumes:
             - ../webapp:/app

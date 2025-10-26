@@ -1,7 +1,15 @@
 services:
+    database:
+        image: postgres:${POSTGRES_VERSION?}
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB?}
+            POSTGRES_USER: ${POSTGRES_USER?}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?}
+
     api:
         image: ${PROJECT_NAME}-api:${PROD_TAG}
         environment:
+            DATABASE_URL: postgresql://${POSTGRES_USER?}:${POSTGRES_PASSWORD?}@database:5432/${POSTGRES_DB?}serverVersion=${POSTGRES_SERVER_VERSION?}&charset=utf8
             DEFAULT_URI: ${DEFAULT_URI?}
             APP_SECRET: ${APP_SECRET?}
             JWT_SECRET_KEY: ${JWT_SECRET_KEY?}

@@ -11,6 +11,7 @@ return new PhpCsFixer\Config()
     ->registerCustomFixers([
         new AsymmetricPublicOmissionFixer(),
     ])
+    ->setRiskyAllowed(true)
     ->setRules([
         // Standard
         '@Symfony' => true,

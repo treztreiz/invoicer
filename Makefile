@@ -65,7 +65,7 @@ web-restart:
 	$(COMPOSE) up -d --force-recreate web
 
 debug-on:
-	XDEBUG_MODE=debug,develop $(COMPOSE) up -d --force-recreate api
+	XDEBUG_MODE=coverage,develop,debug $(COMPOSE) up -d --force-recreate api
 
 debug-off:
 	XDEBUG_MODE=off $(COMPOSE) up -d --force-recreate api
