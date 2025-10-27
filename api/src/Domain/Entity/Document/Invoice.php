@@ -32,7 +32,7 @@ class Invoice extends Document
     private(set) ?InvoiceRecurrence $recurrence = null;
 
     #[ORM\OneToOne(targetEntity: InstallmentPlan::class, mappedBy: 'invoice')]
-    private(set) ?InstallmentPlan $plan = null;
+    private(set) ?InstallmentPlan $installmentPlan = null;
 
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
     private(set) ?Uuid $recurrenceSeedId = null;
