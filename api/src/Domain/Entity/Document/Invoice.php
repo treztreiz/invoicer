@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
 class Invoice extends Document
 {
-    #[ORM\Column]
+    #[ORM\Column(enumType: InvoiceStatus::class)]
     private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
@@ -23,6 +27,18 @@ class Invoice extends Document
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private(set) ?\DateTimeImmutable $paidAt = null;
+
+    #[ORM\OneToOne(targetEntity: InvoiceRecurrence::class, mappedBy: 'invoice')]
+    private(set) ?InvoiceRecurrence $recurrence = null;
+
+    #[ORM\OneToOne(targetEntity: InstallmentPlan::class, mappedBy: 'invoice')]
+    private(set) ?InstallmentPlan $plan = null;
+
+    #[ORM\Column(type: UuidType::NAME, nullable: true)]
+    private(set) ?Uuid $recurrenceSeedId = null;
+
+    #[ORM\Column(type: UuidType::NAME, nullable: true)]
+    private(set) ?Uuid $installmentSeedId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

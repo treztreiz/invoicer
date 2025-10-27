@@ -104,6 +104,15 @@ final class DomainGuard
         return $value;
     }
 
+    public static function positiveInt(int $value, string $label = 'Value'): int
+    {
+        if ($value <= 0) {
+            throw new \InvalidArgumentException(sprintf('%s must be greater than zero.', $label));
+        }
+
+        return $value;
+    }
+
     /** @return numeric-string */
     public static function decimal(
         string $value,
