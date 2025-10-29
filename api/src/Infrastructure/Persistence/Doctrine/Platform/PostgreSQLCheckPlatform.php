@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Platform;
 
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
+use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareTableDiff;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Table;
@@ -24,9 +25,9 @@ final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckG
     {
         $sql = parent::getCreateTableSQL($table, $createFlags);
 
-        if ($table->hasOption('app_checks') && is_array($table->getOption('app_checks'))) {
+        if ($table->hasOption(CheckOptions::DECLARED->value) && is_array($table->getOption(CheckOptions::DECLARED->value))) {
             /** @var list<CheckSpecInterface> $declared */
-            $declared = array_values(array_filter($table->getOption('app_checks'), fn ($spec) => $spec instanceof CheckSpecInterface));
+            $declared = array_values(array_filter($table->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
             if (!empty($declared)) {
                 foreach ($declared as $spec) {
                     $sql[] = $this->generator->buildAddCheckSql($table->getQuotedName($this), $spec);
@@ -42,9 +43,9 @@ final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckG
         $sql = parent::getCreateTablesSQL($tables);
 
         foreach ($tables as $table) {
-            if ($table->hasOption('app_checks') && is_array($table->getOption('app_checks'))) {
+            if ($table->hasOption(CheckOptions::DECLARED->value) && is_array($table->getOption(CheckOptions::DECLARED->value))) {
                 /** @var list<CheckSpecInterface> $declared */
-                $declared = array_values(array_filter($table->getOption('app_checks'), fn ($spec) => $spec instanceof CheckSpecInterface));
+                $declared = array_values(array_filter($table->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
                 if (!empty($declared)) {
                     foreach ($declared as $spec) {
                         $sql[] = $this->generator->buildAddCheckSql($table->getQuotedName($this), $spec);

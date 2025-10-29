@@ -7,6 +7,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Schema;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
+use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
 use App\Infrastructure\Persistence\Doctrine\ValueObject\DroppedCheckSpec;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Comparator;
@@ -46,9 +47,9 @@ final class CheckComparator extends Comparator
             }
 
             $fromTable = $fromSchema->getTable($toTableName);
-            $present = $fromTable->hasOption('app_checks_present') ? $fromTable->getOption('app_checks_present') : [];
+            $present = $fromTable->hasOption(CheckOptions::EXISTING->value) ? $fromTable->getOption(CheckOptions::EXISTING->value) : [];
 
-            if (!$toTable->hasOption('app_checks') || !is_array($toTable->getOption('app_checks'))) {
+            if (!$toTable->hasOption(CheckOptions::DECLARED->value) || !is_array($toTable->getOption(CheckOptions::DECLARED->value))) {
                 if (!empty($present)) {
                     $have = [];
                     foreach ($present as $c) {
@@ -62,7 +63,7 @@ final class CheckComparator extends Comparator
             }
 
             /** @var list<CheckSpecInterface> $declared */
-            $declared = array_values(array_filter($toTable->getOption('app_checks'), fn ($spec) => $spec instanceof CheckSpecInterface));
+            $declared = array_values(array_filter($toTable->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
             if (empty($declared)) {
                 continue;
             }

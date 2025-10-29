@@ -42,7 +42,7 @@ final readonly class CheckIntrospector
         foreach ($schema->getTables() as $table) {
             $tableName = $table->getName();
             if (isset($checks[$tableName])) {
-                $table->addOption('app_checks_present', $checks[$tableName]);
+                $table->addOption(CheckOptions::EXISTING->value, $checks[$tableName]);
             }
         }
 

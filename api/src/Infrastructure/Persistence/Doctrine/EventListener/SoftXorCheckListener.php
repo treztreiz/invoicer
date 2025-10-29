@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\EventListener;
 
 use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXor;
+use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
 use App\Infrastructure\Persistence\Doctrine\ValueObject\SoftXorCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -38,9 +39,9 @@ class SoftXorCheckListener
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $checks = $table->hasOption('app_checks') ? $table->getOption('app_checks') : [];
+        $checks = $table->hasOption(CheckOptions::DECLARED->value) ? $table->getOption(CheckOptions::DECLARED->value) : [];
 
-        $table->addOption('app_checks', [
+        $table->addOption(CheckOptions::DECLARED->value, [
             ...(array) $checks,
             ...[new SoftXorCheckSpec($cfg->name, ['cols' => $colNames])],
         ]);
@@ -99,16 +100,14 @@ class SoftXorCheckListener
     private function hasUniqueIndexOnColumn(Table $table, string $colName): bool
     {
         // Primary key also implies uniqueness; check that first.
-        if ($table->hasPrimaryKey() && $table->getPrimaryKey()->spansColumns([$colName])) {
+        if ($table->getPrimaryKey()?->spansColumns([$colName])) {
             return true;
         }
 
-        foreach ($table->getIndexes() as $index) {
-            if ($index->isUnique() && $index->spansColumns([$colName])) {
-                return true;
-            }
+        if (array_any($table->getIndexes(), fn ($index) => $index->isUnique() && $index->spansColumns([$colName]))) {
+            return true;
         }
 
-        return false;
+        return array_any($table->getUniqueConstraints(), fn ($constraint) => $constraint->getColumns() === [$colName]);
     }
 }

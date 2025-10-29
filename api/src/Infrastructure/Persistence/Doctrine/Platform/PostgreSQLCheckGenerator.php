@@ -20,7 +20,7 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
     private function buildSoftXor(SoftXorCheckSpec $spec): string
     {
         $payload = $spec->expr;
-        $cols = array_map(fn (string $col) => $col, $payload['cols']);
+        $cols = array_map(fn (string $col) => $this->platform->quoteIdentifier($col), $payload['cols']);
 
         return 'num_nonnulls('.implode(', ', $cols).') <= 1';
     }
