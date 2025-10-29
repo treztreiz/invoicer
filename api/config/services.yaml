@@ -20,3 +20,7 @@ services:
     App\Infrastructure\:
         resource: '../src/Infrastructure/'
 
+#    App\Infrastructure\Persistence\Doctrine\Subscriber\XorOneOfSchemaSubscriber:
+#        tags:
+#            - { name: doctrine.event_subscriber }
+

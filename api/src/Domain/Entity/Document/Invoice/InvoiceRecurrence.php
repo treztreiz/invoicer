@@ -18,11 +18,10 @@ class InvoiceRecurrence
 {
     use UuidTrait;
 
-    public function __construct(
-        #[ORM\OneToOne(targetEntity: Invoice::class, inversedBy: 'recurrence')]
-        #[ORM\JoinColumn(unique: true, nullable: false, onDelete: 'CASCADE')]
-        private(set) readonly Invoice $invoice,
+    #[ORM\OneToOne(targetEntity: Invoice::class, mappedBy: 'recurrence')]
+    private(set) ?Invoice $invoice = null;
 
+    public function __construct(
         #[ORM\Column(enumType: RecurrenceFrequency::class)]
         private(set) readonly RecurrenceFrequency $frequency,
 

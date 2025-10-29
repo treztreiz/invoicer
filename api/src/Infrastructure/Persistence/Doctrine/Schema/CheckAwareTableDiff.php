@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Persistence\Doctrine\Schema;
+
+use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\TableDiff;
+
+final class CheckAwareTableDiff extends TableDiff
+{
+    /** @var list<CheckSpecInterface> */
+    private array $addedChecks = [];
+
+    /** @var list<CheckSpecInterface> */
+    private array $changedChecks = [];
+
+    /** @var list<CheckSpecInterface> */
+    private array $droppedChecks = [];
+
+    public function __construct(Table $oldTable)
+    {
+        parent::__construct(
+            tableName: $oldTable->getName(),
+            fromTable: $oldTable
+        );
+    }
+
+    /** @param list<CheckSpecInterface> $spec */
+    public function addAddedChecks(array $spec): void
+    {
+        $this->addedChecks = [...$this->addedChecks, ...$spec];
+    }
+
+    /** @param list<CheckSpecInterface> $spec */
+    public function addChangedChecks(array $spec): void
+    {
+        $this->changedChecks = [...$this->changedChecks, ...$spec];
+    }
+
+    /** @param list<CheckSpecInterface> $spec */
+    public function addDroppedChecks(array $spec): void
+    {
+        $this->droppedChecks = [...$this->droppedChecks, ...$spec];
+    }
+
+    /** @return list<CheckSpecInterface> */
+    public function getAddedChecks(): array
+    {
+        return $this->addedChecks;
+    }
+
+    /** @return list<CheckSpecInterface> */
+    public function getChangedChecks(): array
+    {
+        return $this->changedChecks;
+    }
+
+    /** @return list<CheckSpecInterface> */
+    public function getDroppedChecks(): array
+    {
+        return $this->droppedChecks;
+    }
+
+    public function isEmpty(): bool
+    {
+        if (
+            count($this->addedChecks) > 0
+            || count($this->changedChecks) > 0
+            || count($this->droppedChecks) > 0
+        ) {
+            return false;
+        }
+
+        return parent::isEmpty();
+    }
+}

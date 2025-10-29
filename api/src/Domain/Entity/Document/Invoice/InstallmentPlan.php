@@ -23,11 +23,11 @@ class InstallmentPlan
     #[ORM\OrderBy(['position' => 'ASC'])]
     private(set) Collection $installments;
 
-    public function __construct(
-        #[ORM\OneToOne(targetEntity: Invoice::class, inversedBy: 'installmentPlan')]
-        #[ORM\JoinColumn(unique: true, nullable: false, onDelete: 'CASCADE')]
-        private(set) readonly Invoice $invoice,
-    ) {
+    #[ORM\OneToOne(targetEntity: Invoice::class, mappedBy: 'installmentPlan')]
+    private(set) ?Invoice $invoice = null;
+
+    public function __construct()
+    {
         $this->installments = new ArrayCollection();
     }
 }
