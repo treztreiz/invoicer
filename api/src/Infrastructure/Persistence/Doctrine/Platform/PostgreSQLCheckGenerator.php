@@ -25,7 +25,7 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
         return 'num_nonnulls('.implode(', ', $cols).') <= 1';
     }
 
-    public function buildExpressionSql(CheckSpecInterface $spec): string
+    public function buildExpressionSQL(CheckSpecInterface $spec): string
     {
         return match (get_class($spec)) {
             SoftXorCheckSpec::class => $this->buildSoftXor($spec),
@@ -35,9 +35,9 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function buildAddCheckSql(string $tableNameSql, CheckSpecInterface $spec): string
+    public function buildAddCheckSQL(string $tableNameSql, CheckSpecInterface $spec): string
     {
-        $expr = $this->buildExpressionSql($spec);
+        $expr = $this->buildExpressionSQL($spec);
         $name = $spec->name;
 
         return <<<SQL
@@ -58,12 +58,12 @@ END$$
 SQL;
     }
 
-    public function buildDropCheckSql(string $tableNameSql, CheckSpecInterface $spec): string
+    public function buildDropCheckSQL(string $tableNameSql, CheckSpecInterface $spec): string
     {
         return 'ALTER TABLE '.$tableNameSql.' DROP CONSTRAINT IF EXISTS "'.$spec->name.'"';
     }
 
-    public function buildIntrospectionSql(): string
+    public function buildIntrospectionSQL(): string
     {
         return <<<SQL
 SELECT
@@ -88,7 +88,7 @@ SQL;
 
     // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function normalizeExpressionSql(string $expr): string
+    public function normalizeExpressionSQL(string $expr): string
     {
         // 1) trim
         $expr = trim($expr);

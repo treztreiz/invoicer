@@ -6,8 +6,7 @@ namespace App\Infrastructure\Persistence\Doctrine\ValueObject;
 
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
 
-/** Only used for DROP; expr/deferrable are irrelevant.
- */
+/** @note Only used for DROP; expr/deferrable are irrelevant. */
 final class DroppedCheckSpec implements CheckSpecInterface
 {
     /** @var array{} */

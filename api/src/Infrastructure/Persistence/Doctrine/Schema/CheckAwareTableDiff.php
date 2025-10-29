@@ -14,7 +14,7 @@ final class CheckAwareTableDiff extends TableDiff
     private array $addedChecks = [];
 
     /** @var list<CheckSpecInterface> */
-    private array $changedChecks = [];
+    private array $modifiedChecks = [];
 
     /** @var list<CheckSpecInterface> */
     private array $droppedChecks = [];
@@ -34,9 +34,9 @@ final class CheckAwareTableDiff extends TableDiff
     }
 
     /** @param list<CheckSpecInterface> $spec */
-    public function addChangedChecks(array $spec): void
+    public function addModifiedChecks(array $spec): void
     {
-        $this->changedChecks = [...$this->changedChecks, ...$spec];
+        $this->modifiedChecks = [...$this->modifiedChecks, ...$spec];
     }
 
     /** @param list<CheckSpecInterface> $spec */
@@ -52,9 +52,9 @@ final class CheckAwareTableDiff extends TableDiff
     }
 
     /** @return list<CheckSpecInterface> */
-    public function getChangedChecks(): array
+    public function getModifiedChecks(): array
     {
-        return $this->changedChecks;
+        return $this->modifiedChecks;
     }
 
     /** @return list<CheckSpecInterface> */
@@ -67,7 +67,7 @@ final class CheckAwareTableDiff extends TableDiff
     {
         if (
             count($this->addedChecks) > 0
-            || count($this->changedChecks) > 0
+            || count($this->modifiedChecks) > 0
             || count($this->droppedChecks) > 0
         ) {
             return false;

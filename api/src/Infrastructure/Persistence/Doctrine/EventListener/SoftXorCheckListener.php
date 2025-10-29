@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\EventListener;
 
-use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXor;
-use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
+use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXorCheck;
+use App\Infrastructure\Persistence\Doctrine\Schema\CheckOptionManager;
 use App\Infrastructure\Persistence\Doctrine\ValueObject\SoftXorCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -18,6 +18,11 @@ use Doctrine\ORM\Tools\ToolEvents;
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
 class SoftXorCheckListener
 {
+    public function __construct(
+        private readonly CheckOptionManager $optionManager,
+    ) {
+    }
+
     /**
      * @throws MappingException
      * @throws SchemaException
@@ -27,27 +32,26 @@ class SoftXorCheckListener
         $class = $args->getClassMetadata();
         $table = $args->getClassTable();
 
-        $attrs = $class->getReflectionClass()->getAttributes(SoftXor::class);
+        $attrs = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
         if (!$attrs) {
             return; // entity not annotated
         }
 
-        /** @var SoftXor $cfg */
+        /** @var SoftXorCheck $cfg */
         $cfg = $attrs[0]->newInstance();
         $colNames = $this->resolveOwningJoinColumns($class, $cfg->properties);
 
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $checks = $table->hasOption(CheckOptions::DECLARED->value) ? $table->getOption(CheckOptions::DECLARED->value) : [];
-
-        $table->addOption(CheckOptions::DECLARED->value, [
-            ...(array) $checks,
-            ...[new SoftXorCheckSpec($cfg->name, ['cols' => $colNames])],
-        ]);
+        $this->optionManager->appendDesired(
+            $table,
+            new SoftXorCheckSpec($cfg->name, ['cols' => $colNames]),
+        );
     }
 
     /**
+     * @param ClassMetadata<object>  $class
      * @param non-empty-list<string> $properties
      *
      * @return non-empty-list<string> column names on the SAME table (owning side only)

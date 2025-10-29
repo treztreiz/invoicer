@@ -13,13 +13,13 @@ interface CheckGeneratorInterface
     }
 
     /** Single SQL statement, idempotent, to ADD the given check on a table. */
-    public function buildAddCheckSql(string $tableNameSql, CheckSpecInterface $spec): string;
+    public function buildAddCheckSQL(string $tableNameSql, CheckSpecInterface $spec): string;
 
     /** Single SQL statement (prefer IF EXISTS) to DROP a check by name. */
-    public function buildDropCheckSql(string $tableNameSql, CheckSpecInterface $spec): string;
+    public function buildDropCheckSQL(string $tableNameSql, CheckSpecInterface $spec): string;
 
     /** Introspection: return SQL text to list all checks in current schema. */
-    public function buildIntrospectionSql(): string;
+    public function buildIntrospectionSQL(): string;
 
     /**
      * @param array{table_name: string, name: string, def: string} $row
@@ -31,7 +31,7 @@ interface CheckGeneratorInterface
     /**
      * Build the **normalized** expression SQL for comparison from a concrete spec.
      */
-    public function buildExpressionSql(CheckSpecInterface $spec): string;
+    public function buildExpressionSQL(CheckSpecInterface $spec): string;
 
-    public function normalizeExpressionSql(string $expr): string;
+    public function normalizeExpressionSQL(string $expr): string;
 }

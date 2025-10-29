@@ -12,18 +12,20 @@ use Doctrine\DBAL\Schema\Schema;
 
 final readonly class CheckIntrospector
 {
-    public function __construct(private CheckGeneratorInterface $generator)
-    {
+    public function __construct(
+        private CheckGeneratorInterface $generator,
+        private CheckOptionManager $optionManager,
+    ) {
     }
 
     /**
-     * @return array<string, non-empty-list<array{name: string, expr: string}>>
+     * @return array<string, list<array{name: string, expr: string}>>
      *
      * @throws Exception
      */
     public function introspect(Connection $conn): array
     {
-        $sql = $this->generator->buildIntrospectionSql(); // Generate dialect specific sql
+        $sql = $this->generator->buildIntrospectionSQL(); // Generate dialect specific SQL
         $checkRows = $conn->fetchAllAssociative($sql); // Retrieve all rows with check
         $checks = [];
 
@@ -36,13 +38,13 @@ final readonly class CheckIntrospector
         return $checks;
     }
 
-    /** @param array<string, non-empty-list<array{name: string, expr: string}>> $checks */
+    /** @param array<string, list<array{name: string, expr: string}>> $checks */
     public function annotate(Schema $schema, array $checks): Schema
     {
         foreach ($schema->getTables() as $table) {
             $tableName = $table->getName();
             if (isset($checks[$tableName])) {
-                $table->addOption(CheckOptions::EXISTING->value, $checks[$tableName]);
+                $this->optionManager->setExisting($table, $checks[$tableName]);
             }
         }
 

@@ -7,7 +7,7 @@ namespace App\Domain\Entity\Document;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
-use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXor;
+use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXorCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
-#[SoftXor(properties: ['recurrence', 'installmentPlan'])]
+#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'])]
 class Invoice extends Document
 {
     #[ORM\Column(enumType: InvoiceStatus::class)]

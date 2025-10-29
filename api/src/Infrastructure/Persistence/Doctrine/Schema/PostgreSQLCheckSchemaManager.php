@@ -17,10 +17,12 @@ final class PostgreSQLCheckSchemaManager extends PostgreSQLSchemaManager
 
     public function __construct(
         private readonly Connection $connection,
+        /** @var PostgreSQLCheckPlatform */
         private readonly PostgreSQLCheckPlatform $platform,
+        private readonly CheckOptionManager $optionManager,
     ) {
         parent::__construct($connection, $platform);
-        $this->introspector = new CheckIntrospector($platform->generator);
+        $this->introspector = new CheckIntrospector($platform->generator, $this->optionManager);
     }
 
     /** @throws Exception */
@@ -34,6 +36,6 @@ final class PostgreSQLCheckSchemaManager extends PostgreSQLSchemaManager
 
     public function createComparator(): Comparator
     {
-        return new CheckComparator(parent::createComparator(), $this->platform);
+        return new CheckComparator(parent::createComparator(), $this->platform, $this->optionManager);
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\Attribute;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
-class SoftXor
+class SoftXorCheck
 {
     /**
      * @param non-empty-list<string> $properties Doctrine-mapped properties (e.g. ['a','b','c'])
@@ -16,7 +16,7 @@ class SoftXor
         public string $name = 'SOFT_XOR',
     ) {
         if (count($this->properties) < 2) {
-            throw new \LogicException('SoftXor requires at least 2 properties.');
+            throw new \LogicException('SoftXorCheck requires at least 2 properties.');
         }
     }
 }

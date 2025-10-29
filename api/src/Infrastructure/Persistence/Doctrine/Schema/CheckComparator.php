@@ -7,7 +7,6 @@ namespace App\Infrastructure\Persistence\Doctrine\Schema;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
-use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
 use App\Infrastructure\Persistence\Doctrine\ValueObject\DroppedCheckSpec;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Comparator;
@@ -20,11 +19,13 @@ final class CheckComparator extends Comparator
 {
     private CheckGeneratorInterface $generator;
 
+    /** @var array<string, CheckAwareTableDiff> */
     private array $alteredTables;
 
     public function __construct(
         private readonly Comparator $defaultComparator,
         AbstractPlatform&CheckGeneratorAwareInterface $platform,
+        private readonly CheckOptionManager $optionManager,
     ) {
         parent::__construct($platform);
         $this->generator = $platform->generator;
@@ -41,69 +42,12 @@ final class CheckComparator extends Comparator
         foreach ($toSchema->getTables() as $toTable) {
             $toTableName = $toTable->getName();
 
-            // CREATE handled by Platform via options
             if (!$fromSchema->hasTable($toTableName)) {
-                continue;
+                continue; // new table handled elsewhere
             }
 
             $fromTable = $fromSchema->getTable($toTableName);
-            $present = $fromTable->hasOption(CheckOptions::EXISTING->value) ? $fromTable->getOption(CheckOptions::EXISTING->value) : [];
-
-            if (!$toTable->hasOption(CheckOptions::DECLARED->value) || !is_array($toTable->getOption(CheckOptions::DECLARED->value))) {
-                if (!empty($present)) {
-                    $have = [];
-                    foreach ($present as $c) {
-                        $have[$c['name']] = (string) $c['expr'];
-                    }
-                    $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), array_keys($have));
-
-                    $this->addAlteredTable($fromTable, $toTableName, dropped: $dropped);
-                }
-                continue;
-            }
-
-            /** @var list<CheckSpecInterface> $declared */
-            $declared = array_values(array_filter($toTable->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
-            if (empty($declared)) {
-                continue;
-            }
-
-            // Map present: name => expr (as stored by introspector)
-            $have = [];
-            foreach ($present as $c) {
-                $have[$c['name']] = (string) $c['expr'];
-            }
-
-            $added = [];
-            $changed = [];
-            $declaredNames = [];
-
-            // Normalize each declared spec’s expression with generator (no raw SQL path)
-            foreach ($declared as $spec) {
-                $declaredNames[] = $spec->name;
-
-                // Add declared spec if not present yet
-                if (!array_key_exists($spec->name, $have)) {
-                    $added[] = $spec;
-                    continue;
-                }
-
-                $wantExpr = $this->generator->normalizeExpressionSql($this->generator->buildExpressionSql($spec));
-                $haveExpr = $this->generator->normalizeExpressionSql($have[$spec->name]);
-
-                // Change spec if expression is different
-                if ($haveExpr !== $wantExpr) {
-                    $changed[] = $spec;
-                }
-            }
-
-            // Drop specs present but not declared
-            $dropped = [];
-            foreach (array_diff(array_keys($have), $declaredNames) as $dropName) {
-                $dropped[] = new DroppedCheckSpec($dropName);
-            }
-
-            $this->addAlteredTable($fromTable, $toTableName, $added, $changed, $dropped);
+            $this->compareTableChecks($fromTable, $toTable);
         }
 
         $alteredTables = array_values(array_merge($schemaDiff->getAlteredTables(), $this->alteredTables));
@@ -121,14 +65,66 @@ final class CheckComparator extends Comparator
         );
     }
 
+    private function compareTableChecks(Table $existingTable, Table $desiredTable): void
+    {
+        $desiredChecks = $this->optionManager->desired($desiredTable);
+
+        if (empty($desiredChecks)) {
+            $dropped = $this->optionManager->mapExisting(
+                $existingTable,
+                static fn (array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
+            );
+
+            if (!empty($dropped)) {
+                $this->addAlteredTable($existingTable, $desiredTable->getName(), dropped: $dropped);
+            }
+
+            return;
+        }
+
+        $existingChecksByName = $this->optionManager->existingByName($existingTable);
+
+        $added = [];
+        $modified = [];
+        $desiredNames = [];
+
+        foreach ($desiredChecks as $spec) {
+            $desiredNames[] = $spec->name;
+
+            if (!array_key_exists($spec->name, $existingChecksByName)) {
+                $added[] = $spec;
+                continue;
+            }
+
+            $wantedExpr = $this->generator->normalizeExpressionSQL(
+                $this->generator->buildExpressionSQL($spec)
+            );
+            $currentExpr = $this->generator->normalizeExpressionSQL($existingChecksByName[$spec->name]);
+
+            if ($wantedExpr !== $currentExpr) {
+                $modified[] = $spec;
+            }
+        }
+
+        $droppedNames = $this->optionManager->diffDropped($existingChecksByName, $desiredNames);
+        $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), $droppedNames);
+
+        $this->addAlteredTable($existingTable, $desiredTable->getName(), $added, $modified, $dropped);
+    }
+
+    /**
+     * @param list<CheckSpecInterface> $added
+     * @param list<CheckSpecInterface> $modified
+     * @param list<CheckSpecInterface> $dropped
+     */
     private function addAlteredTable(
         Table $fromTable,
         string $toTableName,
         array $added = [],
-        array $changed = [],
+        array $modified = [],
         array $dropped = [],
     ): void {
-        if (empty($added) && empty($changed) && empty($dropped)) {
+        if (empty($added) && empty($modified) && empty($dropped)) {
             return;
         }
 
@@ -137,8 +133,8 @@ final class CheckComparator extends Comparator
         if (!empty($added)) {
             $tableDiff->addAddedChecks($added);
         }
-        if (!empty($changed)) {
-            $tableDiff->addChangedChecks($changed);
+        if (!empty($modified)) {
+            $tableDiff->addModifiedChecks($modified);
         }
         if (!empty($dropped)) {
             $tableDiff->addDroppedChecks($dropped);

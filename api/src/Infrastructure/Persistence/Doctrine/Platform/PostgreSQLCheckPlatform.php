@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Doctrine\Platform;
 
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
-use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
-use App\Infrastructure\Persistence\Doctrine\Enum\CheckOptions;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareTableDiff;
+use App\Infrastructure\Persistence\Doctrine\Schema\CheckOptionManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 
 final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckGeneratorAwareInterface
 {
+    use CheckPlatformTrait;
+
     private(set) PostgreSQLCheckGenerator $generator;
 
-    public function __construct()
+    public function __construct(private readonly CheckOptionManager $optionManager)
     {
         $this->generator = new PostgreSQLCheckGenerator($this);
     }
@@ -25,15 +26,7 @@ final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckG
     {
         $sql = parent::getCreateTableSQL($table, $createFlags);
 
-        if ($table->hasOption(CheckOptions::DECLARED->value) && is_array($table->getOption(CheckOptions::DECLARED->value))) {
-            /** @var list<CheckSpecInterface> $declared */
-            $declared = array_values(array_filter($table->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
-            if (!empty($declared)) {
-                foreach ($declared as $spec) {
-                    $sql[] = $this->generator->buildAddCheckSql($table->getQuotedName($this), $spec);
-                }
-            }
-        }
+        $this->appendChecksSQL($sql, $table);
 
         return $sql;
     }
@@ -43,15 +36,7 @@ final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckG
         $sql = parent::getCreateTablesSQL($tables);
 
         foreach ($tables as $table) {
-            if ($table->hasOption(CheckOptions::DECLARED->value) && is_array($table->getOption(CheckOptions::DECLARED->value))) {
-                /** @var list<CheckSpecInterface> $declared */
-                $declared = array_values(array_filter($table->getOption(CheckOptions::DECLARED->value), fn ($spec) => $spec instanceof CheckSpecInterface));
-                if (!empty($declared)) {
-                    foreach ($declared as $spec) {
-                        $sql[] = $this->generator->buildAddCheckSql($table->getQuotedName($this), $spec);
-                    }
-                }
-            }
+            $this->appendChecksSQL($sql, $table);
         }
 
         return $sql;
@@ -62,18 +47,7 @@ final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckG
         $sql = parent::getAlterTableSQL($diff);
 
         if ($diff instanceof CheckAwareTableDiff) {
-            $tableNameSql = $diff->getOldTable()->getQuotedName($this);
-
-            foreach ($diff->getAddedChecks() as $spec) {
-                $sql[] = $this->generator->buildAddCheckSql($tableNameSql, $spec);
-            }
-            foreach ($diff->getChangedChecks() as $spec) {
-                $sql[] = $this->generator->buildDropCheckSql($tableNameSql, $spec);
-                $sql[] = $this->generator->buildAddCheckSql($tableNameSql, $spec);
-            }
-            foreach ($diff->getDroppedChecks() as $spec) {
-                $sql[] = $this->generator->buildDropCheckSql($tableNameSql, $spec);
-            }
+            $this->appendDiffChecksSQL($sql, $diff);
         }
 
         return $sql;
