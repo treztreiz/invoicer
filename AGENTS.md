@@ -120,6 +120,9 @@ Next step: <1 concise action>
 - **Frontend:** Vitest + Testing Library for forms, list views, and status transitions.
 - **Jobs:** Idempotency tests (same message twice → one effect).
 - **Smoke:** Dockerized smoke on CI.
+- **PHPUnit hygiene:** use `setUp()` for shared fixtures; declare data providers as `public static` methods and reference them via PHP attributes (`#[DataProvider(...)]`).
+- **Test naming:** make test method names explicit about behaviour (better descriptive than terse).
+- **Test doubles:** Name stubs/mocks/dummies as `FooStub`, `MockFoo`, `DummyFoo` to make intent obvious.
 
 **Definition of Done (per change):**
 - Tests passing; coverage added where logic changed.

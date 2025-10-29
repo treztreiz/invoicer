@@ -81,6 +81,10 @@ while remaining **production-capable** and **contractor-implementable**.
   PDF/export. PHPUnit suites (`composer phpunit:unit`, `composer phpunit:integration`, `composer phpunit:functional`,
   `composer phpunit:tools`) keep layers scoped; `composer phpunit` runs all suites (inside the api container, or use
   `make test` from the host).
+* **Test double naming**: use `FooStub`, `MockFoo`, and `DummyFoo` to signal passive stubs, expectation mocks, and placeholder arguments respectively.
+* **PHPUnit conventions**: factor shared fixtures into `setUp()` where practical and use data providers when exercising multiple scenarios.
+* **Test naming**: prefer expressive method names (`test_method_describes_behavior`) over terse identifiers; clarity first even if names grow long.
+* **Data providers**: declare provider methods as `public static` and reference them via PHP attributes (`#[DataProvider('providerName')]`) rather than annotations.
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
   rendition for PDFs.
 

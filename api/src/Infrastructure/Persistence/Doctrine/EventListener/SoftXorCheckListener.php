@@ -16,10 +16,10 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use Doctrine\ORM\Tools\ToolEvents;
 
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
-class SoftXorCheckListener
+readonly class SoftXorCheckListener
 {
     public function __construct(
-        private readonly CheckOptionManager $optionManager,
+        private CheckOptionManager $optionManager,
     ) {
     }
 

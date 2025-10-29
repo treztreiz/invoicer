@@ -10,8 +10,10 @@ use Doctrine\DBAL\Schema\Table;
 
 /**
  * Centralises access to desired (schema-declared) and existing (DB introspected) check metadata.
+ *
+ * Intentionally non-final so callers can substitute a test double when verifying interactions.
  */
-final class CheckOptionManager
+class CheckOptionManager
 {
     /**
      * @return list<CheckSpecInterface> desired checks defined on the schema table
