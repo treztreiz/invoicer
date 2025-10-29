@@ -29,20 +29,19 @@ final class SoftXorCheckListenerTest extends TestCase
      */
     public function test_listener_appends_soft_xor_spec(): void
     {
-        $manager = $this->createMock(CheckOptionManager::class);
-        $listener = new SoftXorCheckListener($manager);
-
         $metadata = self::newMetadata();
         $metadata->associationMappings['recurrence'] = self::owningOneToOne('recurrence_id');
         $metadata->associationMappings['installmentPlan'] = self::owningOneToOne('installment_plan_id');
+
+        $schema = static::createStub(Schema::class);
 
         $table = new Table('invoice');
         $table->addColumn('recurrence_id', 'integer');
         $table->addColumn('installment_plan_id', 'integer');
 
-        $schema = static::createStub(Schema::class);
         $event = new GenerateSchemaTableEventArgs($metadata, $schema, $table);
 
+        $manager = static::createMock(CheckOptionManager::class);
         $manager->expects(static::once())
             ->method('appendDesired')
             ->with(
@@ -52,6 +51,7 @@ final class SoftXorCheckListenerTest extends TestCase
                     && $spec->expr['cols'] === ['recurrence_id', 'installment_plan_id']),
             );
 
+        $listener = new SoftXorCheckListener($manager);
         $listener->postGenerateSchemaTable($event);
     }
 
@@ -62,15 +62,15 @@ final class SoftXorCheckListenerTest extends TestCase
     #[DataProvider('invalidAssociationProvider')]
     public function test_listener_rejects_invalid_association(callable $configure, string $expectedMessage): void
     {
+        static::expectException(\LogicException::class);
+        static::expectExceptionMessage($expectedMessage);
+
         $metadata = self::newMetadata();
         $configure($metadata);
 
         $schema = static::createStub(Schema::class);
 
         $listener = new SoftXorCheckListener(new CheckOptionManager());
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage($expectedMessage);
-
         $listener->postGenerateSchemaTable(
             new GenerateSchemaTableEventArgs(
                 $metadata,
