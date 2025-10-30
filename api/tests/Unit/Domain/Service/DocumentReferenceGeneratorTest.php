@@ -10,6 +10,9 @@ use App\Domain\Enum\DocumentType;
 use App\Domain\Service\DocumentReferenceGenerator;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType solitary-unit
+ */
 final class DocumentReferenceGeneratorTest extends TestCase
 {
     private DocumentReferenceGenerator $generator;

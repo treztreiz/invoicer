@@ -112,6 +112,9 @@ SQL;
         // 6) lowercase everything (functions, identifiers); numbers/strings unaffected
         $expr = strtolower($expr);
 
+        // 7) remove parens wrapping a function call immediately followed by a comparison
+        $expr = preg_replace('/\((\w+\([^()]*\))\)(\s*[<>=])/', '$1$2', trim($expr)) ?? trim($expr);
+
         // Done: a canonical, comparable form
         return trim($expr);
     }

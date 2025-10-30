@@ -85,6 +85,7 @@ while remaining **production-capable** and **contractor-implementable**.
 * **PHPUnit conventions**: factor shared fixtures into `setUp()` where practical and use data providers when exercising multiple scenarios.
 * **Test naming**: prefer expressive method names (`test_method_describes_behavior`) over terse identifiers; clarity first even if names grow long.
 * **Data providers**: declare provider methods as `public static` and reference them via PHP attributes (`#[DataProvider('providerName')]`) rather than annotations.
+* **Test classification**: annotate each PHPUnit test class with a `@testType` docblock (e.g. `sociable-unit`, `solitary-unit`, `integration`) to clarify scope at a glance.
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
   rendition for PDFs.
 

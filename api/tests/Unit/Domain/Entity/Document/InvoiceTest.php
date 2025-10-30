@@ -11,6 +11,9 @@ use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType solitary-unit
+ */
 final class InvoiceTest extends TestCase
 {
     private Invoice $invoice;

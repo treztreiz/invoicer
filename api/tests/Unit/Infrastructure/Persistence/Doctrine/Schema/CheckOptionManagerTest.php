@@ -10,6 +10,9 @@ use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType sociable-unit
+ */
 final class CheckOptionManagerTest extends TestCase
 {
     private readonly CheckOptionManager $manager;

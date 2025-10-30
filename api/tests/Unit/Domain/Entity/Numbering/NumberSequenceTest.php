@@ -8,6 +8,9 @@ use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType solitary-unit
+ */
 final class NumberSequenceTest extends TestCase
 {
     public function test_reserve_next_returns_current_and_increments(): void

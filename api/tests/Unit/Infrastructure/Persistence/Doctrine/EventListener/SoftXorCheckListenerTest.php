@@ -21,6 +21,9 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType sociable-unit
+ */
 final class SoftXorCheckListenerTest extends TestCase
 {
     /**
