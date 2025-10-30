@@ -13,7 +13,8 @@ while remaining **production-capable** and **contractor-implementable**.
 * Favor **Symfony + API Platform + Doctrine (PostgreSQL, UUIDv7)** on the backend and **React (Vite) + TypeScript/JSX +
   Tailwind + TanStack Query + RHF/Zod** on the frontend.
 * Keep operations simple: **Dockerized dev and prod with environment parity** (Compose-based), optional Swarm/Kubernetes
-  later, CI/CD via GitHub Actions.
+  later, CI/CD via GitHub Actions. CI jobs mirror service names (`api-*`, `web-*`); unit layers run on PHP 8.4 without
+  containers, functional/e2e suites spin up PostgreSQL or docker stacks only when needed.
 
 **Out of scope for the MVP**
 

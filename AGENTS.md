@@ -31,7 +31,7 @@ Architecture**. The human writes most of the code; you (Codex) **coach, review, 
 * **Backend:** Symfony 7, API Platform 4, Doctrine 3 (PostgreSQL 16, UUIDv7 IDs), Messenger for jobs, headless Chromium
   for PDFs.
 * **Frontend:** React 19, Vite, TypeScript, Tailwind, TanStack Query, React Hook Form + Zod.
-* **Ops:** Docker (dev/prod parity), optional Swarm, CI via GitHub Actions.
+* **Ops:** Docker (dev/prod parity), optional Swarm, CI via GitHub Actions with jobs named after services (`api-*`, `web-*`). Keep unit jobs container-free, spin up PostgreSQL/docker stacks only for functional/e2e suites when necessary.
 * **Scope:** Single user; quotes & invoices; **mutually exclusive**: recurrence **or** installments; sequential
   numbering; streamed PDFs; revenue CSV.
 
