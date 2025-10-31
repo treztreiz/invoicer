@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Doctrine\Schema;
 
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckAwarePlatformInterface;
@@ -12,10 +14,10 @@ final readonly class CheckAwareSchemaManagerFactory
     public function createSchemaManager(
         Connection $connection,
         CheckAwarePlatformInterface $platform,
-        string $schemaManagerClass
+        string $schemaManagerClass,
     ): CheckAwareSchemaManagerInterface&AbstractSchemaManager {
         if (!class_exists($schemaManagerClass)) {
-            throw new \InvalidArgumentException(sprintf("SchemaManager class `%s` does not exist.", $schemaManagerClass));
+            throw new \InvalidArgumentException(sprintf('SchemaManager class `%s` does not exist.', $schemaManagerClass));
         }
 
         if (!is_subclass_of($schemaManagerClass, CheckAwareSchemaManagerInterface::class)) {

@@ -74,7 +74,7 @@ final class CheckComparator extends Comparator
         if (empty($desiredChecks)) {
             $dropped = $this->optionManager->mapExisting(
                 $existingTable,
-                static fn(array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
+                static fn (array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
             );
 
             if (!empty($dropped)) {
@@ -109,7 +109,7 @@ final class CheckComparator extends Comparator
         }
 
         $droppedNames = $this->optionManager->diffDropped($existingChecksByName, $desiredNames);
-        $dropped = array_map(fn(string $name) => new DroppedCheckSpec($name), $droppedNames);
+        $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), $droppedNames);
 
         $this->addAlteredTable($existingTable, $desiredTable->getName(), $added, $modified, $dropped);
     }

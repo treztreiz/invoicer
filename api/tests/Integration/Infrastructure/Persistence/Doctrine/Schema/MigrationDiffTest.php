@@ -35,7 +35,7 @@ final class MigrationDiffTest extends KernelTestCase
     {
         /** @var TestKernel $kernel */
         $kernel = parent::createKernel($options);
-//        $kernel->setDeleteCache(false);
+        //        $kernel->setDeleteCache(false);
         $kernel
             ->addExtensionConfig('doctrine', [
                 'orm' => [
@@ -113,7 +113,7 @@ final class MigrationDiffTest extends KernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn(ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
+                static fn (ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
             )
         );
 

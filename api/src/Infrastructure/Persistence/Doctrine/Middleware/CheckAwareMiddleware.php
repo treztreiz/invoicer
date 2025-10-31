@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Doctrine\Middleware;
 
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckAwarePlatformInterface;
@@ -11,7 +13,7 @@ readonly class CheckAwareMiddleware implements Middleware
 {
     public function __construct(
         #[AutowireIterator(CheckAwarePlatformInterface::class)]
-        private iterable $checkAwarePlatforms
+        private iterable $checkAwarePlatforms,
     ) {
     }
 
