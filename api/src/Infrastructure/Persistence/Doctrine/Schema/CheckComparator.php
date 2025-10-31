@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\Schema;
 
-use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
+use App\Infrastructure\Persistence\Doctrine\Contracts\CheckAwarePlatformInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
 use App\Infrastructure\Persistence\Doctrine\ValueObject\DroppedCheckSpec;
@@ -19,16 +19,18 @@ final class CheckComparator extends Comparator
 {
     private CheckGeneratorInterface $generator;
 
+    private CheckOptionManager $optionManager;
+
     /** @var array<string, CheckAwareTableDiff> */
     private array $alteredTables;
 
     public function __construct(
         private readonly Comparator $defaultComparator,
-        AbstractPlatform&CheckGeneratorAwareInterface $platform,
-        private readonly CheckOptionManager $optionManager,
+        AbstractPlatform&CheckAwarePlatformInterface $platform,
     ) {
         parent::__construct($platform);
         $this->generator = $platform->generator;
+        $this->optionManager = $platform->optionManager;
     }
 
     /**
@@ -72,7 +74,7 @@ final class CheckComparator extends Comparator
         if (empty($desiredChecks)) {
             $dropped = $this->optionManager->mapExisting(
                 $existingTable,
-                static fn (array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
+                static fn(array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
             );
 
             if (!empty($dropped)) {
@@ -107,7 +109,7 @@ final class CheckComparator extends Comparator
         }
 
         $droppedNames = $this->optionManager->diffDropped($existingChecksByName, $desiredNames);
-        $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), $droppedNames);
+        $dropped = array_map(fn(string $name) => new DroppedCheckSpec($name), $droppedNames);
 
         $this->addAlteredTable($existingTable, $desiredTable->getName(), $added, $modified, $dropped);
     }

@@ -20,7 +20,9 @@ services:
     App\Infrastructure\:
         resource: '../src/Infrastructure/'
 
-#    App\Infrastructure\Persistence\Doctrine\Subscriber\XorOneOfSchemaSubscriber:
-#        tags:
-#            - { name: doctrine.event_subscriber }
-
+    # PostgreSQL `CREATE SCHEMA public` fix
+    # See https://github.com/doctrine/migrations/issues/1415
+#    Doctrine\Migrations\Configuration\Migration\ConfigurationLoader: '@doctrine.migrations.configuration_loader'
+#    doctrine.migrations.dependency_factory:
+#        class: Doctrine\Migrations\DependencyFactory
+#        configurator: '@App\Infrastructure\Persistence\Doctrine\Migrations\DependencyFactoryConfigurator'

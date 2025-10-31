@@ -4,22 +4,34 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\Platform;
 
-use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorAwareInterface;
+use App\Infrastructure\Persistence\Doctrine\Contracts\CheckAwarePlatformInterface;
+use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwarePostgreSQLSchemaManager;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareTableDiff;
-use App\Infrastructure\Persistence\Doctrine\Schema\CheckOptionManager;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\PostgreSQL120Platform;
+use Doctrine\DBAL\Schema\PostgreSQLSchemaManager;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-final class PostgreSQLCheckPlatform extends PostgreSQLPlatform implements CheckGeneratorAwareInterface
+#[Autoconfigure(
+    calls: [['setCheckGenerator' => ['@'.PostgreSQLCheckGenerator::class]]],
+    lazy: true,
+)]
+final class PostgreSQLCheckPlatform extends PostgreSQL120Platform implements CheckAwarePlatformInterface
 {
-    use CheckPlatformTrait;
+    use CheckAwarePlatformTrait;
 
-    private(set) PostgreSQLCheckGenerator $generator;
-
-    public function __construct(private readonly CheckOptionManager $optionManager)
+    public function createSchemaManager(Connection $connection): PostgreSQLSchemaManager
     {
-        $this->generator = new PostgreSQLCheckGenerator($this);
+        /** @var CheckAwarePostgreSQLSchemaManager $schemaManager */
+        $schemaManager = $this->schemaManagerFactory->createSchemaManager(
+            $connection,
+            $this,
+            CheckAwarePostgreSQLSchemaManager::class
+        );
+
+        return $schemaManager;
     }
 
     public function getCreateTableSQL(Table $table, $createFlags = self::CREATE_INDEXES): array

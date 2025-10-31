@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Persistence\Doctrine\Schema;
 
+use App\Infrastructure\Persistence\Doctrine\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Persistence\Doctrine\Platform\PostgreSQLCheckPlatform;
+use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareTableDiff;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckComparator;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckOptionManager;
@@ -99,7 +101,12 @@ final class CheckComparatorTest extends TestCase
      */
     private function compare(Schema $from, Schema $to): SchemaDiff
     {
-        $comparator = new CheckComparator(new Comparator(), new PostgreSQLCheckPlatform($this->optionManager), $this->optionManager);
+        $platform = new PostgreSQLCheckPlatform();
+        $platform->setSchemaManagerFactory(new CheckAwareSchemaManagerFactory());
+        $platform->setCheckOptionManager($this->optionManager);
+        $platform->setCheckGenerator(new PostgreSQLCheckGenerator($platform));
+
+        $comparator = new CheckComparator(new Comparator(), $platform);
 
         return $comparator->compareSchemas($from, $to);
     }

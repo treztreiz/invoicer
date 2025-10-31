@@ -4,24 +4,51 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\Platform;
 
+use App\Infrastructure\Persistence\Doctrine\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Persistence\Doctrine\Contracts\CheckSpecInterface;
+use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckAwareTableDiff;
 use App\Infrastructure\Persistence\Doctrine\Schema\CheckOptionManager;
 use Doctrine\DBAL\Schema\Table;
+use Symfony\Contracts\Service\Attribute\Required;
 
 /**
  * Helper methods shared across check-aware DBAL platforms.
  *
  * @property CheckOptionManager $optionManager
  */
-trait CheckPlatformTrait
+trait CheckAwarePlatformTrait
 {
+    private(set) readonly CheckAwareSchemaManagerFactory $schemaManagerFactory;
+
+    private(set) readonly CheckOptionManager $optionManager;
+
+    private(set) readonly CheckGeneratorInterface $generator;
+
+    #[Required]
+    public function setSchemaManagerFactory(CheckAwareSchemaManagerFactory $schemaManagerFactory): void
+    {
+        $this->schemaManagerFactory = $schemaManagerFactory;
+    }
+
+    #[Required]
+    public function setCheckGenerator(CheckGeneratorInterface $generator): void
+    {
+        $this->generator = $generator;
+    }
+
+    #[Required]
+    public function setCheckOptionManager(CheckOptionManager $optionManager): void
+    {
+        $this->optionManager = $optionManager;
+    }
+
     /**
      * @return list<CheckSpecInterface> desired checks defined on the schema table
      */
-    private function getDesiredChecks(Table $table): array
+    public function getDesiredChecks(Table $table): array
     {
-        return $this->optionManager()->desired($table);
+        return $this->optionManager->desired($table);
     }
 
     /**
@@ -29,7 +56,7 @@ trait CheckPlatformTrait
      *
      * @param list<string> $sql
      */
-    private function appendChecksSQL(array &$sql, Table $table): void
+    public function appendChecksSQL(array &$sql, Table $table): void
     {
         foreach ($this->getDesiredChecks($table) as $spec) {
             $sql[] = $this->generator->buildAddCheckSQL($table->getQuotedName($this), $spec);
@@ -41,7 +68,7 @@ trait CheckPlatformTrait
      *
      * @param list<string> $sql
      */
-    private function appendDiffChecksSQL(array &$sql, CheckAwareTableDiff $diff): void
+    public function appendDiffChecksSQL(array &$sql, CheckAwareTableDiff $diff): void
     {
         $tableNameSql = $diff->getOldTable()->getQuotedName($this);
 
@@ -57,10 +84,5 @@ trait CheckPlatformTrait
         foreach ($diff->getDroppedChecks() as $spec) {
             $sql[] = $this->generator->buildDropCheckSQL($tableNameSql, $spec);
         }
-    }
-
-    private function optionManager(): CheckOptionManager
-    {
-        return $this->optionManager;
     }
 }
