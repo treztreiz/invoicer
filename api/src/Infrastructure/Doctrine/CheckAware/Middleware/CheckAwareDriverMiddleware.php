@@ -41,7 +41,7 @@ final class CheckAwareDriverMiddleware extends AbstractDriverMiddleware
     private function getCheckAwarePlatforms(AbstractPlatform $platform): AbstractPlatform
     {
         foreach ($this->checkAwarePlatforms as $checkAwarePlatform) {
-            if (is_subclass_of($checkAwarePlatform, get_class($platform))) {
+            if (is_subclass_of($checkAwarePlatform, $platform::class)) {
                 return $checkAwarePlatform;
             }
         }

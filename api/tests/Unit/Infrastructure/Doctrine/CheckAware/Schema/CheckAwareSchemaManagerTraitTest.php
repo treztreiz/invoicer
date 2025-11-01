@@ -56,7 +56,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
         $this->generator
             ->expects(static::once())
             ->method('mapIntrospectionRow')
-            ->willReturnCallback(fn($row) => [
+            ->willReturnCallback(fn ($row) => [
                 'table' => $row['table_name'],
                 'name' => $row['name'],
                 'expr' => $row['def'],

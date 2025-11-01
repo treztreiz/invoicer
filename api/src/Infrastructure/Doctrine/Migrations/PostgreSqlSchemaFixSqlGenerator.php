@@ -39,6 +39,7 @@ final class PostgreSqlSchemaFixSqlGenerator extends SqlGenerator
 
     /**
      * @param non-empty-array<string> $sql
+     *
      * @return non-empty-array<string>|list<string>
      */
     private function filterPublicSchemaStatements(array $sql): array
