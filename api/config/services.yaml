@@ -25,4 +25,4 @@ services:
     Doctrine\Migrations\Configuration\Migration\ConfigurationLoader: '@doctrine.migrations.configuration_loader'
     doctrine.migrations.dependency_factory:
         class: Doctrine\Migrations\DependencyFactory
-        configurator: '@App\Infrastructure\Persistence\Doctrine\Migrations\DependencyFactoryConfigurator'
+        configurator: '@App\Infrastructure\Doctrine\Migrations\DependencyFactoryConfigurator'

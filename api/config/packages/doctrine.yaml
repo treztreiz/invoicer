@@ -4,7 +4,6 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
         url: '%env(resolve:DATABASE_URL)%'
-    #        wrapper_class: App\Infrastructure\Persistence\Doctrine\Dbal\CheckAwareConnection
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

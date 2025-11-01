@@ -7,7 +7,7 @@ namespace App\Domain\Entity\Document;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
-use App\Infrastructure\Persistence\Doctrine\Attribute\SoftXorCheck;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
