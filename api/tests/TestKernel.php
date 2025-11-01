@@ -41,7 +41,7 @@ class TestKernel extends BaseKernel
         return $this;
     }
 
-    private function configureContainer(ContainerConfigurator $container, LoaderInterface $loader, ContainerBuilder $builder): void
+    protected function configureContainer(ContainerConfigurator $container, LoaderInterface $loader, ContainerBuilder $builder): void
     {
         $this->traitConfigureContainer($container, $loader, $builder);
 

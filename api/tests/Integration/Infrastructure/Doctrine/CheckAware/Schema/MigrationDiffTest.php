@@ -76,10 +76,10 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
 
         $firstDiffOutput = $this->runDiffCommand();
 
-        $generatedMigrations = glob($this->migrationsDir.'/*.php');
+        $generatedMigrations = glob($this->migrationsDir.'/*.php') ?: [];
         static::assertCount(1, $generatedMigrations, $firstDiffOutput);
 
-        $migrationContents = file_get_contents($generatedMigrations[0]);
+        $migrationContents = file_get_contents($generatedMigrations[0]) ?: '';
         static::assertStringContainsString('TEST_SOFT_XOR', $migrationContents);
         static::assertSame(1, substr_count(strtoupper($migrationContents), 'CHECK'), 'Check constraint should appear exactly once.');
 
@@ -91,17 +91,17 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
         $schemaTool->createSchema($metadata);
 
         $secondDiffOutput = $this->runDiffCommand();
-        $generatedMigrations = glob($this->migrationsDir.'/*.php');
+        $generatedMigrations = glob($this->migrationsDir.'/*.php') ?: [];
 
         static::assertCount(0, $generatedMigrations, $secondDiffOutput);
     }
 
     /**
-     * @return list<ClassMetadata>
+     * @return list<ClassMetadata<object>>
      */
     private function filteredMetadata(): array
     {
-        /** @var list<ClassMetadata> $metadata */
+        /** @var list<ClassMetadata<object>> $metadata */
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),

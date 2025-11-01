@@ -47,24 +47,22 @@ final class CheckComparatorTest extends TestCase
 
         $diff = $comparator->compareSchemas($from, $to);
 
-        static::assertInstanceOf(SchemaDiff::class, $diff);
         static::assertCount(1, $diff->getAlteredTables());
 
-        /** @var CheckAwareTableDiff $tableDiff */
         $tableDiff = $diff->getAlteredTables()[0];
         static::assertInstanceOf(CheckAwareTableDiff::class, $tableDiff);
 
         static::assertSame(
             ['CHK_ADDED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getAddedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getAddedChecks())
         );
         static::assertSame(
             ['CHK_MODIFIED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getModifiedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getModifiedChecks())
         );
         static::assertSame(
             ['CHK_DROPPED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getDroppedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getDroppedChecks())
         );
     }
 
@@ -176,7 +174,7 @@ final class CheckComparatorTest extends TestCase
         $table->addOption(
             'app_checks_present',
             array_map(
-                static fn (string $name, string $expr): array => ['name' => $name, 'expr' => $expr],
+                static fn(string $name, string $expr): array => ['name' => $name, 'expr' => $expr],
                 array_keys($checks),
                 $checks,
             )

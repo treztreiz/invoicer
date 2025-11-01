@@ -56,6 +56,11 @@ final class CheckAwareTableDiffTest extends TestCase
         static::assertCount(1, $diff->getDroppedChecks());
     }
 
+    /**
+     * @param list<CheckSpecInterface> $add
+     * @param list<CheckSpecInterface> $mod
+     * @param list<CheckSpecInterface> $drop
+     */
     #[DataProvider('combinationProvider')]
     public function test_all_combinations_toggle_empty(array $add, array $mod, array $drop, bool $expectedEmpty): void
     {
@@ -75,7 +80,7 @@ final class CheckAwareTableDiffTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{array<int, SoftXorCheckSpec>, array<int, SoftXorCheckSpec>, array<int, SoftXorCheckSpec>, bool}>
+     * @return iterable<string, array{list<CheckSpecInterface>, list<CheckSpecInterface>, list<CheckSpecInterface>, bool}>
      */
     public static function combinationProvider(): iterable
     {

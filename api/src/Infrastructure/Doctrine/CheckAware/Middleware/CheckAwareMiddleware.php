@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 readonly class CheckAwareMiddleware implements Middleware
 {
+    /** @param list<CheckAwarePlatformInterface> $checkAwarePlatforms */
     public function __construct(
         #[AutowireIterator(CheckAwarePlatformInterface::class)]
         private iterable $checkAwarePlatforms,

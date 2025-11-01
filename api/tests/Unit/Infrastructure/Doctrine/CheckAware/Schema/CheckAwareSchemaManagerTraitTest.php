@@ -17,6 +17,7 @@ use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,9 +27,9 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
 {
     private PostgreSQLCheckAwarePlatform $platform;
 
-    private CheckGeneratorInterface $generator;
+    private MockObject&CheckGeneratorInterface $generator;
 
-    private Connection $connection;
+    private MockObject&Connection $connection;
 
     protected function setUp(): void
     {
@@ -55,7 +56,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
         $this->generator
             ->expects(static::once())
             ->method('mapIntrospectionRow')
-            ->willReturnCallback(fn ($row) => [
+            ->willReturnCallback(fn($row) => [
                 'table' => $row['table_name'],
                 'name' => $row['name'],
                 'expr' => $row['def'],

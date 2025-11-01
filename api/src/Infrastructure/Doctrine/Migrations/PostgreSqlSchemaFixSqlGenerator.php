@@ -37,6 +37,10 @@ final class PostgreSqlSchemaFixSqlGenerator extends SqlGenerator
         return parent::generate($sql, $formatted, $nowdocOutput, $lineLength, $checkDbPlatform);
     }
 
+    /**
+     * @param non-empty-array<string> $sql
+     * @return non-empty-array<string>|list<string>
+     */
     private function filterPublicSchemaStatements(array $sql): array
     {
         // Doctrine DBAL's PostgreSQL diff generator emits a bogus CREATE SCHEMA public

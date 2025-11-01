@@ -7,10 +7,14 @@ namespace App\Infrastructure\Doctrine\CheckAware\Schema\Service;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckAwarePlatformInterface;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckAwareSchemaManagerInterface;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 
 final readonly class CheckAwareSchemaManagerFactory
 {
+    /**
+     * @return CheckAwareSchemaManagerInterface&AbstractSchemaManager<AbstractPlatform>
+     */
     public function createSchemaManager(
         Connection $connection,
         CheckAwarePlatformInterface $platform,

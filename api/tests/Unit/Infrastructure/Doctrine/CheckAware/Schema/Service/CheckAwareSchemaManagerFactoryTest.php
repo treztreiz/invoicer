@@ -38,8 +38,7 @@ final class CheckAwareSchemaManagerFactoryTest extends TestCase
             PostgreSQLCheckAwareSchemaManager::class,
         );
 
-        static::assertInstanceOf(AbstractSchemaManager::class, $manager);
-        static::assertInstanceOf(CheckAwareSchemaManagerInterface::class, $manager);
+        static::assertInstanceOf(PostgreSQLCheckAwareSchemaManager::class, $manager);
     }
 
     public function test_non_existing_classes_are_rejected(): void

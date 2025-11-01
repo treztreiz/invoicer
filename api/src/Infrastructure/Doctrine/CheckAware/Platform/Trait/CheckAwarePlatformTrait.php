@@ -14,8 +14,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 /**
  * Helper methods shared across check-aware DBAL platforms.
- *
- * @property \App\Infrastructure\Doctrine\Schema\\App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager $optionManager
  */
 trait CheckAwarePlatformTrait
 {

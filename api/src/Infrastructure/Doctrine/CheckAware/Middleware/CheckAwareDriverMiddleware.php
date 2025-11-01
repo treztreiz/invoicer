@@ -12,6 +12,7 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
 
 final class CheckAwareDriverMiddleware extends AbstractDriverMiddleware
 {
+    /** @param list<CheckAwarePlatformInterface> $checkAwarePlatforms */
     public function __construct(
         private readonly Driver $wrappedDriver,
         private readonly iterable $checkAwarePlatforms,
@@ -19,14 +20,14 @@ final class CheckAwareDriverMiddleware extends AbstractDriverMiddleware
         parent::__construct($wrappedDriver);
     }
 
-    public function getDatabasePlatform(): AbstractPlatform|CheckAwarePlatformInterface
+    public function getDatabasePlatform(): AbstractPlatform
     {
         $platform = $this->wrappedDriver->getDatabasePlatform();
 
         return $this->getCheckAwarePlatforms($platform);
     }
 
-    public function createDatabasePlatformForVersion($version): AbstractPlatform|CheckAwarePlatformInterface
+    public function createDatabasePlatformForVersion($version): AbstractPlatform
     {
         if ($this->wrappedDriver instanceof VersionAwarePlatformDriver) {
             $platform = $this->wrappedDriver->createDatabasePlatformForVersion($version);
@@ -37,7 +38,7 @@ final class CheckAwareDriverMiddleware extends AbstractDriverMiddleware
         return $this->getDatabasePlatform();
     }
 
-    private function getCheckAwarePlatforms(AbstractPlatform $platform): AbstractPlatform|CheckAwarePlatformInterface
+    private function getCheckAwarePlatforms(AbstractPlatform $platform): AbstractPlatform
     {
         foreach ($this->checkAwarePlatforms as $checkAwarePlatform) {
             if (is_subclass_of($checkAwarePlatform, get_class($platform))) {

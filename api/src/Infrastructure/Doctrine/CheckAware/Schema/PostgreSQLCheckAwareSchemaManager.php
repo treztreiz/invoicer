@@ -17,6 +17,7 @@ final class PostgreSQLCheckAwareSchemaManager extends PostgreSQLSchemaManager im
 
     public function __construct(
         private readonly Connection $connection,
+        /** @var PostgreSQLPlatform&CheckAwarePlatformInterface $platform */
         private readonly PostgreSQLPlatform&CheckAwarePlatformInterface $platform,
     ) {
         parent::__construct($connection, $platform);
