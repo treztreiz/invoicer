@@ -13,6 +13,9 @@ use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType solitary-unit
+ */
 final class DocumentLineTest extends TestCase
 {
     private Quote $quote;

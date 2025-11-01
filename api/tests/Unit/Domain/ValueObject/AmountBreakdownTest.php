@@ -8,6 +8,9 @@ use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @testType solitary-unit
+ */
 final class AmountBreakdownTest extends TestCase
 {
     public function test_instantiation_succeeds_when_totals_match(): void

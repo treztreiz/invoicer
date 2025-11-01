@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
-use App\Infrastructure\Persistence\Doctrine\UserRepository;
+use App\Infrastructure\Doctrine\Repository\UserRepository;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -31,13 +31,13 @@ final readonly class SecurityUserProvider implements UserProviderInterface, Pass
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $user = $this->userRepository->findOneByUserIdentifier($identifier);
+        $domainUser = $this->userRepository->findOneByUserIdentifier($identifier);
 
-        if (null === $user) {
+        if (null === $domainUser) {
             throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
 
-        return new SecurityUser($user);
+        return new SecurityUser($domainUser);
     }
 
     public function refreshUser(UserInterface $user): UserInterface
@@ -46,10 +46,10 @@ final readonly class SecurityUserProvider implements UserProviderInterface, Pass
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
-        $domainUser = $this->userRepository->findOneById($user->getDomainUser()->id);
+        $domainUser = $this->userRepository->findOneById($user->id);
 
         if (null === $domainUser) {
-            throw new UserNotFoundException(sprintf('User "%s" no longer exists.', $user->getUserIdentifier()));
+            throw new UserNotFoundException(sprintf('User "%s" no longer exists.', $user->userIdentifier));
         }
 
         return new SecurityUser($domainUser);
@@ -61,7 +61,7 @@ final readonly class SecurityUserProvider implements UserProviderInterface, Pass
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
-        $domainUser = $user->getDomainUser();
+        $domainUser = $user->domainUser;
         $domainUser->password = $newHashedPassword;
         $this->userRepository->save($domainUser);
     }

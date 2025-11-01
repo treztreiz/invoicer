@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
+#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'])]
 class Invoice extends Document
 {
-    #[ORM\Column]
+    #[ORM\Column(enumType: InvoiceStatus::class)]
     private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
@@ -23,6 +29,18 @@ class Invoice extends Document
 
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
     private(set) ?\DateTimeImmutable $paidAt = null;
+
+    #[ORM\OneToOne(targetEntity: InvoiceRecurrence::class, inversedBy: 'invoice', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private(set) ?InvoiceRecurrence $recurrence = null;
+
+    #[ORM\OneToOne(targetEntity: InstallmentPlan::class, inversedBy: 'invoice', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private(set) ?InstallmentPlan $installmentPlan = null;
+
+    #[ORM\Column(type: UuidType::NAME, nullable: true)]
+    private(set) ?Uuid $recurrenceSeedId = null;
+
+    #[ORM\Column(type: UuidType::NAME, nullable: true)]
+    private(set) ?Uuid $installmentSeedId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -96,5 +114,23 @@ class Invoice extends Document
         $this->status = InvoiceStatus::DRAFT;
 
         return $this;
+    }
+
+    public function attachRecurrence(InvoiceRecurrence $recurrence): void
+    {
+        if (null !== $this->installmentPlan) {
+            throw new \LogicException('Invoices cannot have both a recurrence and an installment plan.');
+        }
+
+        $this->recurrence = $recurrence;
+    }
+
+    public function attachInstallmentPlan(InstallmentPlan $plan): void
+    {
+        if (null !== $this->recurrence) {
+            throw new \LogicException('Invoices cannot have both an installment plan and a recurrence.');
+        }
+
+        $this->installmentPlan = $plan;
     }
 }

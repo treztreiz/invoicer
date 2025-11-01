@@ -31,7 +31,7 @@ class DocumentLine
         #[ORM\Embedded]
         private(set) readonly Quantity $quantity,
 
-        #[ORM\Column]
+        #[ORM\Column(enumType: RateUnit::class)]
         private(set) readonly RateUnit $rateUnit,
 
         #[ORM\Embedded]

@@ -1,8 +1,9 @@
 doctrine:
     dbal:
-        url: '%env(resolve:DATABASE_URL)%'
+        schema_manager_factory: 'doctrine.dbal.default_schema_manager_factory'
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
+        url: '%env(resolve:DATABASE_URL)%'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

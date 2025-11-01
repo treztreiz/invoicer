@@ -36,7 +36,10 @@ class User
 
         #[ORM\Column(length: 180, unique: true)]
         public string $userIdentifier {
-            set => DomainGuard::email($value, 'User identifier');
+            set {
+                $value = DomainGuard::nonEmpty($value, 'User identifier');
+                $this->userIdentifier = DomainGuard::email($value, 'User identifier');
+            }
         },
 
         /** @var array<int, string> */

@@ -42,6 +42,8 @@ ops/            # Dockerfiles, nginx configs, cert scripts
 - [nginx runtime & templating](doc/nginx.md)
 - [Docker images & stages](doc/images.md)
 - [PHP runtime & Xdebug](doc/php-runtime.md)
+- [Doctrine check-aware layer](doc/check-aware.md)
+- [CI blueprint](doc/ci.md)
 
 ## Toolchain
 

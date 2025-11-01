@@ -12,6 +12,9 @@ use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @testType solitary-unit
+ */
 final class QuoteTest extends TestCase
 {
     private Quote $quote;

@@ -13,6 +13,7 @@ use App\Domain\ValueObject\Name;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'customer')]
 class Customer
 {
     use UuidTrait;

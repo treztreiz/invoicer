@@ -13,7 +13,8 @@ while remaining **production-capable** and **contractor-implementable**.
 * Favor **Symfony + API Platform + Doctrine (PostgreSQL, UUIDv7)** on the backend and **React (Vite) + TypeScript/JSX +
   Tailwind + TanStack Query + RHF/Zod** on the frontend.
 * Keep operations simple: **Dockerized dev and prod with environment parity** (Compose-based), optional Swarm/Kubernetes
-  later, CI/CD via GitHub Actions.
+  later, CI/CD via GitHub Actions. CI jobs mirror service names (`api-*`, `web-*`); unit layers run on PHP 8.4 without
+  containers, functional/e2e suites spin up PostgreSQL or docker stacks only when needed.
 
 **Out of scope for the MVP**
 
@@ -81,6 +82,11 @@ while remaining **production-capable** and **contractor-implementable**.
   PDF/export. PHPUnit suites (`composer phpunit:unit`, `composer phpunit:integration`, `composer phpunit:functional`,
   `composer phpunit:tools`) keep layers scoped; `composer phpunit` runs all suites (inside the api container, or use
   `make test` from the host).
+* **Test double naming**: use `FooStub`, `MockFoo`, and `DummyFoo` to signal passive stubs, expectation mocks, and placeholder arguments respectively.
+* **PHPUnit conventions**: factor shared fixtures into `setUp()` where practical and use data providers when exercising multiple scenarios.
+* **Test naming**: prefer expressive method names (`test_method_describes_behavior`) over terse identifiers; clarity first even if names grow long.
+* **Data providers**: declare provider methods as `public static` and reference them via PHP attributes (`#[DataProvider('providerName')]`) rather than annotations.
+* **Test classification**: annotate each PHPUnit test class with a `@testType` docblock (e.g. `sociable-unit`, `solitary-unit`, `integration`) to clarify scope at a glance.
 * **Uploads**: logo upload size limit (e.g., 2 MB), accept PNG/JPEG/SVG; store original + generate a constrained
   rendition for PDFs.
 

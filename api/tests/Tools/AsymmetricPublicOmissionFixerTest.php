@@ -19,7 +19,7 @@ final class AsymmetricPublicOmissionFixerTest extends TestCase
     }
 
     #[DataProvider('provideFixCases')]
-    public function test_fix(string $input, string $expected): void
+    public function test_code_is_fixed(string $input, string $expected): void
     {
         $actual = $this->applyFixToCode($input);
         static::assertSame($expected, $actual, 'Single pass should produce expected output.');
