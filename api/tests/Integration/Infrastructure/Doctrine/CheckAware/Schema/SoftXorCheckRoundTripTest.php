@@ -6,44 +6,32 @@ namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
 use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
+use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 /**
  * @testType integration
  */
-final class SoftXorCheckRoundTripTest extends KernelTestCase
+final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
 {
     use ResetDatabase;
 
-    protected static ?string $class = TestKernel::class;
-
     private EntityManagerInterface $entityManager;
 
-    protected static function createKernel(array $options = []): KernelInterface
+    protected static function setKernelConfiguration(TestKernel $kernel): iterable
     {
-        /** @var TestKernel $kernel */
-        $kernel = parent::createKernel($options);
-        $kernel->addExtensionConfig('doctrine', [
+        yield 'doctrine' => [
             'orm' => [
                 'mappings' => [
-                    'SoftXorTest' => [
-                        'type' => 'attribute',
-                        'is_bundle' => false,
-                        'dir' => __DIR__,
-                        'prefix' => __NAMESPACE__,
-                    ],
+                    'SoftXorTest' => ['type' => 'attribute', 'is_bundle' => false, 'dir' => __DIR__, 'prefix' => __NAMESPACE__],
                 ],
             ],
-        ]);
-
-        return $kernel;
+        ];
     }
 
     protected function setUp(): void
@@ -63,7 +51,7 @@ final class SoftXorCheckRoundTripTest extends KernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn (ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\'),
+                static fn(ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\'),
             )
         );
 
@@ -89,6 +77,6 @@ final class SoftXorCheckRoundTripTest extends KernelTestCase
 
     private static function containsSoftXorSpec(array $checks): bool
     {
-        return array_any($checks, fn ($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
+        return array_any($checks, fn($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
     }
 }

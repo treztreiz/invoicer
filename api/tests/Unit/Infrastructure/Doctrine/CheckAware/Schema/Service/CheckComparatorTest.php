@@ -32,6 +32,45 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
+    public function test_manually_wired_comparator_exposes_added_modified_and_dropped_checks(): void
+    {
+        $comparator = $this->createComparator();
+
+        $from = $this->schemaWithExistingChecks([
+            'CHK_DROPPED' => 'num_nonnulls(col_a,col_b) <= 1',
+            'CHK_MODIFIED' => 'num_nonnulls(col_a,col_b) <= 2',
+        ]);
+        $to = $this->schemaWithDesiredChecks([
+            new SoftXorCheckSpec('CHK_MODIFIED', ['cols' => ['col_a', 'col_b']]),
+            new SoftXorCheckSpec('CHK_ADDED', ['cols' => ['col_c', 'col_d']]),
+        ]);
+
+        $diff = $comparator->compareSchemas($from, $to);
+
+        static::assertInstanceOf(SchemaDiff::class, $diff);
+        static::assertCount(1, $diff->getAlteredTables());
+
+        /** @var CheckAwareTableDiff $tableDiff */
+        $tableDiff = $diff->getAlteredTables()[0];
+        static::assertInstanceOf(CheckAwareTableDiff::class, $tableDiff);
+
+        static::assertSame(
+            ['CHK_ADDED'],
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getAddedChecks())
+        );
+        static::assertSame(
+            ['CHK_MODIFIED'],
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getModifiedChecks())
+        );
+        static::assertSame(
+            ['CHK_DROPPED'],
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getDroppedChecks())
+        );
+    }
+
+    /**
+     * @throws SchemaException
+     */
     public function test_existing_checks_without_desired_are_dropped(): void
     {
         $from = $this->schemaWithExistingChecks(['CHK_ONE' => 'expr_one']);
@@ -101,14 +140,17 @@ final class CheckComparatorTest extends TestCase
      */
     private function compare(Schema $from, Schema $to): SchemaDiff
     {
+        return $this->createComparator()->compareSchemas($from, $to);
+    }
+
+    private function createComparator(): CheckComparator
+    {
         $platform = new PostgreSQLCheckAwarePlatform();
         $platform->setSchemaManagerFactory(new CheckAwareSchemaManagerFactory());
         $platform->setCheckOptionManager($this->optionManager);
         $platform->setCheckGenerator(new PostgreSQLCheckGenerator($platform));
 
-        $comparator = new CheckComparator(new Comparator(), $platform);
-
-        return $comparator->compareSchemas($from, $to);
+        return new CheckComparator(new Comparator(), $platform);
     }
 
     /**

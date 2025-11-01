@@ -17,24 +17,16 @@ class TestKernel extends BaseKernel
         MicroKernelTrait::configureContainer as private traitConfigureContainer;
     }
 
-    private bool $deleteCache = true;
-
     private array $config = [];
 
-    public function shutdown(): void
+    public function clearCache(): void
     {
-        parent::shutdown();
+        $cacheDir = $this->getCacheDir();
 
-        if ($this->deleteCache) {
-            new Filesystem()->remove($this->getCacheDir());
+        $filesystem = new Filesystem();
+        if ($filesystem->exists($cacheDir)) {
+            $filesystem->remove($cacheDir);
         }
-    }
-
-    public function setDeleteCache(bool $deleteCache): static
-    {
-        $this->deleteCache = $deleteCache;
-
-        return $this;
     }
 
     public function getCacheDir(): string

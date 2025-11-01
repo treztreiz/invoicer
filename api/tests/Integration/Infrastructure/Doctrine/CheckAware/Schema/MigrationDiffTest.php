@@ -4,57 +4,50 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
+use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 /**
  * @testType integration
  */
-final class MigrationDiffTest extends KernelTestCase
+final class MigrationDiffTest extends ConfigurableKernelTestCase
 {
     use ResetDatabase;
 
-    protected static ?string $class = TestKernel::class;
+    private Filesystem $filesystem;
 
     private EntityManagerInterface $entityManager;
 
     private string $migrationsDir;
 
-    private Filesystem $filesystem;
-
-    protected static function createKernel(array $options = []): KernelInterface
+    protected static function setKernelConfiguration(TestKernel $kernel): iterable
     {
-        /** @var TestKernel $kernel */
-        $kernel = parent::createKernel($options);
-        $kernel
-            ->addExtensionConfig('doctrine', [
-                'orm' => [
-                    'mappings' => [
-                        'SoftXorTest' => [
-                            'type' => 'attribute',
-                            'is_bundle' => false,
-                            'dir' => __DIR__,
-                            'prefix' => __NAMESPACE__,
-                        ],
+        yield 'doctrine' => [
+            'orm' => [
+                'mappings' => [
+                    'SoftXorTest' => [
+                        'type' => 'attribute',
+                        'is_bundle' => false,
+                        'dir' => __DIR__,
+                        'prefix' => __NAMESPACE__,
                     ],
                 ],
-            ])
-            ->addExtensionConfig('doctrine_migrations', [
-                'migrations_paths' => [
-                    'DoctrineMigrations' => $kernel->getCacheDir().'/test_migrations',
-                ],
-            ]);
+            ],
+        ];
 
-        return $kernel;
+        yield 'doctrine_migrations' => [
+            'migrations_paths' => [
+                'DoctrineMigrations' => $kernel->getCacheDir().'/test_migrations',
+            ],
+        ];
     }
 
     protected function setUp(): void
@@ -112,7 +105,7 @@ final class MigrationDiffTest extends KernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn (ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
+                static fn(ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
             )
         );
 

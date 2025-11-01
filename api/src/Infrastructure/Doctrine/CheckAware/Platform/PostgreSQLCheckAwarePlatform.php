@@ -25,7 +25,7 @@ final class PostgreSQLCheckAwarePlatform extends PostgreSQL120Platform implement
 
     public function createSchemaManager(Connection $connection): PostgreSQLSchemaManager
     {
-        /** @var \App\Infrastructure\Doctrine\Schema\\App\Infrastructure\Doctrine\CheckAware\Schema\PostgreSQLCheckAwareSchemaManager $schemaManager */
+        /** @var PostgreSQLCheckAwareSchemaManager $schemaManager */
         $schemaManager = $this->schemaManagerFactory->createSchemaManager(
             $connection,
             $this,
