@@ -93,6 +93,6 @@ final class CheckAwareTableDiffTest extends TestCase
 
     private static function newSpec(string $name): CheckSpecInterface
     {
-        return new SoftXorCheckSpec($name, ['cols' => ['recurrence_id', 'installment_plan_id']]);
+        return new SoftXorCheckSpec($name, ['columns' => ['recurrence_id', 'installment_plan_id']]);
     }
 }

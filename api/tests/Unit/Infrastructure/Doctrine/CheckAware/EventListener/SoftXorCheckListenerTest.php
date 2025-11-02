@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use App\Infrastructure\Doctrine\CheckAware\EventListener\SoftXorCheckListener;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Schema;
@@ -45,14 +45,14 @@ final class SoftXorCheckListenerTest extends TestCase
 
         $event = new GenerateSchemaTableEventArgs($metadata, $schema, $table);
 
-        $manager = static::createMock(CheckOptionManager::class);
+        $manager = static::createMock(CheckRegistry::class);
         $manager->expects(static::once())
-            ->method('appendDesired')
+            ->method('appendDeclaredSpec')
             ->with(
                 static::identicalTo($table),
                 static::callback(static fn ($spec): bool => $spec instanceof SoftXorCheckSpec
                     && 'SOFT_XOR' === $spec->name
-                    && $spec->expr['cols'] === ['recurrence_id', 'installment_plan_id']),
+                    && $spec->expr['columns'] === ['recurrence_id', 'installment_plan_id']),
             );
 
         $listener = new SoftXorCheckListener($manager);
@@ -74,7 +74,7 @@ final class SoftXorCheckListenerTest extends TestCase
 
         $schema = static::createStub(Schema::class);
 
-        $listener = new SoftXorCheckListener(new CheckOptionManager(new CheckNormalizer()));
+        $listener = new SoftXorCheckListener(new CheckRegistry(new CheckNormalizer()));
         $listener->postGenerateSchemaTable(
             new GenerateSchemaTableEventArgs(
                 $metadata,

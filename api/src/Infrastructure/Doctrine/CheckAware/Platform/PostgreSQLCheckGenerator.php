@@ -21,7 +21,7 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
     private function buildSoftXor(SoftXorCheckSpec $spec): string
     {
         $payload = $spec->expr;
-        $cols = array_map(fn(string $col) => $this->platform->quoteIdentifier($col), $payload['cols']);
+        $cols = array_map(fn(string $col) => $this->platform->quoteIdentifier($col), $payload['columns']);
 
         return 'num_nonnulls('.implode(', ', $cols).') <= 1';
     }
@@ -113,35 +113,6 @@ SQL;
     }
 
     // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public function normalizeExpressionSQL(string $expr): string
-    {
-        // 1) trim
-        $expr = trim($expr);
-
-        // 2) lowercase everything to simplify comparisons
-        $expr = strtolower($expr);
-
-        // 3) drop postgres casts (::text, ::int[], ...)
-        $expr = preg_replace('/::[a-z0-9_]+(?:\[\])?/', '', $expr) ?? $expr;
-
-        // 4) remove the leading "check" keyword if present
-        $expr = preg_replace('/^check/', '', $expr) ?? $expr;
-
-        // 5) strip characters that are irrelevant for equality checks
-        $expr = str_replace([
-            '"', "'", ' ', '(', ')', '[', ']',
-        ], '', $expr);
-
-        // 6) normalise comma spacing
-        $expr = preg_replace('/\s*,\s*/', ',', $expr) ?? $expr;
-
-        // 7) collapse any remaining whitespace
-        $expr = preg_replace('/\s+/', '', $expr) ?? $expr;
-
-        // Final canonical form
-        return trim($expr);
-    }
 
     private function unquote(string $quotedTable): string
     {

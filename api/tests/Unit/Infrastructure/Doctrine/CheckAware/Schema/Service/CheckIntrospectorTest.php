@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckIntrospector;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -48,15 +48,15 @@ final class CheckIntrospectorTest extends TestCase
                 ['table_name' => 'quote', 'name' => 'CHK_QUO', 'def' => 'expr'],
             ]);
 
-        $optionManager = new CheckOptionManager(new CheckNormalizer());
+        $registry = new CheckRegistry(new CheckNormalizer());
 
-        $introspector = new CheckIntrospector($generator, $optionManager);
+        $introspector = new CheckIntrospector($generator, $registry);
         $checks = $introspector->introspect($connection);
 
         static::assertSame(
             [
-                'invoice' => [['name' => 'CHK_INV', 'expr' => 'expr']],
-                'quote' => [['name' => 'CHK_QUO', 'expr' => 'expr']],
+                'invoice' => ['CHK_INV' => 'expr'],
+                'quote' => ['CHK_QUO' => 'expr'],
             ],
             $checks
         );
@@ -68,26 +68,26 @@ final class CheckIntrospectorTest extends TestCase
     public function test_annotate_sets_existing_checks_and_ignores_unknown_tables(): void
     {
         $generator = static::createStub(CheckGeneratorInterface::class);
-        $optionManager = static::createMock(CheckOptionManager::class);
+        $registry = static::createMock(CheckRegistry::class);
 
         $schema = new Schema();
         $invoice = $schema->createTable('invoice');
         $schema->createTable('quote');
 
         $checks = [
-            'invoice' => [['name' => 'CHK_INV', 'expr' => 'expr']],
-            'missing' => [['name' => 'CHK_OTHER', 'expr' => 'expr']],
+            'invoice' => ['CHK_INV' => 'expr'],
+            'missing' => ['CHK_OTHER' => 'expr'],
         ];
 
-        $optionManager
+        $registry
             ->expects(static::once())
-            ->method('setExisting')
+            ->method('setIntrospectedExpressions')
             ->with(
                 static::identicalTo($invoice),
                 $checks['invoice']
             );
 
-        $introspector = new CheckIntrospector($generator, $optionManager);
+        $introspector = new CheckIntrospector($generator, $registry);
         $annotated = $introspector->annotate($schema, $checks);
 
         static::assertSame($schema, $annotated, 'Annotate should return the original schema instance.');

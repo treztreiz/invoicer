@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -17,7 +17,7 @@ use Doctrine\ORM\Tools\ToolEvents;
 final readonly class EnumCheckListener
 {
     public function __construct(
-        private CheckOptionManager $optionManager,
+        private CheckRegistry $registry,
     ) {
     }
 
@@ -100,7 +100,7 @@ final readonly class EnumCheckListener
                 ],
             );
 
-            $this->optionManager->appendDesired($table, $spec);
+            $this->registry->appendDeclaredSpec($table, $spec);
         }
     }
 

@@ -64,7 +64,7 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
 
         $schema = $schemaTool->getSchemaFromMetadata($metadata);
         $table = $schema->getTable('soft_xor_check_stub');
-        $checks = $table->getOption(CheckOption::DESIRED->value);
+        $checks = $table->getOption(CheckOption::DECLARED->value);
 
         static::assertNotEmpty($checks, 'Soft XOR stub table should declare checks in metadata.');
         static::assertTrue(

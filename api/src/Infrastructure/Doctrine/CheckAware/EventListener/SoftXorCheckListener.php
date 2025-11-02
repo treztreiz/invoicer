@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -19,7 +19,7 @@ use Doctrine\ORM\Tools\ToolEvents;
 final readonly class SoftXorCheckListener
 {
     public function __construct(
-        private CheckOptionManager $optionManager,
+        private CheckRegistry $registry,
     ) {
     }
 
@@ -44,9 +44,9 @@ final readonly class SoftXorCheckListener
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $this->optionManager->appendDesired(
+        $this->registry->appendDeclaredSpec(
             $table,
-            new SoftXorCheckSpec($cfg->name, ['cols' => $colNames]),
+            new SoftXorCheckSpec($cfg->name, ['columns' => $colNames]),
         );
     }
 

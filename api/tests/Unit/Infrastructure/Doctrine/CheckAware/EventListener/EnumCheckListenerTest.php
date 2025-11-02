@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\EventListener\EnumCheckListener;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use Doctrine\DBAL\Schema\Schema;
@@ -23,14 +23,14 @@ use PHPUnit\Framework\TestCase;
  */
 final class EnumCheckListenerTest extends TestCase
 {
-    private CheckOptionManager $optionManager;
+    private CheckRegistry $registry;
 
     private EnumCheckListener $listener;
 
     protected function setUp(): void
     {
-        $this->optionManager = new CheckOptionManager(new CheckNormalizer());
-        $this->listener = new EnumCheckListener($this->optionManager);
+        $this->registry = new CheckRegistry(new CheckNormalizer());
+        $this->listener = new EnumCheckListener($this->registry);
     }
 
     /**
@@ -56,7 +56,7 @@ final class EnumCheckListenerTest extends TestCase
 
         $this->listener->postGenerateSchemaTable($args);
 
-        $checks = $this->optionManager->desired($table);
+        $checks = $this->registry->getDeclaredSpecs($table);
 
         static::assertCount(1, $checks);
         static::assertInstanceOf(EnumCheckSpec::class, $checks[0]);
@@ -114,7 +114,7 @@ final class EnumCheckListenerTest extends TestCase
 
         $this->listener->postGenerateSchemaTable($args);
 
-        $checks = $this->optionManager->desired($table);
+        $checks = $this->registry->getDeclaredSpecs($table);
         static::assertCount(1, $checks);
         static::assertSame(['column' => 'status', 'values' => ['draft', 'issued'], 'is_string' => true], $checks[0]->expr);
     }

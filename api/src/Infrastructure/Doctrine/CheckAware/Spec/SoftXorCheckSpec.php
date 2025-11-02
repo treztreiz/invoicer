@@ -8,18 +8,14 @@ use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
 final class SoftXorCheckSpec extends AbstractCheckSpec
 {
-    /** @param array{cols: non-empty-list<string>} $expr */
+    /** @param array{columns: list<string>} $expr */
     public function __construct(
         private(set) readonly string $name,
         private(set) readonly array $expr,
         private(set) readonly bool $deferrable = false,
     ) {
-        if ('' === trim($this->name)) {
-            throw new \InvalidArgumentException('SoftXorCheckSpec name cannot be empty.');
-        }
-
-        if (!isset($this->expr['cols']) || !is_array($this->expr['cols']) || [] === $this->expr['cols']) {
-            throw new \InvalidArgumentException('SoftXorCheckSpec requires at least one column.');
+        if (!isset($this->expr['columns']) || !is_array($this->expr['columns']) || count($this->expr['columns']) < 2) {
+            throw new \InvalidArgumentException('SoftXorCheckSpec requires at least two columns.');
         }
     }
 
@@ -29,11 +25,11 @@ final class SoftXorCheckSpec extends AbstractCheckSpec
             return $this;
         }
 
-        $cols = array_map([$normalizer, 'normalizeIdentifier'], $this->expr['cols']);
+        $cols = array_map([$normalizer, 'normalizeIdentifier'], $this->expr['columns']);
 
         return self::fromNormalized(
             $normalizer->normalizeConstraintName($this->name),
-            ['cols' => $cols],
+            ['columns' => $cols],
             $this->deferrable,
         );
     }

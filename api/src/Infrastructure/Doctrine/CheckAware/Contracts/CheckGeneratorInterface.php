@@ -32,6 +32,4 @@ interface CheckGeneratorInterface
      * Build the **normalized** expression SQL for comparison from a concrete spec.
      */
     public function buildExpressionSQL(CheckSpecInterface $spec): string;
-
-    public function normalizeExpressionSQL(string $expr): string;
 }

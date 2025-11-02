@@ -7,8 +7,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Platform;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Table;
@@ -30,7 +30,7 @@ final class CheckAwarePlatformTraitTest extends TestCase
 
         $this->platform = new PostgreSQLCheckAwarePlatform();
         $this->platform->setSchemaManagerFactory(new CheckAwareSchemaManagerFactory());
-        $this->platform->setCheckOptionManager(new CheckOptionManager(new CheckNormalizer()));
+        $this->platform->setCheckRegistry(new CheckRegistry(new CheckNormalizer()));
         $this->platform->setCheckGenerator($this->generator);
     }
 
@@ -38,14 +38,14 @@ final class CheckAwarePlatformTraitTest extends TestCase
     {
         $table = new Table('invoice');
 
-        $spec = new SoftXorCheckSpec('CHK_ADD', ['cols' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]);
 
-        $this->platform->optionManager->appendDesired($table, $spec);
+        $this->platform->registry->appendDeclaredSpec($table, $spec);
 
         $this->generator
             ->expects(static::once())
             ->method('buildAddCheckSQL')
-            ->with('invoice', $spec)
+            ->with('invoice', static::callback(static fn($input): bool => $input->isNormalized()))
             ->willReturn('ADD CHECK SQL');
 
         $sql = ['BASE'];
@@ -57,9 +57,9 @@ final class CheckAwarePlatformTraitTest extends TestCase
     public function test_append_diff_checks_sql_emits_expected_sequence(): void
     {
         $diff = new CheckAwareTableDiff(new Table('invoice'));
-        $added = new SoftXorCheckSpec('CHK_ADD', ['cols' => ['col_a', 'col_b']]);
-        $modified = new SoftXorCheckSpec('CHK_MOD', ['cols' => ['col_c', 'col_d']]);
-        $dropped = new SoftXorCheckSpec('CHK_DROP', ['cols' => ['col_e', 'col_f']]);
+        $added = new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]);
+        $modified = new SoftXorCheckSpec('CHK_MOD', ['columns' => ['col_c', 'col_d']]);
+        $dropped = new SoftXorCheckSpec('CHK_DROP', ['columns' => ['col_e', 'col_f']]);
 
         $diff->addAddedChecks([$added]);
         $diff->addModifiedChecks([$modified]);

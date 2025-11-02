@@ -17,7 +17,7 @@ trait CheckAwareSchemaManagerTrait
     {
         $schema = parent::introspectSchema();
 
-        $introspector = new CheckIntrospector($this->platform->generator, $this->platform->optionManager);
+        $introspector = new CheckIntrospector($this->platform->generator, $this->platform->registry);
         $checks = $introspector->introspect($this->connection);
 
         return $introspector->annotate($schema, $checks);

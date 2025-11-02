@@ -29,7 +29,7 @@ to extend or customise the behaviour when new check specs or dialects are added.
    - `Platform\PostgreSQLCheckAwarePlatform` extends Doctrine’s platform and
      pulls in `CheckAwarePlatformTrait`.
    - The trait injects shared services via `#[Required]` setters:
-     `CheckAwareSchemaManagerFactory`, `CheckOptionManager`, and the platform’s
+    `CheckAwareSchemaManagerFactory`, `CheckRegistry`, and the platform’s
      SQL generator (`PostgreSQLCheckGenerator`).
    - Table creation / alter SQL is post-processed to append or update check
      constraints declared in metadata.
@@ -41,8 +41,8 @@ to extend or customise the behaviour when new check specs or dialects are added.
        annotates the in-memory `Schema`.
      - `CheckComparator` – compares desired vs existing constraints and yields
        a `CheckAwareTableDiff`.
-     - `CheckOptionManager` – stores the desired check specs on a table (metadata)
-       and exposes helpers (`desired()`, `existingByName()`, `diffDropped()`, etc.).
+    - `CheckRegistry` – stores the declared check specs on a table (metadata)
+       and exposes helpers (`desired()`, `existing()`).
    - Instantiation is centralised in `CheckAwareSchemaManagerFactory`, allowing
      other dialects or consumers to decorate/replace the manager without touching
      the platform.
@@ -50,7 +50,7 @@ to extend or customise the behaviour when new check specs or dialects are added.
 5. **Listener**
    - `EventListener\SoftXorCheckListener` inspects Doctrine metadata during schema
      generation, ensures the owning-side associations are valid, and registers
-     the desired specs via `CheckOptionManager`.
+    the declared specs via `CheckRegistry`.
 
 6. **Migrations Fix**
    - Doctrine Migrations 3.x generates an unwanted `CREATE SCHEMA public` during
@@ -60,7 +60,7 @@ to extend or customise the behaviour when new check specs or dialects are added.
      with our fix through the dependency factory configurator hook.
 
 7. **Tests**
-   - Dedicated unit tests cover `CheckOptionManager`, `CheckComparator`, etc., by
+  - Dedicated unit tests cover `CheckRegistry`, `CheckComparator`, etc., by
      manually bootstrapping the platform with the required services.
    - Integration tests validate:
      - Schema round-trip (introspect → diff → no drift) using a stub entity.
@@ -89,7 +89,7 @@ to extend or customise the behaviour when new check specs or dialects are added.
 #### Customising comparator / schema behaviour
 Everything is wired through services:
 - Decorate `CheckAwareSchemaManagerFactory` to wrap or replace the schema manager.
-- Decorate `CheckComparator` or `CheckOptionManager` if additional logic is needed.
+- Decorate `CheckComparator` or `CheckRegistry` if additional logic is needed.
 
 ---
 
@@ -127,7 +127,7 @@ CheckAware/
       CheckAwareSchemaManagerFactory.php
       CheckComparator.php
       CheckIntrospector.php
-      CheckOptionManager.php
+     CheckRegistry.php
     Trait/CheckAwareSchemaManagerTrait.php
     ValueObject/CheckAwareTableDiff.php
   Spec/

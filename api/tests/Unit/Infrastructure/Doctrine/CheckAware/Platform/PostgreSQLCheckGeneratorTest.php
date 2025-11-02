@@ -7,7 +7,6 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Platform;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -25,7 +24,7 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_expression_sql_quotes_identifiers(): void
     {
-        $spec = new SoftXorCheckSpec('CHK', ['cols' => ['recurrence_id', 'installment_plan_id']]);
+        $spec = new SoftXorCheckSpec('CHK', ['columns' => ['recurrence_id', 'installment_plan_id']]);
 
         $expression = $this->generator->buildExpressionSQL($spec);
 
@@ -34,7 +33,7 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_add_check_sql_is_idempotent(): void
     {
-        $spec = new SoftXorCheckSpec('CHK_INV', ['cols' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_INV', ['columns' => ['col_a', 'col_b']]);
         $sql = $this->generator->buildAddCheckSQL('"invoice"', $spec);
 
         static::assertStringContainsString('DO $$', $sql);
@@ -44,29 +43,9 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_drop_check_sql_uses_if_exists(): void
     {
-        $sql = $this->generator->buildDropCheckSQL('"invoice"', new SoftXorCheckSpec('CHK_INV', ['cols' => ['a', 'b']]));
+        $sql = $this->generator->buildDropCheckSQL('"invoice"', new SoftXorCheckSpec('CHK_INV', ['columns' => ['a', 'b']]));
 
         static::assertSame('ALTER TABLE "invoice" DROP CONSTRAINT IF EXISTS "CHK_INV"', $sql);
     }
 
-    #[DataProvider('normalizationProvider')]
-    public function test_normalize_expression_sql(string $input, string $expected): void
-    {
-        static::assertSame($expected, $this->generator->normalizeExpressionSQL($input));
-    }
-
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function normalizationProvider(): iterable
-    {
-        yield 'constraint def' => [
-            'CHECK ((NUM_NONNULLS("recurrence_id", "installment_plan_id")) <= 1)',
-            'num_nonnulls(recurrence_id,installment_plan_id) <= 1',
-        ];
-        yield 'already normalized' => [
-            'num_nonnulls(col_a,col_b) <= 1',
-            'num_nonnulls(col_a,col_b) <= 1',
-        ];
-    }
 }

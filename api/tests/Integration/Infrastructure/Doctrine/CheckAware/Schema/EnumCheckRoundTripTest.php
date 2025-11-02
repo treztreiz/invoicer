@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
-use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption as CheckOptionEnum;
+use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
@@ -64,7 +64,7 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
 
         $schema = $schemaTool->getSchemaFromMetadata($metadata);
         $table = $schema->getTable('enum_check_stub');
-        $checks = $table->getOption(CheckOptionEnum::DESIRED->value);
+        $checks = $table->getOption(CheckOption::DECLARED->value);
 
         static::assertNotEmpty($checks, 'Enum check stub table should declare checks in metadata.');
         static::assertTrue(self::containsEnumSpec($checks), 'Metadata should include the enum constraint definition.');

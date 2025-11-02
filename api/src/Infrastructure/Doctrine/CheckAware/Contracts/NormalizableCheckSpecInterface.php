@@ -11,4 +11,6 @@ interface NormalizableCheckSpecInterface extends CheckSpecInterface
     public function normalizeWith(CheckNormalizer $normalizer): self;
 
     public function isNormalized(): bool;
+
+    public function canonicalExpression(): string;
 }

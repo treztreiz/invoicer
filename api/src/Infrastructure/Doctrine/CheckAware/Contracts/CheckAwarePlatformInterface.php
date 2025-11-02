@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Contracts;
 
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use Doctrine\DBAL\Schema\Table;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag]
 interface CheckAwarePlatformInterface
 {
-    public CheckOptionManager $optionManager {
+    public CheckRegistry $registry {
         get;
     }
 
@@ -20,7 +20,7 @@ interface CheckAwarePlatformInterface
         get;
     }
 
-    public function setCheckOptionManager(CheckOptionManager $optionManager): void;
+    public function setCheckRegistry(CheckRegistry $registry): void;
 
     public function setCheckGenerator(CheckGeneratorInterface $generator): void;
 

@@ -7,7 +7,7 @@ namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use Doctrine\ORM\Mapping as ORM;
 
-#[SoftXorCheck(properties: ['firstOption', 'secondOption'], name: 'TEST_SOFT_XOR')]
+#[SoftXorCheck(properties: ['firstProperty', 'secondProperty'], name: 'TEST_SOFT_XOR')]
 #[ORM\Entity]
 #[ORM\Table(name: 'soft_xor_check_stub')]
 class SoftXorCheckStub
@@ -18,8 +18,8 @@ class SoftXorCheckStub
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
-    private ?string $firstOption = null;
+    private ?string $firstProperty = null;
 
     #[ORM\Column(nullable: true)]
-    private ?string $secondOption = null;
+    private ?string $secondProperty = null;
 }

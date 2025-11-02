@@ -7,7 +7,7 @@ namespace App\Infrastructure\Doctrine\CheckAware\Platform\Trait;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use Doctrine\DBAL\Schema\Table;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -19,7 +19,7 @@ trait CheckAwarePlatformTrait
 {
     private(set) readonly CheckAwareSchemaManagerFactory $schemaManagerFactory;
 
-    private(set) readonly CheckOptionManager $optionManager;
+    private(set) readonly CheckRegistry $registry;
 
     private(set) readonly CheckGeneratorInterface $generator;
 
@@ -36,17 +36,17 @@ trait CheckAwarePlatformTrait
     }
 
     #[Required]
-    public function setCheckOptionManager(CheckOptionManager $optionManager): void
+    public function setCheckRegistry(CheckRegistry $registry): void
     {
-        $this->optionManager = $optionManager;
+        $this->registry = $registry;
     }
 
     /**
-     * @return list<CheckSpecInterface> desired checks defined on the schema table
+     * @return list<CheckSpecInterface> declared checks defined on the schema table
      */
     public function getDesiredChecks(Table $table): array
     {
-        return $this->optionManager->desired($table);
+        return $this->registry->getDeclaredSpecs($table);
     }
 
     /**

@@ -8,7 +8,7 @@ use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
@@ -24,11 +24,11 @@ use PHPUnit\Framework\TestCase;
  */
 final class CheckComparatorTest extends TestCase
 {
-    private CheckOptionManager $optionManager;
+    private CheckRegistry $registry;
 
     protected function setUp(): void
     {
-        $this->optionManager = new CheckOptionManager(new CheckNormalizer());
+        $this->registry = new CheckRegistry(new CheckNormalizer());
     }
 
     /**
@@ -42,9 +42,9 @@ final class CheckComparatorTest extends TestCase
             'CHK_DROPPED' => 'num_nonnulls(col_a,col_b) <= 1',
             'CHK_MODIFIED' => 'num_nonnulls(col_a,col_b) <= 2',
         ]);
-        $to = $this->schemaWithDesiredChecks([
-            new SoftXorCheckSpec('CHK_MODIFIED', ['cols' => ['col_a', 'col_b']]),
-            new SoftXorCheckSpec('CHK_ADDED', ['cols' => ['col_c', 'col_d']]),
+        $to = $this->schemaWithDeclaredSpecs([
+            new SoftXorCheckSpec('CHK_MODIFIED', ['columns' => ['col_a', 'col_b']]),
+            new SoftXorCheckSpec('CHK_ADDED', ['columns' => ['col_c', 'col_d']]),
         ]);
 
         $diff = $comparator->compareSchemas($from, $to);
@@ -91,8 +91,8 @@ final class CheckComparatorTest extends TestCase
     public function test_changed_expression_is_marked_modified(): void
     {
         $from = $this->schemaWithExistingChecks(['CHK_ONE' => 'num_nonnulls(col_a,col_b) <= 2']);
-        $to = $this->schemaWithDesiredChecks([
-            new SoftXorCheckSpec('CHK_ONE', ['cols' => ['col_a', 'col_b']]),
+        $to = $this->schemaWithDeclaredSpecs([
+            new SoftXorCheckSpec('CHK_ONE', ['columns' => ['col_a', 'col_b']]),
         ]);
 
         $diff = $this->compare($from, $to);
@@ -108,8 +108,8 @@ final class CheckComparatorTest extends TestCase
     public function test_added_spec_is_marked_added(): void
     {
         $from = $this->emptySchema();
-        $to = $this->schemaWithDesiredChecks([
-            new SoftXorCheckSpec('CHK_ADD', ['cols' => ['col_a', 'col_b']]),
+        $to = $this->schemaWithDeclaredSpecs([
+            new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]),
         ]);
 
         $diff = $this->compare($from, $to);
@@ -125,10 +125,10 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_identical_soft_xor_checks_produce_no_diff(): void
     {
-        $spec = new SoftXorCheckSpec('CHK_SAME', ['cols' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_SAME', ['columns' => ['col_a', 'col_b']]);
 
         $from = $this->schemaWithExistingChecks(['CHK_SAME' => 'num_nonnulls(col_a,col_b) <= 1']);
-        $to = $this->schemaWithDesiredChecks([$spec]);
+        $to = $this->schemaWithDeclaredSpecs([$spec]);
 
         $diff = $this->compare($from, $to);
 
@@ -149,7 +149,7 @@ final class CheckComparatorTest extends TestCase
         $existingExpr = 'CHECK ("status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text]))';
 
         $from = $this->schemaWithExistingChecks(['CHK_ENUM' => $existingExpr]);
-        $to = $this->schemaWithDesiredChecks([$spec]);
+        $to = $this->schemaWithDeclaredSpecs([$spec]);
 
         $diff = $this->compare($from, $to);
 
@@ -168,7 +168,7 @@ final class CheckComparatorTest extends TestCase
     {
         $platform = new PostgreSQLCheckAwarePlatform();
         $platform->setSchemaManagerFactory(new CheckAwareSchemaManagerFactory());
-        $platform->setCheckOptionManager($this->optionManager);
+        $platform->setCheckRegistry($this->registry);
         $platform->setCheckGenerator(new PostgreSQLCheckGenerator($platform));
 
         return new CheckComparator(new Comparator(), $platform);
@@ -194,14 +194,7 @@ final class CheckComparatorTest extends TestCase
         $schema = $this->emptySchema();
         $table = $schema->getTable('invoice');
 
-        $table->addOption(
-            'app_checks_present',
-            array_map(
-                static fn(string $name, string $expr): array => ['name' => $name, 'expr' => $expr],
-                array_keys($checks),
-                $checks,
-            )
-        );
+        $table->addOption('app_checks_present', $checks);
 
         return $schema;
     }
@@ -209,13 +202,13 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    private function schemaWithDesiredChecks(array $specs): Schema
+    private function schemaWithDeclaredSpecs(array $specs): Schema
     {
         $schema = $this->emptySchema();
         $table = $schema->getTable('invoice');
 
         foreach ($specs as $spec) {
-            $this->optionManager->appendDesired($table, $spec);
+            $this->registry->appendDeclaredSpec($table, $spec);
         }
 
         return $schema;

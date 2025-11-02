@@ -18,10 +18,6 @@ final class EnumCheckSpec extends AbstractCheckSpec
         private(set) readonly array $expr,
         private(set) readonly bool $deferrable = false,
     ) {
-        if ('' === trim($this->name)) {
-            throw new \InvalidArgumentException('EnumCheckSpec name cannot be empty.');
-        }
-
         if (!array_key_exists('column', $this->expr) || !is_string($this->expr['column']) || '' === trim($this->expr['column'])) {
             throw new \InvalidArgumentException('EnumCheckSpec expr["column"] cannot be empty.');
         }
@@ -52,7 +48,7 @@ final class EnumCheckSpec extends AbstractCheckSpec
             $normalizer->normalizeConstraintName($this->name),
             [
                 'column' => $normalizer->normalizeIdentifier($this->expr['column']),
-                'values' => $normalizer->normalizeValueList($values),
+                'values' => $values,
                 'is_string' => $isString,
             ],
             $this->deferrable,
