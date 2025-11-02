@@ -16,7 +16,7 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use Doctrine\ORM\Tools\ToolEvents;
 
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
-readonly class SoftXorCheckListener
+final readonly class SoftXorCheckListener
 {
     public function __construct(
         private CheckOptionManager $optionManager,
@@ -32,13 +32,13 @@ readonly class SoftXorCheckListener
         $class = $args->getClassMetadata();
         $table = $args->getClassTable();
 
-        $attrs = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
-        if (!$attrs) {
-            return; // entity not annotated
+        $attributes = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
+        if ([] === $attributes) {
+            return;
         }
 
         /** @var SoftXorCheck $cfg */
-        $cfg = $attrs[0]->newInstance();
+        $cfg = $attributes[0]->newInstance();
         $colNames = $this->resolveOwningJoinColumns($class, $cfg->properties);
 
         // Ensure 1–1 shape: UNIQUE per join column (portable)
@@ -51,7 +51,7 @@ readonly class SoftXorCheckListener
     }
 
     /**
-     * @param ClassMetadata<object>  $class
+     * @param ClassMetadata<object> $class
      * @param non-empty-list<string> $properties
      *
      * @return non-empty-list<string> column names on the SAME table (owning side only)
@@ -71,7 +71,9 @@ readonly class SoftXorCheckListener
             }
             $assoc = $class->getAssociationMapping($prop);
             if (!$assoc->isToOneOwningSide()) {
-                throw new \LogicException(sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName()));
+                throw new \LogicException(
+                    sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName())
+                );
             }
             $join = $assoc->joinColumns[0] ?? null; // 1:1 → single join column
             if (null === $join) {
@@ -108,10 +110,10 @@ readonly class SoftXorCheckListener
             return true;
         }
 
-        if (array_any($table->getIndexes(), fn ($index) => $index->isUnique() && $index->spansColumns([$colName]))) {
+        if (array_any($table->getIndexes(), fn($index) => $index->isUnique() && $index->spansColumns([$colName]))) {
             return true;
         }
 
-        return array_any($table->getUniqueConstraints(), fn ($constraint) => $constraint->getColumns() === [$colName]);
+        return array_any($table->getUniqueConstraints(), fn($constraint) => $constraint->getColumns() === [$colName]);
     }
 }

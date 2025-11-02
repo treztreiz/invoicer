@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
-use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
-use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
+use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption as CheckOptionEnum;
+use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -17,7 +17,7 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 /**
  * @testType integration
  */
-final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
+final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
 {
     use ResetDatabase;
 
@@ -28,7 +28,7 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
         yield 'doctrine' => [
             'orm' => [
                 'mappings' => [
-                    'SoftXorTest' => [
+                    'EnumCheckTest' => [
                         'type' => 'attribute',
                         'is_bundle' => false,
                         'dir' => __DIR__,
@@ -49,28 +49,25 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
     /**
      * @throws SchemaException
      */
-    public function test_schema_round_trip_matches_metadata(): void
+    public function test_enum_check_round_trip_is_idempotent(): void
     {
         $schemaTool = new SchemaTool($this->entityManager);
 
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn(ClassMetadata $class): bool => SoftXorCheckStub::class === $class->getName(),
+                static fn(ClassMetadata $class): bool => EnumCheckStub::class === $class->getName(),
             )
         );
 
         static::assertNotEmpty($metadata, 'Expected stub metadata to be registered.');
 
         $schema = $schemaTool->getSchemaFromMetadata($metadata);
-        $table = $schema->getTable('soft_xor_check_stub');
-        $checks = $table->getOption(CheckOption::DESIRED->value);
+        $table = $schema->getTable('enum_check_stub');
+        $checks = $table->getOption(CheckOptionEnum::DESIRED->value);
 
-        static::assertNotEmpty($checks, 'Soft XOR stub table should declare checks in metadata.');
-        static::assertTrue(
-            self::containsSoftXorSpec($checks),
-            'Metadata should include the Soft XOR constraint definition.',
-        );
+        static::assertNotEmpty($checks, 'Enum check stub table should declare checks in metadata.');
+        static::assertTrue(self::containsEnumSpec($checks), 'Metadata should include the enum constraint definition.');
 
         $schemaTool->dropDatabase();
         $schemaTool->createSchema($metadata);
@@ -80,8 +77,11 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
         static::assertSame([], $updateSql, 'Schema update SQL should be empty after round trip.');
     }
 
-    private static function containsSoftXorSpec(array $checks): bool
+    private static function containsEnumSpec(array $checks): bool
     {
-        return array_any($checks, fn($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
+        return array_any(
+            $checks,
+            static fn($spec): bool => $spec instanceof EnumCheckSpec && $spec->expr['column'] === 'status'
+        );
     }
 }

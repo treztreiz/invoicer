@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\EventListener;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use App\Infrastructure\Doctrine\CheckAware\EventListener\SoftXorCheckListener;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -73,7 +74,7 @@ final class SoftXorCheckListenerTest extends TestCase
 
         $schema = static::createStub(Schema::class);
 
-        $listener = new SoftXorCheckListener(new CheckOptionManager());
+        $listener = new SoftXorCheckListener(new CheckOptionManager(new CheckNormalizer()));
         $listener->postGenerateSchemaTable(
             new GenerateSchemaTableEventArgs(
                 $metadata,

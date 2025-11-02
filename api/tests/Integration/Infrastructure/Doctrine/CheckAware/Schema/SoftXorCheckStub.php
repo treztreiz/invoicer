@@ -9,8 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[SoftXorCheck(properties: ['firstOption', 'secondOption'], name: 'TEST_SOFT_XOR')]
 #[ORM\Entity]
-#[ORM\Table(name: 'soft_xor_stub')]
-class SoftXorStub
+#[ORM\Table(name: 'soft_xor_check_stub')]
+class SoftXorCheckStub
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,7 +20,7 @@ final class CheckOptionManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->manager = new CheckOptionManager();
+        $this->manager = new CheckOptionManager(new CheckNormalizer());
     }
 
     public function test_desired_checks_are_appended(): void
@@ -28,13 +29,21 @@ final class CheckOptionManagerTest extends TestCase
 
         static::assertSame([], $this->manager->desired($table));
 
-        $first = new SoftXorCheckSpec('CHK_INV_SOFT_XOR', ['cols' => ['recurrence_id', 'installment_plan_id']]);
-        $second = new SoftXorCheckSpec('CHK_INV_ANOTHER', ['cols' => ['foo_id', 'bar_id']]);
+        $first = new SoftXorCheckSpec('chk_inv_soft_xor', ['cols' => ['Recurrence_ID', 'installment_plan_id']]);
+        $second = new SoftXorCheckSpec('CHK_inv_another', ['cols' => ['FOO_ID', 'bar_id']]);
 
         $this->manager->appendDesired($table, $first);
         $this->manager->appendDesired($table, $second);
 
-        static::assertSame([$first, $second], $this->manager->desired($table));
+        $desired = $this->manager->desired($table);
+
+        static::assertCount(2, $desired);
+        static::assertTrue($desired[0]->isNormalized());
+        static::assertSame('CHK_INV_SOFT_XOR', $desired[0]->name);
+        static::assertSame(['cols' => ['recurrence_id', 'installment_plan_id']], $desired[0]->expr);
+        static::assertTrue($desired[1]->isNormalized());
+        static::assertSame('CHK_INV_ANOTHER', $desired[1]->name);
+        static::assertSame(['cols' => ['foo_id', 'bar_id']], $desired[1]->expr);
     }
 
     public function test_existing_checks_are_mapped(): void

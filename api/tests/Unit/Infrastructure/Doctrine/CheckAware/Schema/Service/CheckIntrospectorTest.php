@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Schema\Service;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckIntrospector;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Schema;
@@ -47,7 +48,7 @@ final class CheckIntrospectorTest extends TestCase
                 ['table_name' => 'quote', 'name' => 'CHK_QUO', 'def' => 'expr'],
             ]);
 
-        $optionManager = new CheckOptionManager();
+        $optionManager = new CheckOptionManager(new CheckNormalizer());
 
         $introspector = new CheckIntrospector($generator, $optionManager);
         $checks = $introspector->introspect($connection);

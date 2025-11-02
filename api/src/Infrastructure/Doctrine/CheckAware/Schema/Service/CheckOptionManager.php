@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
+use App\Infrastructure\Doctrine\CheckAware\Contracts\NormalizableCheckSpecInterface;
 use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
 use Doctrine\DBAL\Schema\Table;
 
@@ -15,6 +16,11 @@ use Doctrine\DBAL\Schema\Table;
  */
 class CheckOptionManager
 {
+    public function __construct(
+        private readonly CheckNormalizer $normalizer,
+    ) {
+    }
+
     /**
      * @return list<CheckSpecInterface> desired checks defined on the schema table
      */
@@ -37,9 +43,11 @@ class CheckOptionManager
     {
         $current = $this->getOption($table, CheckOption::DESIRED);
 
+        $normalized = $this->normalizeSpec($spec);
+
         $table->addOption(CheckOption::DESIRED->value, [
             ...$current,
-            $spec,
+            $normalized,
         ]);
     }
 
@@ -108,5 +116,14 @@ class CheckOptionManager
         return $table->hasOption($option->value)
             ? $table->getOption($option->value)
             : [];
+    }
+
+    private function normalizeSpec(CheckSpecInterface $spec): CheckSpecInterface
+    {
+        if ($spec instanceof NormalizableCheckSpecInterface) {
+            return $spec->normalizeWith($this->normalizer);
+        }
+
+        return $spec;
     }
 }

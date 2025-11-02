@@ -8,6 +8,7 @@ use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Table;
@@ -29,7 +30,7 @@ final class CheckAwarePlatformTraitTest extends TestCase
 
         $this->platform = new PostgreSQLCheckAwarePlatform();
         $this->platform->setSchemaManagerFactory(new CheckAwareSchemaManagerFactory());
-        $this->platform->setCheckOptionManager(new CheckOptionManager());
+        $this->platform->setCheckOptionManager(new CheckOptionManager(new CheckNormalizer()));
         $this->platform->setCheckGenerator($this->generator);
     }
 

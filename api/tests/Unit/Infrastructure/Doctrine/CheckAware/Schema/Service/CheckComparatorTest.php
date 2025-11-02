@@ -9,7 +9,9 @@ use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
+use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
@@ -26,7 +28,7 @@ final class CheckComparatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->optionManager = new CheckOptionManager();
+        $this->optionManager = new CheckOptionManager(new CheckNormalizer());
     }
 
     /**
@@ -54,15 +56,15 @@ final class CheckComparatorTest extends TestCase
 
         static::assertSame(
             ['CHK_ADDED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getAddedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getAddedChecks())
         );
         static::assertSame(
             ['CHK_MODIFIED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getModifiedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getModifiedChecks())
         );
         static::assertSame(
             ['CHK_DROPPED'],
-            array_map(static fn ($spec) => $spec->name, $tableDiff->getDroppedChecks())
+            array_map(static fn($spec) => $spec->name, $tableDiff->getDroppedChecks())
         );
     }
 
@@ -121,11 +123,32 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    public function test_identical_checks_produce_no_diff(): void
+    public function test_identical_soft_xor_checks_produce_no_diff(): void
     {
         $spec = new SoftXorCheckSpec('CHK_SAME', ['cols' => ['col_a', 'col_b']]);
 
         $from = $this->schemaWithExistingChecks(['CHK_SAME' => 'num_nonnulls(col_a,col_b) <= 1']);
+        $to = $this->schemaWithDesiredChecks([$spec]);
+
+        $diff = $this->compare($from, $to);
+
+        static::assertEmpty($diff->getAlteredTables());
+    }
+
+    /**
+     * @throws SchemaException
+     */
+    public function test_identical_enum_checks_produce_no_diff(): void
+    {
+        $spec = new EnumCheckSpec('CHK_ENUM', [
+            'column' => 'status',
+            'values' => ['draft', 'issued'],
+            'is_string' => true,
+        ]);
+
+        $existingExpr = 'CHECK ("status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text]))';
+
+        $from = $this->schemaWithExistingChecks(['CHK_ENUM' => $existingExpr]);
         $to = $this->schemaWithDesiredChecks([$spec]);
 
         $diff = $this->compare($from, $to);
@@ -174,7 +197,7 @@ final class CheckComparatorTest extends TestCase
         $table->addOption(
             'app_checks_present',
             array_map(
-                static fn (string $name, string $expr): array => ['name' => $name, 'expr' => $expr],
+                static fn(string $name, string $expr): array => ['name' => $name, 'expr' => $expr],
                 array_keys($checks),
                 $checks,
             )

@@ -9,6 +9,7 @@ use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Trait\CheckAwareSchemaManagerTrait;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -34,7 +35,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
     protected function setUp(): void
     {
         $this->platform = new PostgreSQLCheckAwarePlatform();
-        $this->platform->setCheckOptionManager(new CheckOptionManager());
+        $this->platform->setCheckOptionManager(new CheckOptionManager(new CheckNormalizer()));
 
         $this->generator = self::createMock(CheckGeneratorInterface::class);
         $this->platform->setCheckGenerator($this->generator);
