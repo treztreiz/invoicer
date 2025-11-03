@@ -74,7 +74,7 @@ final readonly class EnumCheckListener
             $column,
             $cases,
             'string' === $enumReflection->getBackingType()->getName(),
-            $config->deferrable,
+            $config->timing,
         );
     }
 

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
-use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -64,11 +66,13 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
 
         $schema = $schemaTool->getSchemaFromMetadata($metadata);
         $table = $schema->getTable('soft_xor_check_stub');
-        $checks = $table->getOption(CheckOption::DECLARED->value);
 
-        static::assertNotEmpty($checks, 'Soft XOR stub table should declare checks in metadata.');
+        $registry = self::getContainer()->get(CheckRegistry::class);
+        $specs = $registry->getDeclaredSpecs($table);
+
+        static::assertNotEmpty($specs, 'Soft XOR stub table should declare checks in metadata.');
         static::assertTrue(
-            self::containsSoftXorSpec($checks),
+            self::containsSoftXorSpec($specs),
             'Metadata should include the Soft XOR constraint definition.',
         );
 
@@ -80,8 +84,25 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
         static::assertSame([], $updateSql, 'Schema update SQL should be empty after round trip.');
     }
 
-    private static function containsSoftXorSpec(array $checks): bool
+    private static function containsSoftXorSpec(array $specs): bool
     {
-        return array_any($checks, fn ($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
+        return array_any($specs, fn ($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
     }
+}
+
+#[SoftXorCheck(properties: ['firstProperty', 'secondProperty'], name: 'TEST_SOFT_XOR')]
+#[ORM\Entity]
+#[ORM\Table(name: 'soft_xor_check_stub')]
+class SoftXorCheckStub
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $firstProperty = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $secondProperty = null;
 }

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
-use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\TestKernel;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -64,10 +66,12 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
 
         $schema = $schemaTool->getSchemaFromMetadata($metadata);
         $table = $schema->getTable('enum_check_stub');
-        $checks = $table->getOption(CheckOption::DECLARED->value);
 
-        static::assertNotEmpty($checks, 'Enum check stub table should declare checks in metadata.');
-        static::assertTrue(self::containsEnumSpec($checks), 'Metadata should include the enum constraint definition.');
+        $registry = self::getContainer()->get(CheckRegistry::class);
+        $specs = $registry->getDeclaredSpecs($table);
+
+        static::assertNotEmpty($specs, 'Enum check stub table should declare checks in metadata.');
+        static::assertTrue(self::containsEnumSpec($specs), 'Metadata should include the enum constraint definition.');
 
         $schemaTool->dropDatabase();
         $schemaTool->createSchema($metadata);
@@ -77,11 +81,35 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
         static::assertSame([], $updateSql, 'Schema update SQL should be empty after round trip.');
     }
 
-    private static function containsEnumSpec(array $checks): bool
+    private static function containsEnumSpec(array $specs): bool
     {
         return array_any(
-            $checks,
+            $specs,
             static fn ($spec): bool => $spec instanceof EnumCheckSpec && 'status' === $spec->column
         );
     }
+}
+
+#[EnumCheck(property: 'status')]
+#[EnumCheck(property: 'legacyStatus', name: 'CHK_ENUM_LEGACY', enumFqcn: EnumStatusStub::class)]
+#[ORM\Entity]
+#[ORM\Table(name: 'enum_check_stub')]
+class EnumCheckStub
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column]
+    public EnumStatusStub $status = EnumStatusStub::Draft;
+
+    #[ORM\Column]
+    public string $legacyStatus = 'draft';
+}
+
+enum EnumStatusStub: string
+{
+    case Draft = 'draft';
+    case Issued = 'issued';
 }

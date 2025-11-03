@@ -47,7 +47,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
      * @throws SchemaException
      * @throws Exception
      */
-    public function test_introspect_schema_annotates_with_existing_checks(): void
+    public function test_introspect_schema_registers_introspected_expressions(): void
     {
         $this->generator
             ->expects(static::once())
@@ -73,10 +73,10 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
 
         $schemaManager = new SchemaManagerStub($this->connection, $this->platform);
 
-        $annotated = $schemaManager->introspectSchema();
-        $checks = $this->platform->registry->getIntrospectedExpressions($annotated->getTable('dummy_table'));
+        $schema = $schemaManager->introspectSchema();
+        $expressions = $this->platform->registry->getIntrospectedExpressions($schema->getTable('dummy_table'));
 
-        static::assertArrayHasKey('CHK_STUB', $checks);
+        static::assertArrayHasKey('CHK_STUB', $expressions);
     }
 
     public function test_create_comparator_returns_check_aware_comparator(): void

@@ -38,11 +38,11 @@ final class CheckComparatorTest extends TestCase
     {
         $comparator = $this->createComparator();
 
-        $from = $this->schemaWithExistingChecks([
+        $from = $this->createSchemaWithIntrospectedExpressions([
             'CHK_DROPPED' => 'num_nonnulls(col_a,col_b) <= 1',
             'CHK_MODIFIED' => 'num_nonnulls(col_a,col_b) <= 2',
         ]);
-        $to = $this->schemaWithDeclaredSpecs([
+        $to = $this->createSchemaWithDeclaredSpecs([
             new SoftXorCheckSpec('CHK_MODIFIED', ['col_a', 'col_b']),
             new SoftXorCheckSpec('CHK_ADDED', ['col_c', 'col_d']),
         ]);
@@ -71,10 +71,10 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    public function test_existing_checks_without_desired_are_dropped(): void
+    public function test_introspected_expressions_without_declared_are_dropped(): void
     {
-        $from = $this->schemaWithExistingChecks(['CHK_ONE' => 'expr_one']);
-        $to = $this->emptySchema();
+        $from = $this->createSchemaWithIntrospectedExpressions(['CHK_ONE' => 'expr_one']);
+        $to = $this->createEmptySchema();
 
         $diff = $this->compare($from, $to);
 
@@ -90,8 +90,8 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_changed_expression_is_marked_modified(): void
     {
-        $from = $this->schemaWithExistingChecks(['CHK_ONE' => 'num_nonnulls(col_a,col_b) <= 2']);
-        $to = $this->schemaWithDeclaredSpecs([
+        $from = $this->createSchemaWithIntrospectedExpressions(['CHK_ONE' => 'num_nonnulls(col_a,col_b) <= 2']);
+        $to = $this->createSchemaWithDeclaredSpecs([
             new SoftXorCheckSpec('CHK_ONE', ['col_a', 'col_b']),
         ]);
 
@@ -107,8 +107,8 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_added_spec_is_marked_added(): void
     {
-        $from = $this->emptySchema();
-        $to = $this->schemaWithDeclaredSpecs([
+        $from = $this->createEmptySchema();
+        $to = $this->createSchemaWithDeclaredSpecs([
             new SoftXorCheckSpec('CHK_ADD', ['col_a', 'col_b']),
         ]);
 
@@ -127,8 +127,8 @@ final class CheckComparatorTest extends TestCase
     {
         $spec = new SoftXorCheckSpec('CHK_SAME', ['col_a', 'col_b']);
 
-        $from = $this->schemaWithExistingChecks(['CHK_SAME' => 'num_nonnulls(col_a,col_b) <= 1']);
-        $to = $this->schemaWithDeclaredSpecs([$spec]);
+        $from = $this->createSchemaWithIntrospectedExpressions(['CHK_SAME' => 'num_nonnulls(col_a,col_b) <= 1']);
+        $to = $this->createSchemaWithDeclaredSpecs([$spec]);
 
         $diff = $this->compare($from, $to);
 
@@ -140,12 +140,11 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_identical_enum_checks_produce_no_diff(): void
     {
+        $expression = 'CHECK ("status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text]))';
         $spec = new EnumCheckSpec('CHK_ENUM', 'status', ['draft', 'issued'], true);
 
-        $existingExpr = 'CHECK ("status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text]))';
-
-        $from = $this->schemaWithExistingChecks(['CHK_ENUM' => $existingExpr]);
-        $to = $this->schemaWithDeclaredSpecs([$spec]);
+        $from = $this->createSchemaWithIntrospectedExpressions(['CHK_ENUM' => $expression]);
+        $to = $this->createSchemaWithDeclaredSpecs([$spec]);
 
         $diff = $this->compare($from, $to);
 
@@ -173,7 +172,7 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    private function emptySchema(): Schema
+    private function createEmptySchema(): Schema
     {
         $schema = new Schema();
         $table = $schema->createTable('invoice');
@@ -185,12 +184,10 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    private function schemaWithExistingChecks(array $checks): Schema
+    private function createSchemaWithIntrospectedExpressions(array $checks): Schema
     {
-        $schema = $this->emptySchema();
-        $table = $schema->getTable('invoice');
-
-        $table->addOption(\App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption::INTROSPECTED->value, $checks);
+        $schema = $this->createEmptySchema();
+        $this->registry->registerIntrospectedExpressions($schema, ['invoice' => $checks]);
 
         return $schema;
     }
@@ -198,9 +195,9 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    private function schemaWithDeclaredSpecs(array $specs): Schema
+    private function createSchemaWithDeclaredSpecs(array $specs): Schema
     {
-        $schema = $this->emptySchema();
+        $schema = $this->createEmptySchema();
         $table = $schema->getTable('invoice');
 
         foreach ($specs as $spec) {

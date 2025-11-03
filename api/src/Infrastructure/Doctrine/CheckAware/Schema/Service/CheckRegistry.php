@@ -31,14 +31,14 @@ class CheckRegistry
     }
 
     /**
-     * @return list<CheckSpecInterface>
+     * @return list<AbstractCheckSpec>
      */
     public function getDeclaredSpecs(Table $table): array
     {
         return array_values($this->declaredSpecs[$table] ?? []);
     }
 
-    public function appendDeclaredSpec(Table $table, CheckSpecInterface $spec): void
+    public function appendDeclaredSpec(Table $table, AbstractCheckSpec $spec): void
     {
         $normalized = $this->normalizeSpec($spec);
 
@@ -86,12 +86,8 @@ class CheckRegistry
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function normalizeSpec(CheckSpecInterface $spec): CheckSpecInterface
+    private function normalizeSpec(AbstractCheckSpec $spec): AbstractCheckSpec
     {
-        if (!($spec instanceof AbstractCheckSpec)) {
-            throw new \LogicException(sprintf('%s must be an instance of %s.', $spec::class, AbstractCheckSpec::class));
-        }
-
         $spec = $spec->normalizeWith($this->normalizer);
 
         if (!$spec->normalized) {

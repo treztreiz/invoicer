@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
+use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
 abstract class AbstractCheckSpec implements CheckSpecInterface
@@ -13,7 +14,7 @@ abstract class AbstractCheckSpec implements CheckSpecInterface
 
     public function __construct(
         protected(set) readonly string $name,
-        protected(set) readonly bool $deferrable = false,
+        protected(set) readonly ConstraintTiming $timing = ConstraintTiming::IMMEDIATE,
     ) {
         if ('' === trim($this->name)) {
             throw new \InvalidArgumentException(sprintf('%s name cannot be empty.', static::class));
@@ -32,6 +33,12 @@ abstract class AbstractCheckSpec implements CheckSpecInterface
         return $normalizedSpec;
     }
 
+    public function timing(): ConstraintTiming
+    {
+        return $this->timing;
+    }
+
     /** @return static */
     abstract protected function normalize(CheckNormalizer $normalizer): self;
 }
+

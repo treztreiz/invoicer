@@ -63,6 +63,34 @@ final class SoftXorCheckListenerTest extends TestCase
      * @throws MappingException
      * @throws SchemaException
      */
+    public function test_listener_adds_unique_indexes_for_columns_without_one(): void
+    {
+        $metadata = self::newMetadata();
+        $metadata->associationMappings['recurrence'] = self::owningOneToOne('recurrence_id');
+        $metadata->associationMappings['installmentPlan'] = self::owningOneToOne('installment_plan_id');
+
+        $schema = static::createStub(Schema::class);
+
+        $table = new Table('invoice');
+        $table->addColumn('recurrence_id', 'integer');
+        $table->addColumn('installment_plan_id', 'integer');
+
+        $event = new GenerateSchemaTableEventArgs($metadata, $schema, $table);
+
+        $registry = static::createMock(CheckRegistry::class);
+        $registry->expects(static::once())->method('appendDeclaredSpec');
+
+        $listener = new SoftXorCheckListener($registry);
+        $listener->postGenerateSchemaTable($event);
+
+        static::assertTrue($table->hasIndex('UNIQ_INVOICE_RECURRENCE_ID'));
+        static::assertTrue($table->hasIndex('UNIQ_INVOICE_INSTALLMENT_PLAN_ID'));
+    }
+
+    /**
+     * @throws MappingException
+     * @throws SchemaException
+     */
     #[DataProvider('invalidAssociationProvider')]
     public function test_listener_rejects_invalid_association(callable $configure, string $expectedMessage): void
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
+use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
 final class EnumCheckSpec extends AbstractCheckSpec
@@ -16,9 +17,9 @@ final class EnumCheckSpec extends AbstractCheckSpec
         private(set) readonly string $column,
         private(set) readonly array $values,
         private(set) readonly bool $isString,
-        bool $deferrable = false,
+        ConstraintTiming $timing = ConstraintTiming::IMMEDIATE,
     ) {
-        parent::__construct($name, $deferrable);
+        parent::__construct($name, $timing);
 
         if ('' === trim($this->column)) {
             throw new \InvalidArgumentException('EnumCheckSpec column cannot be empty.');
@@ -43,7 +44,7 @@ final class EnumCheckSpec extends AbstractCheckSpec
             $normalizer->normalizeIdentifier($this->column),
             $values,
             $isString,
-            $this->deferrable,
+            $this->timing,
         );
     }
 }

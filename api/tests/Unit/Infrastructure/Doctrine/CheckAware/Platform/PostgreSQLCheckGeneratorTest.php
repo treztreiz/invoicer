@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Platform;
 
+use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
@@ -39,6 +40,25 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
         static::assertStringContainsString('DO $$', $sql);
         static::assertStringContainsString('IF NOT EXISTS', $sql);
         static::assertStringContainsString('ALTER TABLE "invoice" ADD CONSTRAINT "CHK_INV" CHECK (', $sql);
+    }
+
+    public function test_build_add_check_sql_appends_deferrable_clause(): void
+    {
+        $spec = new SoftXorCheckSpec('CHK_DEFER', ['col_a', 'col_b'], ConstraintTiming::DEFERRED_ON_DEMAND);
+
+        $sql = $this->generator->buildAddCheckSQL('"invoice"', $spec);
+
+        static::assertStringContainsString('CHECK (', $sql);
+        static::assertStringContainsString('DEFERRABLE INITIALLY IMMEDIATE', $sql);
+    }
+
+    public function test_build_add_check_sql_supports_initially_deferred_clause(): void
+    {
+        $spec = new SoftXorCheckSpec('CHK_DEFER_COMMIT', ['col_a', 'col_b'], ConstraintTiming::DEFERRED_UNTIL_COMMIT);
+
+        $sql = $this->generator->buildAddCheckSQL('"invoice"', $spec);
+
+        static::assertStringContainsString('DEFERRABLE INITIALLY DEFERRED', $sql);
     }
 
     public function test_build_drop_check_sql_uses_if_exists(): void

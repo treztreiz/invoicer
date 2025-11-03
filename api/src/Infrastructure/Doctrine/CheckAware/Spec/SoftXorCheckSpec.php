@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
+use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
 final class SoftXorCheckSpec extends AbstractCheckSpec
@@ -14,9 +15,9 @@ final class SoftXorCheckSpec extends AbstractCheckSpec
     public function __construct(
         string $name,
         private(set) readonly array $columns,
-        bool $deferrable = false,
+        ConstraintTiming $timing = ConstraintTiming::IMMEDIATE,
     ) {
-        parent::__construct($name, $deferrable);
+        parent::__construct($name, $timing);
 
         if (count($this->columns) < 2) {
             throw new \InvalidArgumentException('SoftXorCheckSpec requires at least two columns.');
@@ -30,7 +31,7 @@ final class SoftXorCheckSpec extends AbstractCheckSpec
         return new self(
             $normalizer->normalizeConstraintName($this->name),
             $columns,
-            $this->deferrable,
+            $this->timing,
         );
     }
 }

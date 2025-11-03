@@ -57,23 +57,27 @@ final class CheckAwareTableDiffTest extends TestCase
     }
 
     /**
-     * @param list<CheckSpecInterface> $add
-     * @param list<CheckSpecInterface> $mod
-     * @param list<CheckSpecInterface> $drop
+     * @param list<CheckSpecInterface> $added
+     * @param list<CheckSpecInterface> $modified
+     * @param list<CheckSpecInterface> $dropped
      */
     #[DataProvider('combinationProvider')]
-    public function test_all_combinations_toggle_empty(array $add, array $mod, array $drop, bool $expectedEmpty): void
-    {
+    public function test_all_combinations_toggle_empty(
+        array $added,
+        array $modified,
+        array $dropped,
+        bool $expectedEmpty,
+    ): void {
         $diff = new CheckAwareTableDiff(new Table('invoice'));
 
-        if (!empty($add)) {
-            $diff->addAddedChecks($add);
+        if (!empty($added)) {
+            $diff->addAddedChecks($added);
         }
-        if (!empty($mod)) {
-            $diff->addModifiedChecks($mod);
+        if (!empty($modified)) {
+            $diff->addModifiedChecks($modified);
         }
-        if (!empty($drop)) {
-            $diff->addDroppedChecks($drop);
+        if (!empty($dropped)) {
+            $diff->addDroppedChecks($dropped);
         }
 
         static::assertSame($expectedEmpty, $diff->isEmpty());

@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Schema\Service;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +24,7 @@ final class CheckRegistryTest extends TestCase
         $this->registry = new CheckRegistry(new CheckNormalizer());
     }
 
-    public function test_desired_checks_are_appended(): void
+    public function test_declared_checks_are_appended(): void
     {
         $table = new Table('invoice');
 
@@ -34,29 +36,56 @@ final class CheckRegistryTest extends TestCase
         $this->registry->appendDeclaredSpec($table, $first);
         $this->registry->appendDeclaredSpec($table, $second);
 
-        $desired = $this->registry->getDeclaredSpecs($table);
+        /** @var list<SoftXorCheckSpec> $declared */
+        $declared = $this->registry->getDeclaredSpecs($table);
 
-        static::assertCount(2, $desired);
-        static::assertTrue($desired[0]->isNormalized());
-        static::assertSame('CHK_INV_SOFT_XOR', $desired[0]->name);
-        static::assertSame(['recurrence_id', 'installment_plan_id'], $desired[0]->columns);
-        static::assertTrue($desired[1]->isNormalized());
-        static::assertSame('CHK_INV_ANOTHER', $desired[1]->name);
-        static::assertSame(['foo_id', 'bar_id'], $desired[1]->columns);
+        static::assertCount(2, $declared);
+        static::assertTrue($declared[0]->normalized);
+        static::assertSame('CHK_INV_SOFT_XOR', $declared[0]->name);
+        static::assertSame(['recurrence_id', 'installment_plan_id'], $declared[0]->columns);
+        static::assertTrue($declared[1]->normalized);
+        static::assertSame('CHK_INV_ANOTHER', $declared[1]->name);
+        static::assertSame(['foo_id', 'bar_id'], $declared[1]->columns);
     }
 
-    public function test_existing_checks_are_mapped(): void
+    /**
+     * @throws SchemaException
+     */
+    public function test_introspected_expressions_are_registered(): void
     {
-        $table = new Table('invoice');
+        $schema = new Schema();
+        $table = $schema->createTable('invoice');
 
         static::assertSame([], $this->registry->getIntrospectedExpressions($table));
-        $checks = [
-            'CHK_ONE' => 'num_nonnulls(col_a, col_b) <= 1',
-            'CHK_TWO' => 'num_nonnulls(col_c, col_d) <= 2',
+        $expressions = [
+            'invoice' => [
+                'CHK_ONE' => 'num_nonnulls(col_a, col_b) <= 1',
+                'CHK_TWO' => 'num_nonnulls(col_c, col_d) <= 2',
+            ],
         ];
 
-        $this->registry->setIntrospectedExpressions($table, $checks);
+        $this->registry->registerIntrospectedExpressions($schema, $expressions);
 
-        static::assertSame($checks, $this->registry->getIntrospectedExpressions($table));
+        static::assertSame($expressions['invoice'], $this->registry->getIntrospectedExpressions($table));
+    }
+
+    /**
+     * @throws SchemaException
+     */
+    public function test_registering_expressions_without_matching_table_clears_previous_entries(): void
+    {
+        $schema = new Schema();
+        $table = $schema->createTable('invoice');
+
+        $this->registry->registerIntrospectedExpressions($schema, [
+            'invoice' => ['CHK_ONE' => 'num_nonnulls(col_a, col_b) <= 1'],
+        ]);
+        static::assertNotEmpty($this->registry->getIntrospectedExpressions($table));
+
+        $this->registry->registerIntrospectedExpressions($schema, [
+            'missing' => ['CHK_OTHER' => 'num_nonnulls(col_c, col_d) <= 1'],
+        ]);
+
+        static::assertSame([], $this->registry->getIntrospectedExpressions($table));
     }
 }
