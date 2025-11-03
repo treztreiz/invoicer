@@ -18,9 +18,9 @@ use Doctrine\DBAL\Schema\Table;
 
 final class CheckComparator extends Comparator
 {
-    private CheckGeneratorInterface $generator;
+    private CheckRegistry $registry;
 
-    private CheckOptionManager $optionManager;
+    private CheckGeneratorInterface $generator;
 
     /** @var array<string, CheckAwareTableDiff> */
     private array $alteredTables;
@@ -30,8 +30,8 @@ final class CheckComparator extends Comparator
         AbstractPlatform&CheckAwarePlatformInterface $platform,
     ) {
         parent::__construct($platform);
+        $this->registry = $platform->registry;
         $this->generator = $platform->generator;
-        $this->optionManager = $platform->optionManager;
     }
 
     /**
@@ -43,76 +43,65 @@ final class CheckComparator extends Comparator
         $schemaDiff = $this->defaultComparator->compareSchemas($fromSchema, $toSchema);
 
         foreach ($toSchema->getTables() as $toTable) {
-            $toTableName = $toTable->getName();
+            $tableName = $toTable->getName();
 
-            if (!$fromSchema->hasTable($toTableName)) {
-                continue; // new table handled elsewhere
+            if (!$fromSchema->hasTable($tableName)) {
+                continue; // new table must not be compared
             }
 
-            $fromTable = $fromSchema->getTable($toTableName);
+            $fromTable = $fromSchema->getTable($tableName);
             $this->compareTableChecks($fromTable, $toTable);
         }
 
-        $alteredTables = array_values(array_merge($schemaDiff->getAlteredTables(), $this->alteredTables));
+        $schemaDiff->changedTables = array_values([...$schemaDiff->getAlteredTables(), ...$this->alteredTables]);
 
-        return new SchemaDiff(
-            $schemaDiff->getCreatedTables(),
-            $alteredTables,
-            $schemaDiff->getDroppedTables(),
-            $fromSchema,
-            $schemaDiff->getCreatedSchemas(),
-            $schemaDiff->getDroppedSchemas(),
-            $schemaDiff->getCreatedSequences(),
-            $schemaDiff->getAlteredSequences(),
-            $schemaDiff->getDroppedSequences(),
-        );
+        return $schemaDiff;
     }
 
-    private function compareTableChecks(Table $existingTable, Table $desiredTable): void
+    private function compareTableChecks(Table $fromTable, Table $toTable): void
     {
-        $desiredChecks = $this->optionManager->desired($desiredTable);
+        $introspectedExpressions = $this->registry->getIntrospectedExpressions($fromTable);
+        $introspectedNames = array_keys($introspectedExpressions);
 
-        if (empty($desiredChecks)) {
-            $dropped = $this->optionManager->mapExisting(
-                $existingTable,
-                static fn (array $check): DroppedCheckSpec => new DroppedCheckSpec($check['name']),
+        $declaredSpecs = $this->registry->getDeclaredSpecs($toTable);
+        $declaredSpecNames = [];
+
+        if (empty($declaredSpecs)) {
+            $dropped = array_map(
+                static fn (string $name): DroppedCheckSpec => new DroppedCheckSpec($name),
+                array_keys($introspectedExpressions)
             );
 
             if (!empty($dropped)) {
-                $this->addAlteredTable($existingTable, $desiredTable->getName(), dropped: $dropped);
+                $this->addAlteredTable($fromTable, $toTable->getName(), dropped: $dropped);
             }
 
             return;
         }
 
-        $existingChecksByName = $this->optionManager->existingByName($existingTable);
-
         $added = [];
         $modified = [];
-        $desiredNames = [];
 
-        foreach ($desiredChecks as $spec) {
-            $desiredNames[] = $spec->name;
+        foreach ($declaredSpecs as $spec) {
+            $declaredSpecNames[] = $spec->name;
 
-            if (!array_key_exists($spec->name, $existingChecksByName)) {
+            if (!array_key_exists($spec->name, $introspectedExpressions)) {
                 $added[] = $spec;
                 continue;
             }
 
-            $wantedExpr = $this->generator->normalizeExpressionSQL(
-                $this->generator->buildExpressionSQL($spec)
-            );
-            $currentExpr = $this->generator->normalizeExpressionSQL($existingChecksByName[$spec->name]);
+            $declaredExpr = $this->registry->normalizeExpression($this->generator->buildExpressionSQL($spec));
+            $introspectedExpr = $this->registry->normalizeExpression($introspectedExpressions[$spec->name]);
 
-            if ($wantedExpr !== $currentExpr) {
+            if ($declaredExpr !== $introspectedExpr) {
                 $modified[] = $spec;
             }
         }
 
-        $droppedNames = $this->optionManager->diffDropped($existingChecksByName, $desiredNames);
+        $droppedNames = array_values(array_diff($introspectedNames, $declaredSpecNames));
         $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), $droppedNames);
 
-        $this->addAlteredTable($existingTable, $desiredTable->getName(), $added, $modified, $dropped);
+        $this->addAlteredTable($fromTable, $toTable->getName(), $added, $modified, $dropped);
     }
 
     /**
@@ -122,7 +111,7 @@ final class CheckComparator extends Comparator
      */
     private function addAlteredTable(
         Table $fromTable,
-        string $toTableName,
+        string $tableName,
         array $added = [],
         array $modified = [],
         array $dropped = [],
@@ -143,6 +132,6 @@ final class CheckComparator extends Comparator
             $tableDiff->addDroppedChecks($dropped);
         }
 
-        $this->alteredTables[$toTableName] = $tableDiff;
+        $this->alteredTables[$tableName] = $tableDiff;
     }
 }

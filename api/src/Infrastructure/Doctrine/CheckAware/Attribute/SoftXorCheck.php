@@ -15,8 +15,5 @@ class SoftXorCheck
         public array $properties,
         public string $name = 'SOFT_XOR',
     ) {
-        if (count($this->properties) < 2) {
-            throw new \LogicException('SoftXorCheck requires at least 2 properties.');
-        }
     }
 }

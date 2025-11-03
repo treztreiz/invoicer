@@ -6,6 +6,7 @@ namespace App\Infrastructure\Doctrine\CheckAware\Platform;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
+use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 
 final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
@@ -17,20 +18,35 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
 
     // CHECKS EXPRESSIONS //////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function buildSoftXor(SoftXorCheckSpec $spec): string
-    {
-        $payload = $spec->expr;
-        $cols = array_map(fn (string $col) => $this->platform->quoteIdentifier($col), $payload['cols']);
-
-        return 'num_nonnulls('.implode(', ', $cols).') <= 1';
-    }
-
     public function buildExpressionSQL(CheckSpecInterface $spec): string
     {
         return match (get_class($spec)) {
             SoftXorCheckSpec::class => $this->buildSoftXor($spec),
+            EnumCheckSpec::class => $this->buildEnum($spec),
             default => throw new \InvalidArgumentException('Unsupported check type: '.get_class($spec)),
         };
+    }
+
+    private function buildSoftXor(SoftXorCheckSpec $spec): string
+    {
+        $cols = array_map(fn (string $col) => $this->platform->quoteIdentifier($col), $spec->columns);
+
+        return 'num_nonnulls('.implode(', ', $cols).') <= 1';
+    }
+
+    private function buildEnum(EnumCheckSpec $spec): string
+    {
+        $columnSql = $this->platform->quoteIdentifier($spec->column);
+        $platform = $this->platform;
+
+        $valuesSql = array_map(
+            static fn (string|int $value): string => $spec->isString ?
+                $platform->quoteStringLiteral((string) $value).'::text'
+                : (string) $value,
+            $spec->values
+        );
+
+        return sprintf('%s = ANY(ARRAY[%s])', $columnSql, implode(', ', $valuesSql));
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +54,7 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
     public function buildAddCheckSQL(string $tableNameSql, CheckSpecInterface $spec): string
     {
         $expr = $this->buildExpressionSQL($spec);
+        $exprEscaped = str_replace("'", "''", $expr);
         $name = $spec->name;
 
         return <<<SQL
@@ -52,7 +69,7 @@ IF NOT EXISTS (
     AND r.relname = {$this->platform->quoteStringLiteral($this->unquote($tableNameSql))}
     AND n.nspname = current_schema()
 ) THEN
-  EXECUTE 'ALTER TABLE $tableNameSql ADD CONSTRAINT "$name" CHECK ($expr)';
+  EXECUTE 'ALTER TABLE $tableNameSql ADD CONSTRAINT "$name" CHECK ($exprEscaped)';
 END IF;
 END$$
 SQL;
@@ -84,74 +101,6 @@ SQL;
             'name' => (string) $row['name'],
             'expr' => (string) $row['def'],
         ];
-    }
-
-    // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public function normalizeExpressionSQL(string $expr): string
-    {
-        // 1) trim
-        $expr = trim($expr);
-
-        // 2) strip leading CHECK (...) wrapper if present
-        //    pg_get_constraintdef returns e.g. "CHECK ((num_nonnulls(...)))"
-        if (preg_match('/^check\s*\((.*)\)$/is', $expr, $m)) {
-            $expr = $m[1];
-        }
-
-        // 3) remove redundant outer parentheses repeatedly: ((X)) -> X
-        $expr = $this->stripOuterParens($expr);
-
-        // 4) remove identifier quotes (") – safe because strings use single quotes in PG
-        $expr = str_replace('"', '', $expr);
-
-        // 5) collapse whitespace and spaces around commas
-        $expr = preg_replace('/\s+/', ' ', $expr) ?? $expr;
-        $expr = preg_replace('/\s*,\s*/', ',', $expr) ?? $expr;
-
-        // 6) lowercase everything (functions, identifiers); numbers/strings unaffected
-        $expr = strtolower($expr);
-
-        // 7) remove parens wrapping a function call immediately followed by a comparison
-        $expr = preg_replace('/\((\w+\([^()]*\))\)(\s*[<>=])/', '$1$2', trim($expr)) ?? trim($expr);
-
-        // Done: a canonical, comparable form
-        return trim($expr);
-    }
-
-    private function stripOuterParens(string $s): string
-    {
-        // remove a single pair of outer parens if they wrap the whole expression
-        while ($this->wrappedByParens($s)) {
-            $s = substr($s, 1, -1);
-            $s = trim($s);
-        }
-
-        return $s;
-    }
-
-    private function wrappedByParens(string $s): bool
-    {
-        $s = trim($s);
-        if ('' === $s || '(' !== $s[0] || !str_ends_with($s, ')')) {
-            return false;
-        }
-        $depth = 0;
-        $len = strlen($s);
-        for ($i = 0; $i < $len; ++$i) {
-            $ch = $s[$i];
-            if ('(' === $ch) {
-                ++$depth;
-            } elseif (')' === $ch) {
-                --$depth;
-                if (0 === $depth && $i !== $len - 1) {
-                    // outer paren closes before the end => not a full wrapper
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     private function unquote(string $quotedTable): string

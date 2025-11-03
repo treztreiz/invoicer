@@ -6,16 +6,14 @@ namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
 
-/** @note Only used for DROP; expr/deferrable are irrelevant. */
-final class DroppedCheckSpec implements CheckSpecInterface
+/** @note Only used for DROP. */
+final readonly class DroppedCheckSpec implements CheckSpecInterface
 {
-    /** @var array{} */
-    private(set) array $expr = [];
-
-    private(set) bool $deferrable = false;
-
     public function __construct(
-        private(set) readonly string $name,
+        private(set) string $name,
     ) {
+        if ('' === trim($this->name)) {
+            throw new \InvalidArgumentException('DroppedCheckSpec name cannot be empty.');
+        }
     }
 }

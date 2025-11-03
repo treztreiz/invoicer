@@ -4,15 +4,31 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
-use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
-final readonly class SoftXorCheckSpec implements CheckSpecInterface
+final class SoftXorCheckSpec extends AbstractCheckSpec
 {
-    /** @param array{cols: non-empty-list<string>} $expr */
+    /**
+     * @param list<string> $columns
+     */
     public function __construct(
-        private(set) string $name,
-        private(set) array $expr,
-        private(set) bool $deferrable = false,
+        string $name,
+        private(set) readonly array $columns,
     ) {
+        parent::__construct($name);
+
+        if (count($this->columns) < 2) {
+            throw new \InvalidArgumentException('SoftXorCheckSpec requires at least two columns.');
+        }
+    }
+
+    protected function normalize(CheckNormalizer $normalizer): self
+    {
+        $columns = array_map([$normalizer, 'normalizeIdentifier'], $this->columns);
+
+        return new self(
+            $normalizer->normalizeConstraintName($this->name),
+            $columns,
+        );
     }
 }

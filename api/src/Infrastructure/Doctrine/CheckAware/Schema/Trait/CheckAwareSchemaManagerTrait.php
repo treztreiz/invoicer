@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\Schema\Trait;
 
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckIntrospector;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
@@ -17,10 +16,18 @@ trait CheckAwareSchemaManagerTrait
     {
         $schema = parent::introspectSchema();
 
-        $introspector = new CheckIntrospector($this->platform->generator, $this->platform->optionManager);
-        $checks = $introspector->introspect($this->connection);
+        $sql = $this->platform->generator->buildIntrospectionSQL(); // Generate dialect specific SQL
+        $checkRows = $this->connection->fetchAllAssociative($sql); // Retrieve all rows with check
+        $expressions = [];
 
-        return $introspector->annotate($schema, $checks);
+        foreach ($checkRows as $row) {
+            $mappedRow = $this->platform->generator->mapIntrospectionRow($row);
+            $expressions[$mappedRow['table']][$mappedRow['name']] = $mappedRow['expr'];
+        }
+
+        $this->platform->registry->registerIntrospectedExpressions($schema, $expressions);
+
+        return $schema;
     }
 
     public function createComparator(): Comparator

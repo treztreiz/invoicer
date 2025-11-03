@@ -8,7 +8,8 @@ use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckAwarePlatformInterface
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Trait\CheckAwareSchemaManagerTrait;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -34,7 +35,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
     protected function setUp(): void
     {
         $this->platform = new PostgreSQLCheckAwarePlatform();
-        $this->platform->setCheckOptionManager(new CheckOptionManager());
+        $this->platform->setCheckRegistry(new CheckRegistry(new CheckNormalizer()));
 
         $this->generator = self::createMock(CheckGeneratorInterface::class);
         $this->platform->setCheckGenerator($this->generator);
@@ -46,7 +47,7 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
      * @throws SchemaException
      * @throws Exception
      */
-    public function test_introspect_schema_annotates_with_existing_checks(): void
+    public function test_introspect_schema_registers_introspected_expressions(): void
     {
         $this->generator
             ->expects(static::once())
@@ -72,11 +73,10 @@ final class CheckAwareSchemaManagerTraitTest extends TestCase
 
         $schemaManager = new SchemaManagerStub($this->connection, $this->platform);
 
-        $annotated = $schemaManager->introspectSchema();
-        $checks = $this->platform->optionManager->existing($annotated->getTable('dummy_table'));
+        $schema = $schemaManager->introspectSchema();
+        $expressions = $this->platform->registry->getIntrospectedExpressions($schema->getTable('dummy_table'));
 
-        static::assertNotEmpty($checks);
-        static::assertSame('CHK_STUB', $checks[0]['name']);
+        static::assertArrayHasKey('CHK_STUB', $expressions);
     }
 
     public function test_create_comparator_returns_check_aware_comparator(): void

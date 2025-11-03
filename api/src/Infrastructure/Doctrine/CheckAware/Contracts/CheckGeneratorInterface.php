@@ -22,7 +22,7 @@ interface CheckGeneratorInterface
     public function buildIntrospectionSQL(): string;
 
     /**
-     * @param array{table_name: string, name: string, def: string} $row
+     * @param array<string, mixed> $row
      *
      * @return array{table: string, name: string, expr: string}
      */
@@ -32,6 +32,4 @@ interface CheckGeneratorInterface
      * Build the **normalized** expression SQL for comparison from a concrete spec.
      */
     public function buildExpressionSQL(CheckSpecInterface $spec): string;
-
-    public function normalizeExpressionSQL(string $expr): string;
 }

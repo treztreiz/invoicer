@@ -81,7 +81,7 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
 
         $migrationContents = file_get_contents($generatedMigrations[0]) ?: '';
         static::assertStringContainsString('TEST_SOFT_XOR', $migrationContents);
-        static::assertSame(1, substr_count(strtoupper($migrationContents), 'CHECK'), 'Check constraint should appear exactly once.');
+        static::assertSame(1, substr_count(strtoupper($migrationContents), ' CHECK '), 'Check constraint should appear exactly once.');
 
         // Clean directory for the second run
         $this->filesystem->remove($generatedMigrations);
@@ -126,7 +126,7 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
             'command' => 'doctrine:migrations:diff',
             '--env' => 'test',
             '--no-interaction' => true,
-            '--filter-expression' => '/^soft_xor_stub$/',
+            '--filter-expression' => '/^soft_xor_check_stub$/',
         ]);
 
         $output = new BufferedOutput();

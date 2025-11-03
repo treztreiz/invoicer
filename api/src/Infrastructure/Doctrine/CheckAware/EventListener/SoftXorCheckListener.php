@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckOptionManager;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -16,11 +16,10 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use Doctrine\ORM\Tools\ToolEvents;
 
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
-readonly class SoftXorCheckListener
+final readonly class SoftXorCheckListener
 {
-    public function __construct(
-        private CheckOptionManager $optionManager,
-    ) {
+    public function __construct(private CheckRegistry $registry)
+    {
     }
 
     /**
@@ -32,22 +31,21 @@ readonly class SoftXorCheckListener
         $class = $args->getClassMetadata();
         $table = $args->getClassTable();
 
-        $attrs = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
-        if (!$attrs) {
-            return; // entity not annotated
+        $attributes = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
+        if (empty($attributes)) {
+            return;
         }
 
-        /** @var SoftXorCheck $cfg */
-        $cfg = $attrs[0]->newInstance();
-        $colNames = $this->resolveOwningJoinColumns($class, $cfg->properties);
+        /** @var SoftXorCheck $config */
+        $config = $attributes[0]->newInstance();
+        $colNames = $this->resolveOwningJoinColumns($class, $config->properties);
 
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $this->optionManager->appendDesired(
-            $table,
-            new SoftXorCheckSpec($cfg->name, ['cols' => $colNames]),
-        );
+        $spec = new SoftXorCheckSpec($config->name, $colNames);
+
+        $this->registry->appendDeclaredSpec($table, $spec);
     }
 
     /**
@@ -61,22 +59,31 @@ readonly class SoftXorCheckListener
     private function resolveOwningJoinColumns(ClassMetadata $class, array $properties): array
     {
         $cols = [];
+
+        if (count($properties) < 2) {
+            throw new \LogicException('SoftXorCheck requires at least 2 properties.');
+        }
+
         foreach ($properties as $prop) {
             if ($class->hasField($prop)) {
                 $cols[] = $class->getColumnName($prop);
                 continue;
             }
+
             if (!$class->hasAssociation($prop)) {
                 throw new \LogicException(sprintf('Unknown property "%s" on %s.', $prop, $class->getName()));
             }
+
             $assoc = $class->getAssociationMapping($prop);
             if (!$assoc->isToOneOwningSide()) {
                 throw new \LogicException(sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName()));
             }
+
             $join = $assoc->joinColumns[0] ?? null; // 1:1 → single join column
             if (null === $join) {
                 throw new \LogicException(sprintf('Owning association "%s" has no join column mapping.', $prop));
             }
+
             $cols[] = $join->name;
         }
 
