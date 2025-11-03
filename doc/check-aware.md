@@ -12,10 +12,11 @@ to extend or customise the behaviour when new check specs or dialects are added.
 ### High-Level Flow
 
 1. **Attribute & Spec**
-   - `Attribute\SoftXorCheck` annotates Doctrine entities with the check metadata
-     (properties that participate, optional constraint name, etc.).
-   - Each attribute maps to a spec (`Spec\SoftXorCheckSpec`) implementing
-     `CheckSpecInterface` so the rest of the pipeline can treat checks generically.
+   - `Attribute\SoftXorCheck` and `Attribute\EnumCheck` annotate Doctrine entities with
+     check metadata (participating properties, optional constraint name, etc.).
+   - Each attribute maps to a spec (`Spec\SoftXorCheckSpec`, `Spec\EnumCheckSpec`)
+     implementing `CheckSpecInterface` so the rest of the pipeline can treat checks
+     generically.
 
 2. **Doctrine Driver Middleware**
    - `Middleware\CheckAwareDriverMiddleware` wraps Doctrine’s DBAL driver. It
@@ -29,7 +30,7 @@ to extend or customise the behaviour when new check specs or dialects are added.
    - `Platform\PostgreSQLCheckAwarePlatform` extends Doctrine’s platform and
      pulls in `CheckAwarePlatformTrait`.
    - The trait injects shared services via `#[Required]` setters:
-    `CheckAwareSchemaManagerFactory`, `CheckRegistry`, and the platform’s
+     `CheckAwareSchemaManagerFactory`, `CheckRegistry`, and the platform’s
      SQL generator (`PostgreSQLCheckGenerator`).
    - Table creation / alter SQL is post-processed to append or update check
      constraints declared in metadata.
@@ -37,12 +38,13 @@ to extend or customise the behaviour when new check specs or dialects are added.
 4. **Schema Manager**
    - `Schema\PostgreSQLCheckAwareSchemaManager` delegates to Doctrine’s default
      manager but enriches it with:
-     - `CheckIntrospector` – reads check constraints from the database and
-       annotates the in-memory `Schema`.
+     - `CheckAwareSchemaManagerTrait` – reuses the dialect’s generator to query
+       existing check constraints, registers them in the `CheckRegistry`, and then
+       returns the annotated in-memory `Schema`.
      - `CheckComparator` – compares desired vs existing constraints and yields
        a `CheckAwareTableDiff`.
-    - `CheckRegistry` – stores the declared check specs on a table (metadata)
-       and exposes helpers (`desired()`, `existing()`).
+     - `CheckRegistry` – stores the declared check specs and the introspected
+       expressions so that diffing and SQL generation have a single source of truth.
    - Instantiation is centralised in `CheckAwareSchemaManagerFactory`, allowing
      other dialects or consumers to decorate/replace the manager without touching
      the platform.
@@ -107,13 +109,15 @@ Everything is wired through services:
 ```
 CheckAware/
   Attribute/SoftXorCheck.php
+  Attribute/EnumCheck.php
   Contracts/
     CheckAwarePlatformInterface.php
     CheckAwareSchemaManagerInterface.php
     CheckGeneratorInterface.php
     CheckSpecInterface.php
-  Enum/CheckOption.php
-  EventListener/SoftXorCheckListener.php
+  EventListener/
+    SoftXorCheckListener.php
+    EnumCheckListener.php
   Middleware/
     CheckAwareDriverMiddleware.php
     CheckAwareMiddleware.php
@@ -126,16 +130,14 @@ CheckAware/
     Service/
       CheckAwareSchemaManagerFactory.php
       CheckComparator.php
-      CheckIntrospector.php
-     CheckRegistry.php
+      CheckNormalizer.php
+      CheckRegistry.php
     Trait/CheckAwareSchemaManagerTrait.php
     ValueObject/CheckAwareTableDiff.php
   Spec/
     SoftXorCheckSpec.php
+    EnumCheckSpec.php
     DroppedCheckSpec.php
-Migrations/
-  DependencyFactoryConfigurator.php
-  PostgreSqlSchemaFixSqlGenerator.php
 ```
 
 ---
