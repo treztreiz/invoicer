@@ -8,8 +8,8 @@ use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckAwarePlatform
 use App\Infrastructure\Doctrine\CheckAware\Platform\PostgreSQLCheckGenerator;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckAwareSchemaManagerFactory;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckComparator;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\ValueObject\CheckAwareTableDiff;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
@@ -56,15 +56,15 @@ final class CheckComparatorTest extends TestCase
 
         static::assertSame(
             ['CHK_ADDED'],
-            array_map(static fn($spec) => $spec->name, $tableDiff->getAddedChecks())
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getAddedChecks())
         );
         static::assertSame(
             ['CHK_MODIFIED'],
-            array_map(static fn($spec) => $spec->name, $tableDiff->getModifiedChecks())
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getModifiedChecks())
         );
         static::assertSame(
             ['CHK_DROPPED'],
-            array_map(static fn($spec) => $spec->name, $tableDiff->getDroppedChecks())
+            array_map(static fn ($spec) => $spec->name, $tableDiff->getDroppedChecks())
         );
     }
 

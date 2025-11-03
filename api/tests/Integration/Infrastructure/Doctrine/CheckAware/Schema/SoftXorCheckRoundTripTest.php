@@ -56,7 +56,7 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn(ClassMetadata $class): bool => SoftXorCheckStub::class === $class->getName(),
+                static fn (ClassMetadata $class): bool => SoftXorCheckStub::class === $class->getName(),
             )
         );
 
@@ -82,6 +82,6 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
 
     private static function containsSoftXorSpec(array $checks): bool
     {
-        return array_any($checks, fn($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
+        return array_any($checks, fn ($spec) => $spec instanceof SoftXorCheckSpec && 'TEST_SOFT_XOR' === $spec->name);
     }
 }

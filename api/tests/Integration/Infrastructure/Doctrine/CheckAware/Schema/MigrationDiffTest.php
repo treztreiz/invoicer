@@ -105,7 +105,7 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn(ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
+                static fn (ClassMetadata $class): bool => str_starts_with($class->getName(), __NAMESPACE__.'\\')
             )
         );
 

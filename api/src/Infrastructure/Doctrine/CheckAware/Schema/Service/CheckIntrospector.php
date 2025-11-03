@@ -1,6 +1,5 @@
 <?php
 
-// src/Infrastructure/Persistence/Doctrine/Schema/CheckIntrospector.php
 declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Schema\Service;
@@ -10,6 +9,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Schema;
 
+/** @phpstan-import-type IntrospectedExpressionMap from CheckRegistry */
 final readonly class CheckIntrospector
 {
     public function __construct(
@@ -19,11 +19,11 @@ final readonly class CheckIntrospector
     }
 
     /**
-     * @return array<string, array<string, string>> table => [constraint => expression]
+     * @return IntrospectedExpressionMap
      *
      * @throws Exception
      */
-    public function introspect(Connection $conn): array
+    public function introspectDatabase(Connection $conn): array
     {
         $sql = $this->generator->buildIntrospectionSQL(); // Generate dialect specific SQL
         $checkRows = $conn->fetchAllAssociative($sql); // Retrieve all rows with check
@@ -38,8 +38,8 @@ final readonly class CheckIntrospector
         return $checks;
     }
 
-    /** @param array<string, array<string, string>> $checks */
-    public function annotate(Schema $schema, array $checks): Schema
+    /** @param IntrospectedExpressionMap $checks */
+    public function annotateSchema(Schema $schema, array $checks): Schema
     {
         foreach ($schema->getTables() as $table) {
             $tableName = $table->getName();

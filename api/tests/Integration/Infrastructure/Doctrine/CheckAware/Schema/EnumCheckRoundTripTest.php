@@ -56,7 +56,7 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
         $metadata = array_values(
             array_filter(
                 $this->entityManager->getMetadataFactory()->getAllMetadata(),
-                static fn(ClassMetadata $class): bool => EnumCheckStub::class === $class->getName(),
+                static fn (ClassMetadata $class): bool => EnumCheckStub::class === $class->getName(),
             )
         );
 
@@ -81,7 +81,7 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
     {
         return array_any(
             $checks,
-            static fn($spec): bool => $spec instanceof EnumCheckSpec && $spec->expr['column'] === 'status'
+            static fn ($spec): bool => $spec instanceof EnumCheckSpec && 'status' === $spec->expr['column']
         );
     }
 }

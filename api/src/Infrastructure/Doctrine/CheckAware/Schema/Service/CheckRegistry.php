@@ -12,6 +12,8 @@ use Doctrine\DBAL\Schema\Table;
 /**
  * Stores and retrieves check metadata (declared specs and introspected expressions)
  * while ensuring canonical formatting via the provided CheckNormalizer.
+ *
+ * @phpstan-type IntrospectedExpressionMap array<string, string>
  */
 final readonly class CheckRegistry
 {
@@ -36,15 +38,21 @@ final readonly class CheckRegistry
     }
 
     /**
-     * @param array<string, array<string, string>> $expressions
+     * @param IntrospectedExpressionMap $expressions
      */
     public function setIntrospectedExpressions(Table $table, array $expressions): void
     {
-        $table->addOption(CheckOption::INTROSPECTED->value, $expressions);
+        $normalized = [];
+
+        foreach ($expressions as $name => $expr) {
+            $normalized[$this->normalizer->normalizeConstraintName($name)] = $expr;
+        }
+
+        $table->addOption(CheckOption::INTROSPECTED->value, $normalized);
     }
 
     /**
-     * @return array<string, string>
+     * @return IntrospectedExpressionMap
      */
     public function getIntrospectedExpressions(Table $table): array
     {

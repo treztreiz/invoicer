@@ -6,8 +6,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\EventListener;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\EventListener\EnumCheckListener;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -145,8 +145,9 @@ final class EnumCheckListenerTest extends TestCase
     }
 
     /**
-     * @param class-string $class
+     * @param class-string                $class
      * @param array<string, FieldMapping> $fieldMappings
+     *
      * @throws \ReflectionException
      */
     private function metadataForClass(string $class, array $fieldMappings): ClassMetadata
@@ -186,7 +187,7 @@ final class UntypedEnumEntity
     public string $status = '';
 }
 
-#[EnumCheck(property: 'status', enumClass: StatusEnum::class)]
+#[EnumCheck(property: 'status', enumFqcn: StatusEnum::class)]
 final class UntypedEnumWithAttributeEntity
 {
     public int $id = 0;

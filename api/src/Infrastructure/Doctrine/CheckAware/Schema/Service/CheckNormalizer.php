@@ -45,6 +45,7 @@ final class CheckNormalizer
 
     /**
      * @param array<int, string|int> $values
+     *
      * @return array<int, string|int>
      */
     public function normalizeValueList(array $values): array

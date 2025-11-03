@@ -45,7 +45,7 @@ final class CheckAwarePlatformTraitTest extends TestCase
         $this->generator
             ->expects(static::once())
             ->method('buildAddCheckSQL')
-            ->with('invoice', static::callback(static fn($input): bool => $input->isNormalized()))
+            ->with('invoice', static::callback(static fn ($input): bool => $input->isNormalized()))
             ->willReturn('ADD CHECK SQL');
 
         $sql = ['BASE'];

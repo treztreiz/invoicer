@@ -6,8 +6,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckIntrospector;
-use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\Schema;
@@ -51,7 +51,7 @@ final class CheckIntrospectorTest extends TestCase
         $registry = new CheckRegistry(new CheckNormalizer());
 
         $introspector = new CheckIntrospector($generator, $registry);
-        $checks = $introspector->introspect($connection);
+        $checks = $introspector->introspectDatabase($connection);
 
         static::assertSame(
             [
@@ -88,7 +88,7 @@ final class CheckIntrospectorTest extends TestCase
             );
 
         $introspector = new CheckIntrospector($generator, $registry);
-        $annotated = $introspector->annotate($schema, $checks);
+        $annotated = $introspector->annotateSchema($schema, $checks);
 
         static::assertSame($schema, $annotated, 'Annotate should return the original schema instance.');
     }

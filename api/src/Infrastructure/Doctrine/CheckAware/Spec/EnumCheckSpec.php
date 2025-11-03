@@ -11,6 +11,7 @@ final class EnumCheckSpec extends AbstractCheckSpec
 {
     /**
      * @param non-empty-string $name
+     *
      * @phpstan-param EnumCheckPayload&array{is_string?: bool} $expr
      */
     public function __construct(

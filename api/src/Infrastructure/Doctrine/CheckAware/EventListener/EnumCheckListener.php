@@ -9,20 +9,17 @@ use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\MappingException;
 use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use Doctrine\ORM\Tools\ToolEvents;
 
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
 final readonly class EnumCheckListener
 {
-    public function __construct(
-        private CheckRegistry $registry,
-    ) {
+    public function __construct(private CheckRegistry $registry)
+    {
     }
 
     /**
-     * @throws MappingException
      * @throws \ReflectionException
      */
     public function postGenerateSchemaTable(GenerateSchemaTableEventArgs $args): void
@@ -31,7 +28,7 @@ final readonly class EnumCheckListener
         $table = $args->getClassTable();
 
         $attributes = $class->getReflectionClass()->getAttributes(EnumCheck::class);
-        if ([] === $attributes) {
+        if (empty($attributes)) {
             return;
         }
 
@@ -39,121 +36,109 @@ final readonly class EnumCheckListener
             /** @var EnumCheck $config */
             $config = $attribute->newInstance();
 
-            if ($class->hasAssociation($config->property)) {
-                throw new \LogicException(
-                    sprintf(
-                        'EnumCheck on %s::%s targets an association; only scalar Doctrine fields are supported.',
-                        $class->getName(),
-                        $config->property
-                    )
-                );
-            }
-
-            if (!$class->hasField($config->property)) {
-                throw new \LogicException(
-                    sprintf(
-                        'EnumCheck references unknown property "%s" on %s.',
-                        $config->property,
-                        $class->getName()
-                    )
-                );
-            }
-
-            $enumClass = $this->resolveEnumClass($class, $config);
-            $enumReflection = new \ReflectionEnum($enumClass);
-
-            if (!$enumReflection->isBacked()) {
-                throw new \LogicException(sprintf('EnumCheck enum "%s" must be a backed enum.', $enumClass));
-            }
-
-            /** @var list<\BackedEnum> $enumCases */
-            $enumCases = $enumClass::cases();
-            $cases = array_map(
-                static fn(\BackedEnum $case): string|int => $case->value,
-                $enumCases
-            );
-
-            if ([] === $cases) {
-                throw new \LogicException(sprintf('EnumCheck enum "%s" must declare at least one case.', $enumClass));
-            }
-
-            $column = $class->getColumnName($config->property);
-            $doctrineType = $class->getTypeOfField($config->property);
-            if (null === $doctrineType) {
-                throw new \LogicException(
-                    sprintf(
-                        'EnumCheck could not determine Doctrine type for %s::%s.',
-                        $class->getName(),
-                        $config->property
-                    )
-                );
-            }
-
-            $this->assertColumnMatchesBackingType($doctrineType, $enumReflection, $class, $config->property);
-
-            $spec = new EnumCheckSpec(
-                $config->name,
-                [
-                    'column' => $column,
-                    'values' => $cases,
-                    'is_string' => 'string' === $enumReflection->getBackingType()->getName(),
-                ],
-            );
+            $spec = $this->buildSpec($class, $config);
 
             $this->registry->appendDeclaredSpec($table, $spec);
         }
     }
 
+    // SPEC BUILDING ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function buildSpec(ClassMetadata $class, EnumCheck $config): EnumCheckSpec
+    {
+        /** @var class-string $classFqcn */
+        $classFqcn = $class->getName();
+        $property = $config->property;
+
+        $this->assertScalarField($class, $property);
+
+        $enumReflection = $this->resolveEnumReflection($class, $config);
+        $cases = $this->resolveEnumCaseValues($enumReflection);
+
+        $column = $class->getColumnName($property);
+        $doctrineType = $class->getTypeOfField($property);
+
+        if (null === $doctrineType) {
+            throw new \LogicException(sprintf('EnumCheck could not determine Doctrine type for %s::%s.', $classFqcn, $property));
+        }
+
+        $this->assertColumnMatchesBackingType($enumReflection, $doctrineType, $classFqcn, $property);
+
+        return new EnumCheckSpec(
+            $config->name,
+            [
+                'column' => $column,
+                'values' => $cases,
+                'is_string' => 'string' === $enumReflection->getBackingType()->getName(),
+            ],
+        );
+    }
+
+    // ASSERT PROPERTY TYPE/EXISTENCE //////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @param ClassMetadata<object> $class
-     * @return class-string
      */
-    private function resolveEnumClass(ClassMetadata $class, EnumCheck $config): string
+    private function assertScalarField(ClassMetadata $class, string $property): void
     {
-        $refProperty = $this->reflectionProperty($class, $config->property);
-        $inferredEnum = $this->inferEnumFromProperty($refProperty);
+        /** @var class-string $classFqcn */
+        $classFqcn = $class->getName();
 
-        if (null !== $config->enumClass) {
-            if (null !== $inferredEnum && $inferredEnum !== $config->enumClass) {
-                throw new \LogicException(
-                    sprintf(
-                        'EnumCheck on %s::%s declares enumClass "%s" which does not match property type "%s".',
-                        $class->getName(),
-                        $config->property,
-                        $config->enumClass,
-                        $inferredEnum
-                    )
-                );
+        if ($class->hasAssociation($property)) {
+            throw new \LogicException(sprintf('EnumCheck on %s::%s targets an association; only scalar Doctrine fields are supported.', $classFqcn, $property));
+        }
+
+        if (!$class->hasField($property)) {
+            throw new \LogicException(sprintf('EnumCheck references unknown property "%s" on %s.', $property, $classFqcn));
+        }
+    }
+
+    // RETRIEVE/ASSERT ENUM ////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function resolveEnumReflection(ClassMetadata $class, EnumCheck $config): \ReflectionEnum
+    {
+        /** @var class-string $classFqcn */
+        $classFqcn = $class->getName();
+        $enumFqcn = $config->enumFqcn;
+        $property = $config->property;
+
+        $inferredReflection = $this->inferEnumReflectionFromProperty($class, $property);
+
+        if (null !== $enumFqcn) {
+            if (!enum_exists($enumFqcn)) {
+                throw new \LogicException(sprintf('EnumCheck on %s::%s references enumFqcn "%s" which is not a backed enum.', $classFqcn, $property, $enumFqcn));
             }
 
-            return $config->enumClass;
+            $explicitReflection = new \ReflectionEnum($enumFqcn);
+
+            if (!$explicitReflection->isBacked()) {
+                throw new \LogicException(sprintf('EnumCheck enum "%s" must be a backed enum.', $enumFqcn));
+            }
+
+            if (null !== $inferredReflection && $inferredReflection->getName() !== $enumFqcn) {
+                throw new \LogicException(sprintf('EnumCheck on %s::%s declares enumFqcn "%s" which does not match property type "%s".', $classFqcn, $property, $enumFqcn, $inferredReflection->getName()));
+            }
+
+            return $explicitReflection;
         }
 
-        if (null === $inferredEnum) {
-            throw new \LogicException(
-                sprintf(
-                    'EnumCheck on %s::%s requires enumClass because the property is not typed as a backed enum.',
-                    $class->getName(),
-                    $config->property
-                )
-            );
-        }
-
-        return $inferredEnum;
+        return $inferredReflection ?:
+            throw new \LogicException(sprintf('EnumCheck on %s::%s requires enumFqcn because the property is not typed as a backed enum.', $classFqcn, $property));
     }
 
-    private function reflectionProperty(ClassMetadata $class, string $property): \ReflectionProperty
+    /**
+     * @throws \ReflectionException
+     */
+    private function inferEnumReflectionFromProperty(ClassMetadata $class, string $property): ?\ReflectionEnum
     {
-        try {
-            return $class->getReflectionClass()->getProperty($property);
-        } catch (\ReflectionException $e) {
-            throw new \LogicException(sprintf('EnumCheck references unknown property "%s" on %s.', $property, $class->getName()), previous: $e);
-        }
-    }
+        $type = $class->getReflectionClass()->getProperty($property)->getType();
 
-    private function inferEnumFromProperty(\ReflectionProperty $property): ?string
-    {
-        $type = $property->getType();
         if ($type instanceof \ReflectionNamedType) {
             if ($type->isBuiltin()) {
                 return null;
@@ -164,60 +149,63 @@ final readonly class EnumCheckListener
                 return null;
             }
 
-            $enumReflection = new \ReflectionEnum($name);
-            if (!$enumReflection->isBacked()) {
+            $reflection = new \ReflectionEnum($name);
+            if (!$reflection->isBacked()) {
                 return null;
             }
 
-            return $name;
+            return $reflection;
         }
 
         if ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
-            throw new \LogicException(
-                sprintf(
-                    'EnumCheck does not support union or intersection types on property "%s".',
-                    $property->getName()
-                )
-            );
+            throw new \LogicException(sprintf('EnumCheck does not support union or intersection types on property "%s".', $property));
         }
 
         return null;
     }
 
     /**
-     * @param ClassMetadata<object> $class
+     * @return list<string|int>
+     */
+    private function resolveEnumCaseValues(\ReflectionEnum $enum): array
+    {
+        /** @var class-string<\BackedEnum> $enumFqcn */
+        $enumFqcn = $enum->getName();
+
+        $values = array_map(
+            static fn (\BackedEnum $case): string|int => $case->value,
+            $enumFqcn::cases()
+        );
+
+        if (empty($values)) {
+            throw new \LogicException(sprintf('EnumCheck enum "%s" must declare at least one case.', $enumFqcn));
+        }
+
+        return $values;
+    }
+
+    // COMPARE DOCTRINE COLUMN /////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @param class-string $classFqcn
      */
     private function assertColumnMatchesBackingType(
+        \ReflectionEnum $enumReflection,
         string $doctrineType,
-        \ReflectionEnum $enum,
-        ClassMetadata $class,
+        string $classFqcn,
         string $property,
     ): void {
-        $backingType = $enum->getBackingType()->getName(); // "int" or "string"
+        $backingType = $enumReflection->getBackingType()->getName(); // "int" or "string"
 
         $isStringColumn = in_array($doctrineType, ['string', 'text'], true);
         $isIntColumn = in_array($doctrineType, ['integer', 'smallint', 'bigint'], true);
 
         if ('string' === $backingType && !$isStringColumn) {
-            throw new \LogicException(
-                sprintf(
-                    'EnumCheck on %s::%s expects a string-backed enum, but Doctrine column type is "%s".',
-                    $class->getName(),
-                    $property,
-                    $doctrineType
-                )
-            );
+            throw new \LogicException(sprintf('EnumCheck on %s::%s expects a string-backed enum, but Doctrine column type is "%s".', $classFqcn, $property, $doctrineType));
         }
 
         if ('int' === $backingType && !$isIntColumn) {
-            throw new \LogicException(
-                sprintf(
-                    'EnumCheck on %s::%s expects an int-backed enum, but Doctrine column type is "%s".',
-                    $class->getName(),
-                    $property,
-                    $doctrineType
-                )
-            );
+            throw new \LogicException(sprintf('EnumCheck on %s::%s expects an int-backed enum, but Doctrine column type is "%s".', $classFqcn, $property, $doctrineType));
         }
     }
 }

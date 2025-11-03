@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;

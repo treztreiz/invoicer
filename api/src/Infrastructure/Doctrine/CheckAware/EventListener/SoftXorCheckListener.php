@@ -18,9 +18,8 @@ use Doctrine\ORM\Tools\ToolEvents;
 #[AsDoctrineListener(ToolEvents::postGenerateSchemaTable)]
 final readonly class SoftXorCheckListener
 {
-    public function __construct(
-        private CheckRegistry $registry,
-    ) {
+    public function __construct(private CheckRegistry $registry)
+    {
     }
 
     /**
@@ -33,21 +32,20 @@ final readonly class SoftXorCheckListener
         $table = $args->getClassTable();
 
         $attributes = $class->getReflectionClass()->getAttributes(SoftXorCheck::class);
-        if ([] === $attributes) {
+        if (empty($attributes)) {
             return;
         }
 
-        /** @var SoftXorCheck $cfg */
-        $cfg = $attributes[0]->newInstance();
-        $colNames = $this->resolveOwningJoinColumns($class, $cfg->properties);
+        /** @var SoftXorCheck $config */
+        $config = $attributes[0]->newInstance();
+        $colNames = $this->resolveOwningJoinColumns($class, $config->properties);
 
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $this->registry->appendDeclaredSpec(
-            $table,
-            new SoftXorCheckSpec($cfg->name, ['columns' => $colNames]),
-        );
+        $spec = new SoftXorCheckSpec($config->name, ['columns' => $colNames]);
+
+        $this->registry->appendDeclaredSpec($table, $spec);
     }
 
     /**
@@ -61,24 +59,29 @@ final readonly class SoftXorCheckListener
     private function resolveOwningJoinColumns(ClassMetadata $class, array $properties): array
     {
         $cols = [];
+
         foreach ($properties as $prop) {
             if ($class->hasField($prop)) {
                 $cols[] = $class->getColumnName($prop);
                 continue;
             }
+
             if (!$class->hasAssociation($prop)) {
                 throw new \LogicException(sprintf('Unknown property "%s" on %s.', $prop, $class->getName()));
             }
+
             $assoc = $class->getAssociationMapping($prop);
             if (!$assoc->isToOneOwningSide()) {
                 throw new \LogicException(
                     sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName())
                 );
             }
+
             $join = $assoc->joinColumns[0] ?? null; // 1:1 → single join column
             if (null === $join) {
                 throw new \LogicException(sprintf('Owning association "%s" has no join column mapping.', $prop));
             }
+
             $cols[] = $join->name;
         }
 

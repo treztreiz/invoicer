@@ -8,14 +8,14 @@ namespace App\Infrastructure\Doctrine\CheckAware\Attribute;
 final readonly class EnumCheck
 {
     /**
-     * @param non-empty-string $property
-     * @param non-empty-string $name
-     * @param class-string|null $enumClass backed enum class providing allowed values
+     * @param non-empty-string  $property
+     * @param non-empty-string  $name
+     * @param class-string|null $enumFqcn backed enum class providing allowed values
      */
     public function __construct(
         public string $property,
         public string $name = 'ENUM_CHECK',
-        public ?string $enumClass = null,
+        public ?string $enumFqcn = null,
     ) {
         if ('' === trim($this->property)) {
             throw new \LogicException('EnumCheck requires a non-empty property name.');
@@ -25,15 +25,15 @@ final readonly class EnumCheck
             throw new \LogicException('EnumCheck requires a non-empty constraint name.');
         }
 
-        if (null !== $this->enumClass) {
-            if (!enum_exists($this->enumClass)) {
-                throw new \LogicException(sprintf('EnumCheck expects enumClass `%s` to be an enum.', $this->enumClass));
+        if (null !== $this->enumFqcn) {
+            if (!enum_exists($this->enumFqcn)) {
+                throw new \LogicException(sprintf('EnumCheck expects enumFqcn `%s` to be an enum.', $this->enumFqcn));
             }
 
-            $ref = new \ReflectionEnum($this->enumClass);
+            $ref = new \ReflectionEnum($this->enumFqcn);
 
             if (!$ref->isBacked()) {
-                throw new \LogicException(sprintf('EnumCheck enumClass `%s` must be a backed enum.', $this->enumClass));
+                throw new \LogicException(sprintf('EnumCheck enumFqcn `%s` must be a backed enum.', $this->enumFqcn));
             }
         }
     }

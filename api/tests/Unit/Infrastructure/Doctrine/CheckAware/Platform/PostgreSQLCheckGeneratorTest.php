@@ -47,5 +47,4 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
         static::assertSame('ALTER TABLE "invoice" DROP CONSTRAINT IF EXISTS "CHK_INV"', $sql);
     }
-
 }
