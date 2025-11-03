@@ -24,7 +24,7 @@ final class CheckRegistryTest extends TestCase
         $this->registry = new CheckRegistry(new CheckNormalizer());
     }
 
-    public function test_declared_checks_are_appended(): void
+    public function test_declared_specs_are_appended(): void
     {
         $table = new Table('invoice');
 

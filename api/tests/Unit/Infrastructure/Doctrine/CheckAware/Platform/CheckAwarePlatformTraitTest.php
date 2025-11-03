@@ -34,7 +34,7 @@ final class CheckAwarePlatformTraitTest extends TestCase
         $this->platform->setCheckGenerator($this->generator);
     }
 
-    public function test_append_checks_sql_appends_generator_output(): void
+    public function test_append_specs_sql_appends_generator_output(): void
     {
         $table = new Table('invoice');
 

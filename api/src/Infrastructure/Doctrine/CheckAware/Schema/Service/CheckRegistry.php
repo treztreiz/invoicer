@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
-use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
 use App\Infrastructure\Doctrine\CheckAware\Spec\AbstractCheckSpec;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -13,7 +12,7 @@ use Doctrine\DBAL\Schema\Table;
  * Stores and retrieves check metadata (declared specs and introspected expressions)
  * while ensuring canonical formatting via the provided CheckNormalizer.
  *
- * @phpstan-type DeclaredSpecMap array<string, CheckSpecInterface>
+ * @phpstan-type DeclaredSpecMap array<string, AbstractCheckSpec>
  * @phpstan-type IntrospectedExpressionMap array<string, string>
  */
 class CheckRegistry

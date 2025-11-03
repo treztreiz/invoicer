@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Doctrine\CheckAware\Spec;
 
-use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +22,7 @@ final class EnumCheckSpecTest extends TestCase
 
     public function test_valid_spec_is_accepted(): void
     {
-        $spec = new EnumCheckSpec('chk_status', 'STATUS', ['draft', 'issued'], true, ConstraintTiming::IMMEDIATE);
+        $spec = new EnumCheckSpec('chk_status', 'STATUS', ['draft', 'issued'], true);
         $normalized = $spec->normalizeWith($this->normalizer);
 
         static::assertTrue($normalized->normalized);
@@ -31,7 +30,6 @@ final class EnumCheckSpecTest extends TestCase
         static::assertSame('status', $normalized->column);
         static::assertSame(['draft', 'issued'], $normalized->values);
         static::assertTrue($normalized->isString);
-        static::assertSame(ConstraintTiming::IMMEDIATE, $normalized->timing());
     }
 
     public function test_empty_name_is_rejected(): void
@@ -39,7 +37,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(sprintf('%s name cannot be empty.', EnumCheckSpec::class));
 
-        new EnumCheckSpec('   ', 'status', ['draft'], true, ConstraintTiming::IMMEDIATE)->normalizeWith($this->normalizer);
+        new EnumCheckSpec('   ', 'status', ['draft'], true)->normalizeWith($this->normalizer);
     }
 
     public function test_empty_column_is_rejected(): void
@@ -47,7 +45,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('EnumCheckSpec column cannot be empty.');
 
-        new EnumCheckSpec('CHK', '', ['draft'], true, ConstraintTiming::IMMEDIATE);
+        new EnumCheckSpec('CHK', '', ['draft'], true);
     }
 
     public function test_values_must_not_be_empty(): void
@@ -55,7 +53,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('EnumCheckSpec requires at least one value.');
 
-        new EnumCheckSpec('CHK', 'status', [], true, ConstraintTiming::IMMEDIATE);
+        new EnumCheckSpec('CHK', 'status', [], true);
     }
 
     public function test_values_must_be_uniform_type(): void
@@ -63,7 +61,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Values list must contain a uniform scalar type.');
 
-        $spec = new EnumCheckSpec('CHK', 'status', ['draft', 1], true, ConstraintTiming::IMMEDIATE);
+        $spec = new EnumCheckSpec('CHK', 'status', ['draft', 1], true);
         $spec->normalizeWith($this->normalizer);
     }
 
@@ -72,7 +70,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('EnumCheckSpec values do not match declared backing type.');
 
-        $spec = new EnumCheckSpec('CHK', 'status', ['draft'], false, ConstraintTiming::IMMEDIATE);
+        $spec = new EnumCheckSpec('CHK', 'status', ['draft'], false);
         $spec->normalizeWith($this->normalizer);
     }
 }

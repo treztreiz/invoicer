@@ -6,7 +6,7 @@ namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
 
-/** @note Only used for DROP; expression/timing are irrelevant. */
+/** @note Only used for DROP. */
 final readonly class DroppedCheckSpec implements CheckSpecInterface
 {
     public function __construct(

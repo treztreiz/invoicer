@@ -184,10 +184,10 @@ final class CheckComparatorTest extends TestCase
     /**
      * @throws SchemaException
      */
-    private function createSchemaWithIntrospectedExpressions(array $checks): Schema
+    private function createSchemaWithIntrospectedExpressions(array $expressions): Schema
     {
         $schema = $this->createEmptySchema();
-        $this->registry->registerIntrospectedExpressions($schema, ['invoice' => $checks]);
+        $this->registry->registerIntrospectedExpressions($schema, ['invoice' => $expressions]);
 
         return $schema;
     }

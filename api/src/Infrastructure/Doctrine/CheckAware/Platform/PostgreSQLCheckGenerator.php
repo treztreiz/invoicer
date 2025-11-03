@@ -6,8 +6,6 @@ namespace App\Infrastructure\Doctrine\CheckAware\Platform;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckGeneratorInterface;
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
-use App\Infrastructure\Doctrine\CheckAware\Enum\ConstraintTiming;
-use App\Infrastructure\Doctrine\CheckAware\Spec\AbstractCheckSpec;
 use App\Infrastructure\Doctrine\CheckAware\Spec\EnumCheckSpec;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
 
@@ -58,7 +56,6 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
         $expr = $this->buildExpressionSQL($spec);
         $exprEscaped = str_replace("'", "''", $expr);
         $name = $spec->name;
-        $deferrableClause = $this->buildTimingClause($spec);
 
         return <<<SQL
 DO $$
@@ -72,7 +69,7 @@ IF NOT EXISTS (
     AND r.relname = {$this->platform->quoteStringLiteral($this->unquote($tableNameSql))}
     AND n.nspname = current_schema()
 ) THEN
-  EXECUTE 'ALTER TABLE $tableNameSql ADD CONSTRAINT "$name" CHECK ($exprEscaped)$deferrableClause';
+  EXECUTE 'ALTER TABLE $tableNameSql ADD CONSTRAINT "$name" CHECK ($exprEscaped)';
 END IF;
 END$$
 SQL;
@@ -104,21 +101,6 @@ SQL;
             'name' => (string) $row['name'],
             'expr' => (string) $row['def'],
         ];
-    }
-
-    // HELPERS /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private function buildTimingClause(CheckSpecInterface $spec): string
-    {
-        if (!($spec instanceof AbstractCheckSpec)) {
-            return '';
-        }
-
-        return match ($spec->timing()) {
-            ConstraintTiming::IMMEDIATE => '',
-            ConstraintTiming::DEFERRED_ON_DEMAND => ' DEFERRABLE INITIALLY IMMEDIATE',
-            ConstraintTiming::DEFERRED_UNTIL_COMMIT => ' DEFERRABLE INITIALLY DEFERRED',
-        };
     }
 
     private function unquote(string $quotedTable): string

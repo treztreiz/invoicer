@@ -43,7 +43,7 @@ final readonly class SoftXorCheckListener
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $spec = new SoftXorCheckSpec($config->name, $colNames, $config->timing);
+        $spec = new SoftXorCheckSpec($config->name, $colNames);
 
         $this->registry->appendDeclaredSpec($table, $spec);
     }

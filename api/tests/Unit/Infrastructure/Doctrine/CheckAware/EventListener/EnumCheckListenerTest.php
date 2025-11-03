@@ -14,7 +14,6 @@ use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\FieldMapping;
-use Doctrine\ORM\Mapping\MappingException;
 use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
 use PHPUnit\Framework\TestCase;
 
@@ -35,7 +34,6 @@ final class EnumCheckListenerTest extends TestCase
 
     /**
      * @throws \ReflectionException
-     * @throws MappingException
      * @throws SchemaException
      */
     public function test_listener_appends_enum_spec_for_typed_property(): void
@@ -56,18 +54,17 @@ final class EnumCheckListenerTest extends TestCase
 
         $this->listener->postGenerateSchemaTable($args);
 
-        $checks = $this->registry->getDeclaredSpecs($table);
+        $specs = $this->registry->getDeclaredSpecs($table);
 
-        static::assertCount(1, $checks);
-        static::assertInstanceOf(EnumCheckSpec::class, $checks[0]);
-        static::assertSame('status', $checks[0]->column);
-        static::assertSame(['draft', 'issued'], $checks[0]->values);
-        static::assertTrue($checks[0]->isString);
+        static::assertCount(1, $specs);
+        static::assertInstanceOf(EnumCheckSpec::class, $specs[0]);
+        static::assertSame('status', $specs[0]->column);
+        static::assertSame(['draft', 'issued'], $specs[0]->values);
+        static::assertTrue($specs[0]->isString);
     }
 
     /**
      * @throws \ReflectionException
-     * @throws MappingException
      * @throws SchemaException
      */
     public function test_listener_requires_enum_class_for_untyped_property(): void
@@ -93,7 +90,6 @@ final class EnumCheckListenerTest extends TestCase
 
     /**
      * @throws \ReflectionException
-     * @throws MappingException
      * @throws SchemaException
      */
     public function test_listener_accepts_explicit_enum_class_for_untyped_property(): void
@@ -113,16 +109,17 @@ final class EnumCheckListenerTest extends TestCase
 
         $this->listener->postGenerateSchemaTable($args);
 
-        $checks = $this->registry->getDeclaredSpecs($table);
-        static::assertCount(1, $checks);
-        static::assertSame('status', $checks[0]->column);
-        static::assertSame(['draft', 'issued'], $checks[0]->values);
-        static::assertTrue($checks[0]->isString);
+        /** @var list<EnumCheckSpec> $specs */
+        $specs = $this->registry->getDeclaredSpecs($table);
+
+        static::assertCount(1, $specs);
+        static::assertSame('status', $specs[0]->column);
+        static::assertSame(['draft', 'issued'], $specs[0]->values);
+        static::assertTrue($specs[0]->isString);
     }
 
     /**
      * @throws \ReflectionException
-     * @throws MappingException
      * @throws SchemaException
      */
     public function test_listener_rejects_incompatible_column_type(): void
@@ -148,6 +145,8 @@ final class EnumCheckListenerTest extends TestCase
     /**
      * @param class-string                $class
      * @param array<string, FieldMapping> $fieldMappings
+     *
+     * @return ClassMetadata<object>
      *
      * @throws \ReflectionException
      */
