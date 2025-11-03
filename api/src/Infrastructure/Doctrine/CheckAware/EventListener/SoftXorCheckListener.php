@@ -49,7 +49,7 @@ final readonly class SoftXorCheckListener
     }
 
     /**
-     * @param ClassMetadata<object> $class
+     * @param ClassMetadata<object>  $class
      * @param non-empty-list<string> $properties
      *
      * @return non-empty-list<string> column names on the SAME table (owning side only)
@@ -76,9 +76,7 @@ final readonly class SoftXorCheckListener
 
             $assoc = $class->getAssociationMapping($prop);
             if (!$assoc->isToOneOwningSide()) {
-                throw new \LogicException(
-                    sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName())
-                );
+                throw new \LogicException(sprintf('Property "%s" on %s is inverse-side; make it owning so its FK lives on table "%s".', $prop, $class->getName(), $class->getTableName()));
             }
 
             $join = $assoc->joinColumns[0] ?? null; // 1:1 → single join column
@@ -117,10 +115,10 @@ final readonly class SoftXorCheckListener
             return true;
         }
 
-        if (array_any($table->getIndexes(), fn($index) => $index->isUnique() && $index->spansColumns([$colName]))) {
+        if (array_any($table->getIndexes(), fn ($index) => $index->isUnique() && $index->spansColumns([$colName]))) {
             return true;
         }
 
-        return array_any($table->getUniqueConstraints(), fn($constraint) => $constraint->getColumns() === [$colName]);
+        return array_any($table->getUniqueConstraints(), fn ($constraint) => $constraint->getColumns() === [$colName]);
     }
 }

@@ -88,7 +88,7 @@ final class CheckIntrospectorTest extends TestCase
             );
 
         $introspector = new CheckIntrospector($generator, $registry);
-        $annotated = $introspector->annotateSchema($schema, $checks);
+        $annotated = $introspector->registerExpressions($schema, $checks);
 
         static::assertSame($schema, $annotated, 'Annotate should return the original schema instance.');
     }

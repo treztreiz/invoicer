@@ -44,9 +44,9 @@ final class CheckNormalizer
     }
 
     /**
-     * @param array<int, string|int> $values
+     * @param array<int, mixed> $values
      *
-     * @return array<int, string|int>
+     * @return non-empty-list<int|string>
      */
     public function normalizeValueList(array $values): array
     {
@@ -75,10 +75,10 @@ final class CheckNormalizer
             }
         }
 
-        return array_values($values);
+        return $values;
     }
 
-    public function canonicalExpression(string $sql): string
+    public function normalizeExpression(string $sql): string
     {
         $expr = strtolower(trim($sql));
 

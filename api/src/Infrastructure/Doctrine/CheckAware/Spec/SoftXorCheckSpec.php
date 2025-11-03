@@ -9,8 +9,7 @@ use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 final class SoftXorCheckSpec extends AbstractCheckSpec
 {
     /**
-     * @param non-empty-string $name
-     * @param non-empty-list<string> $columns
+     * @param list<string> $columns
      */
     public function __construct(
         string $name,
@@ -26,7 +25,7 @@ final class SoftXorCheckSpec extends AbstractCheckSpec
 
     protected function normalize(CheckNormalizer $normalizer): self
     {
-        $columns = array_map([$normalizer, 'normalizeIdentifier'], array_values($this->columns));
+        $columns = array_map([$normalizer, 'normalizeIdentifier'], $this->columns);
 
         return new self(
             $normalizer->normalizeConstraintName($this->name),

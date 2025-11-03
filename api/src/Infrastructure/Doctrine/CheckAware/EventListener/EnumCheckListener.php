@@ -45,6 +45,8 @@ final readonly class EnumCheckListener
     // SPEC BUILDING ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
+     * @param ClassMetadata<object> $class
+     *
      * @throws \ReflectionException
      */
     private function buildSpec(ClassMetadata $class, EnumCheck $config): EnumCheckSpec
@@ -98,6 +100,10 @@ final readonly class EnumCheckListener
     // RETRIEVE/ASSERT ENUM ////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
+     * @param ClassMetadata<object> $class
+     *
+     * @return \ReflectionEnum<\BackedEnum>
+     *
      * @throws \ReflectionException
      */
     private function resolveEnumReflection(ClassMetadata $class, EnumCheck $config): \ReflectionEnum
@@ -135,6 +141,10 @@ final readonly class EnumCheckListener
     }
 
     /**
+     * @param ClassMetadata<object> $class
+     *
+     * @return \ReflectionEnum<\BackedEnum>|null
+     *
      * @throws \ReflectionException
      */
     private function inferEnumReflectionFromProperty(ClassMetadata $class, string $property): ?\ReflectionEnum
@@ -151,6 +161,7 @@ final readonly class EnumCheckListener
                 return null;
             }
 
+            /** @var \ReflectionEnum<\BackedEnum> $reflection */
             $reflection = new \ReflectionEnum($name);
             if (!$reflection->isBacked()) {
                 return null;
@@ -167,12 +178,14 @@ final readonly class EnumCheckListener
     }
 
     /**
+     * @param \ReflectionEnum<\BackedEnum> $enumReflection
+     *
      * @return list<string|int>
      */
-    private function resolveEnumCaseValues(\ReflectionEnum $enum): array
+    private function resolveEnumCaseValues(\ReflectionEnum $enumReflection): array
     {
         /** @var class-string<\BackedEnum> $enumFqcn */
-        $enumFqcn = $enum->getName();
+        $enumFqcn = $enumReflection->getName();
 
         $values = array_map(
             static fn (\BackedEnum $case): string|int => $case->value,
@@ -189,7 +202,8 @@ final readonly class EnumCheckListener
     // COMPARE DOCTRINE COLUMN /////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @param class-string $classFqcn
+     * @param \ReflectionEnum<\BackedEnum> $enumReflection
+     * @param class-string                 $classFqcn
      */
     private function assertColumnMatchesBackingType(
         \ReflectionEnum $enumReflection,

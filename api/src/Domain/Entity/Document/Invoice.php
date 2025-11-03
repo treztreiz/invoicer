@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
-#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'])]
+#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'], name: 'RSSf')]
 class Invoice extends Document
 {
     #[ORM\Column(enumType: InvoiceStatus::class)]

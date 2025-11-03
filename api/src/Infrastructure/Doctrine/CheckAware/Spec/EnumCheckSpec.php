@@ -9,9 +9,7 @@ use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 final class EnumCheckSpec extends AbstractCheckSpec
 {
     /**
-     * @param non-empty-string $name
-     * @param non-empty-string $column
-     * @param non-empty-list<string|int> $values
+     * @param list<string|int> $values
      */
     public function __construct(
         string $name,

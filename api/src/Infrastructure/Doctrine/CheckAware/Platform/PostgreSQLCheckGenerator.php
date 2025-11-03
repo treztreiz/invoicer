@@ -29,7 +29,7 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
 
     private function buildSoftXor(SoftXorCheckSpec $spec): string
     {
-        $cols = array_map(fn(string $col) => $this->platform->quoteIdentifier($col), $spec->columns);
+        $cols = array_map(fn (string $col) => $this->platform->quoteIdentifier($col), $spec->columns);
 
         return 'num_nonnulls('.implode(', ', $cols).') <= 1';
     }
@@ -37,11 +37,12 @@ final readonly class PostgreSQLCheckGenerator implements CheckGeneratorInterface
     private function buildEnum(EnumCheckSpec $spec): string
     {
         $columnSql = $this->platform->quoteIdentifier($spec->column);
+        $platform = $this->platform;
 
         $valuesSql = array_map(
-            static fn(string|int $value): string => $spec->isString ?
-                $this->platform->quoteStringLiteral((string)$value).'::text'
-                : (string)$value,
+            static fn (string|int $value): string => $spec->isString ?
+                $platform->quoteStringLiteral((string) $value).'::text'
+                : (string) $value,
             $spec->values
         );
 
@@ -96,9 +97,9 @@ SQL;
     public function mapIntrospectionRow(array $row): array
     {
         return [
-            'table' => (string)$row['table_name'],
-            'name' => (string)$row['name'],
-            'expr' => (string)$row['def'],
+            'table' => (string) $row['table_name'],
+            'name' => (string) $row['name'],
+            'expr' => (string) $row['def'],
         ];
     }
 
@@ -107,6 +108,6 @@ SQL;
     private function unquote(string $quotedTable): string
     {
         // "schema"."table" or "table" -> table
-        return trim(str_replace('"', '', (string)preg_replace('#^(.+\\.)?"([^"]+)"$#', '$2', $quotedTable)));
+        return trim(str_replace('"', '', (string) preg_replace('#^(.+\\.)?"([^"]+)"$#', '$2', $quotedTable)));
     }
 }

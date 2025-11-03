@@ -32,5 +32,6 @@ abstract class AbstractCheckSpec implements CheckSpecInterface
         return $normalizedSpec;
     }
 
+    /** @return static */
     abstract protected function normalize(CheckNormalizer $normalizer): self;
 }
