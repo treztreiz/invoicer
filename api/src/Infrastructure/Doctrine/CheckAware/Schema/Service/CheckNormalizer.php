@@ -50,9 +50,11 @@ final class CheckNormalizer
      */
     public function normalizeValueList(array $values): array
     {
-        if ([] === $values) {
+        if (empty($values)) {
             throw new \InvalidArgumentException('Values list cannot be empty.');
         }
+
+        $values = array_values($values);
 
         $firstType = null;
 
@@ -81,7 +83,7 @@ final class CheckNormalizer
         $expr = strtolower(trim($sql));
 
         $expr = preg_replace('/^check/', '', $expr) ?? $expr;
-        $expr = preg_replace('/::[a-z0-9_]+(?:\[\])?/', '', $expr) ?? $expr;
+        $expr = preg_replace('/::[a-z0-9_]+(?:\[])?/', '', $expr) ?? $expr;
         $expr = preg_replace('/\s+/', '', $expr) ?? $expr;
         $expr = str_replace(['"', "'", '(', ')', '[', ']'], '', $expr);
 

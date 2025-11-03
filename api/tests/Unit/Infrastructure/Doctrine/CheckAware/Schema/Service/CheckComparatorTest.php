@@ -43,8 +43,8 @@ final class CheckComparatorTest extends TestCase
             'CHK_MODIFIED' => 'num_nonnulls(col_a,col_b) <= 2',
         ]);
         $to = $this->schemaWithDeclaredSpecs([
-            new SoftXorCheckSpec('CHK_MODIFIED', ['columns' => ['col_a', 'col_b']]),
-            new SoftXorCheckSpec('CHK_ADDED', ['columns' => ['col_c', 'col_d']]),
+            new SoftXorCheckSpec('CHK_MODIFIED', ['col_a', 'col_b']),
+            new SoftXorCheckSpec('CHK_ADDED', ['col_c', 'col_d']),
         ]);
 
         $diff = $comparator->compareSchemas($from, $to);
@@ -92,7 +92,7 @@ final class CheckComparatorTest extends TestCase
     {
         $from = $this->schemaWithExistingChecks(['CHK_ONE' => 'num_nonnulls(col_a,col_b) <= 2']);
         $to = $this->schemaWithDeclaredSpecs([
-            new SoftXorCheckSpec('CHK_ONE', ['columns' => ['col_a', 'col_b']]),
+            new SoftXorCheckSpec('CHK_ONE', ['col_a', 'col_b']),
         ]);
 
         $diff = $this->compare($from, $to);
@@ -109,7 +109,7 @@ final class CheckComparatorTest extends TestCase
     {
         $from = $this->emptySchema();
         $to = $this->schemaWithDeclaredSpecs([
-            new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]),
+            new SoftXorCheckSpec('CHK_ADD', ['col_a', 'col_b']),
         ]);
 
         $diff = $this->compare($from, $to);
@@ -125,7 +125,7 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_identical_soft_xor_checks_produce_no_diff(): void
     {
-        $spec = new SoftXorCheckSpec('CHK_SAME', ['columns' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_SAME', ['col_a', 'col_b']);
 
         $from = $this->schemaWithExistingChecks(['CHK_SAME' => 'num_nonnulls(col_a,col_b) <= 1']);
         $to = $this->schemaWithDeclaredSpecs([$spec]);
@@ -140,11 +140,7 @@ final class CheckComparatorTest extends TestCase
      */
     public function test_identical_enum_checks_produce_no_diff(): void
     {
-        $spec = new EnumCheckSpec('CHK_ENUM', [
-            'column' => 'status',
-            'values' => ['draft', 'issued'],
-            'is_string' => true,
-        ]);
+        $spec = new EnumCheckSpec('CHK_ENUM', 'status', ['draft', 'issued'], true);
 
         $existingExpr = 'CHECK ("status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text]))';
 
@@ -194,7 +190,7 @@ final class CheckComparatorTest extends TestCase
         $schema = $this->emptySchema();
         $table = $schema->getTable('invoice');
 
-        $table->addOption('app_checks_present', $checks);
+        $table->addOption(\App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption::INTROSPECTED->value, $checks);
 
         return $schema;
     }

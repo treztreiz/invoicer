@@ -18,9 +18,9 @@ use Doctrine\DBAL\Schema\Table;
 
 final class CheckComparator extends Comparator
 {
-    private CheckGeneratorInterface $generator;
-
     private CheckRegistry $registry;
+
+    private CheckGeneratorInterface $generator;
 
     /** @var array<string, CheckAwareTableDiff> */
     private array $alteredTables;
@@ -30,8 +30,8 @@ final class CheckComparator extends Comparator
         AbstractPlatform&CheckAwarePlatformInterface $platform,
     ) {
         parent::__construct($platform);
-        $this->generator = $platform->generator;
         $this->registry = $platform->registry;
+        $this->generator = $platform->generator;
     }
 
     /**
@@ -68,7 +68,7 @@ final class CheckComparator extends Comparator
 
         if (empty($declaredSpecs)) {
             $dropped = array_map(
-                static fn (string $name): DroppedCheckSpec => new DroppedCheckSpec($name),
+                static fn(string $name): DroppedCheckSpec => new DroppedCheckSpec($name),
                 array_keys($introspectedExpressions)
             );
 
@@ -99,7 +99,7 @@ final class CheckComparator extends Comparator
         }
 
         $droppedNames = array_values(array_diff($introspectedNames, $declaredSpecNames));
-        $dropped = array_map(fn (string $name) => new DroppedCheckSpec($name), $droppedNames);
+        $dropped = array_map(fn(string $name) => new DroppedCheckSpec($name), $droppedNames);
 
         $this->addAlteredTable($fromTable, $toTable->getName(), $added, $modified, $dropped);
     }

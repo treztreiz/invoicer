@@ -43,7 +43,7 @@ final readonly class SoftXorCheckListener
         // Ensure 1–1 shape: UNIQUE per join column (portable)
         $this->ensureUniquePerColumn($table, $colNames);
 
-        $spec = new SoftXorCheckSpec($config->name, ['columns' => $colNames]);
+        $spec = new SoftXorCheckSpec($config->name, $colNames, $config->deferrable);
 
         $this->registry->appendDeclaredSpec($table, $spec);
     }
@@ -59,6 +59,10 @@ final readonly class SoftXorCheckListener
     private function resolveOwningJoinColumns(ClassMetadata $class, array $properties): array
     {
         $cols = [];
+
+        if (count($properties) < 2) {
+            throw new \LogicException('SoftXorCheck requires at least 2 properties.');
+        }
 
         foreach ($properties as $prop) {
             if ($class->hasField($prop)) {

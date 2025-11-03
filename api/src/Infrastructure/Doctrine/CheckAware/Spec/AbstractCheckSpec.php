@@ -5,31 +5,32 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\Spec;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
-use App\Infrastructure\Doctrine\CheckAware\Contracts\NormalizableCheckSpecInterface;
+use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
-abstract class AbstractCheckSpec implements CheckSpecInterface, NormalizableCheckSpecInterface
+abstract class AbstractCheckSpec implements CheckSpecInterface
 {
-    protected bool $normalized = false;
+    protected(set) bool $normalized = false;
 
-    public function isNormalized(): bool
-    {
-        return $this->normalized;
+    public function __construct(
+        protected(set) readonly string $name,
+        protected(set) readonly bool $deferrable = false,
+    ) {
+        if ('' === trim($this->name)) {
+            throw new \InvalidArgumentException(sprintf('%s name cannot be empty.', static::class));
+        }
     }
 
-    public function canonicalExpression(): string
+    public function normalizeWith(CheckNormalizer $normalizer): static
     {
-        if (!$this->normalized) {
-            throw new \LogicException(sprintf('%s must be normalized before building canonical expression.', static::class));
+        if ($this->normalized) {
+            return $this;
         }
 
-        return $this->buildCanonicalExpression();
+        $normalizedSpec = $this->normalize($normalizer);
+        $normalizedSpec->normalized = true;
+
+        return $normalizedSpec;
     }
 
-    protected static function fromNormalized(string $name, array $expr, bool $deferrable): static
-    {
-        $spec = new static($name, $expr, $deferrable);
-        $spec->normalized = true;
-
-        return $spec;
-    }
+    abstract protected function normalize(CheckNormalizer $normalizer): self;
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Doctrine\CheckAware\Schema\Service;
 
 use App\Infrastructure\Doctrine\CheckAware\Contracts\CheckSpecInterface;
-use App\Infrastructure\Doctrine\CheckAware\Contracts\NormalizableCheckSpecInterface;
 use App\Infrastructure\Doctrine\CheckAware\Enum\CheckOption;
+use App\Infrastructure\Doctrine\CheckAware\Spec\AbstractCheckSpec;
 use Doctrine\DBAL\Schema\Table;
 
 /**
@@ -64,14 +64,18 @@ final readonly class CheckRegistry
         return $this->normalizer->canonicalExpression($expression);
     }
 
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     private function normalizeSpec(CheckSpecInterface $spec): CheckSpecInterface
     {
-        if ($spec instanceof NormalizableCheckSpecInterface) {
-            $spec = $spec->normalizeWith($this->normalizer);
+        if (!($spec instanceof AbstractCheckSpec)) {
+            throw new \LogicException(sprintf('%s must be an instance of %s.', $spec::class, AbstractCheckSpec::class));
+        }
 
-            if (!$spec->isNormalized()) {
-                throw new \LogicException(sprintf('%s::normalizeWith() must return a normalized spec.', $spec::class));
-            }
+        $spec = $spec->normalizeWith($this->normalizer);
+
+        if (!$spec->normalized) {
+            throw new \LogicException(sprintf('%s::normalizeWith() must return a normalized spec.', $spec::class));
         }
 
         return $spec;

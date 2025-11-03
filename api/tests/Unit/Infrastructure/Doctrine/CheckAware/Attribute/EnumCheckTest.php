@@ -14,11 +14,11 @@ final class EnumCheckTest extends TestCase
 {
     public function test_construct_with_valid_arguments_does_not_throw(): void
     {
-        $attribute = new EnumCheck(property: 'status', name: 'CHK_STATUS', enumClass: BackedStringEnumStub::class);
+        $attribute = new EnumCheck(property: 'status', name: 'CHK_STATUS', enumFqcn: BackedStringEnumStub::class);
 
         static::assertSame('status', $attribute->property);
         static::assertSame('CHK_STATUS', $attribute->name);
-        static::assertSame(BackedStringEnumStub::class, $attribute->enumClass);
+        static::assertSame(BackedStringEnumStub::class, $attribute->enumFqcn);
     }
 
     public function test_empty_property_is_rejected(): void
@@ -40,17 +40,17 @@ final class EnumCheckTest extends TestCase
     public function test_non_existing_enum_class_is_rejected(): void
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('EnumCheck expects enumClass `Unknown\\Foo` to be an enum.');
+        $this->expectExceptionMessage('EnumCheck expects enumFqcn `Unknown\\Foo` to be an enum.');
 
-        new EnumCheck(property: 'status', enumClass: 'Unknown\\Foo');
+        new EnumCheck(property: 'status', enumFqcn: 'Unknown\\Foo');
     }
 
     public function test_unit_enum_is_rejected(): void
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage(sprintf('EnumCheck enumClass `%s` must be a backed enum.', UnitEnumStub::class));
+        $this->expectExceptionMessage(sprintf('EnumCheck enumFqcn `%s` must be a backed enum.', UnitEnumStub::class));
 
-        new EnumCheck(property: 'status', enumClass: UnitEnumStub::class);
+        new EnumCheck(property: 'status', enumFqcn: UnitEnumStub::class);
     }
 }
 

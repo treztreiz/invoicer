@@ -28,8 +28,8 @@ final class CheckRegistryTest extends TestCase
 
         static::assertSame([], $this->registry->getDeclaredSpecs($table));
 
-        $first = new SoftXorCheckSpec('chk_inv_soft_xor', ['columns' => ['Recurrence_ID', 'installment_plan_id']]);
-        $second = new SoftXorCheckSpec('CHK_inv_another', ['columns' => ['FOO_ID', 'bar_id']]);
+        $first = new SoftXorCheckSpec('chk_inv_soft_xor', ['Recurrence_ID', 'installment_plan_id']);
+        $second = new SoftXorCheckSpec('CHK_inv_another', ['FOO_ID', 'bar_id']);
 
         $this->registry->appendDeclaredSpec($table, $first);
         $this->registry->appendDeclaredSpec($table, $second);
@@ -39,10 +39,10 @@ final class CheckRegistryTest extends TestCase
         static::assertCount(2, $desired);
         static::assertTrue($desired[0]->isNormalized());
         static::assertSame('CHK_INV_SOFT_XOR', $desired[0]->name);
-        static::assertSame(['columns' => ['recurrence_id', 'installment_plan_id']], $desired[0]->expr);
+        static::assertSame(['recurrence_id', 'installment_plan_id'], $desired[0]->columns);
         static::assertTrue($desired[1]->isNormalized());
         static::assertSame('CHK_INV_ANOTHER', $desired[1]->name);
-        static::assertSame(['columns' => ['foo_id', 'bar_id']], $desired[1]->expr);
+        static::assertSame(['foo_id', 'bar_id'], $desired[1]->columns);
     }
 
     public function test_existing_checks_are_mapped(): void

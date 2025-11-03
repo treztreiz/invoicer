@@ -44,19 +44,19 @@ trait CheckAwarePlatformTrait
     /**
      * @return list<CheckSpecInterface> declared checks defined on the schema table
      */
-    public function getDesiredChecks(Table $table): array
+    public function getDeclaredChecks(Table $table): array
     {
         return $this->registry->getDeclaredSpecs($table);
     }
 
     /**
-     * Append SQL snippets that create desired checks for a freshly created table.
+     * Append SQL snippets that create declared checks for a freshly created table.
      *
      * @param list<string> $sql
      */
     public function appendChecksSQL(array &$sql, Table $table): void
     {
-        foreach ($this->getDesiredChecks($table) as $spec) {
+        foreach ($this->getDeclaredChecks($table) as $spec) {
             $sql[] = $this->generator->buildAddCheckSQL($table->getQuotedName($this), $spec);
         }
     }

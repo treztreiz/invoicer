@@ -38,7 +38,7 @@ final class CheckAwarePlatformTraitTest extends TestCase
     {
         $table = new Table('invoice');
 
-        $spec = new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_ADD', ['col_a', 'col_b']);
 
         $this->platform->registry->appendDeclaredSpec($table, $spec);
 
@@ -57,9 +57,9 @@ final class CheckAwarePlatformTraitTest extends TestCase
     public function test_append_diff_checks_sql_emits_expected_sequence(): void
     {
         $diff = new CheckAwareTableDiff(new Table('invoice'));
-        $added = new SoftXorCheckSpec('CHK_ADD', ['columns' => ['col_a', 'col_b']]);
-        $modified = new SoftXorCheckSpec('CHK_MOD', ['columns' => ['col_c', 'col_d']]);
-        $dropped = new SoftXorCheckSpec('CHK_DROP', ['columns' => ['col_e', 'col_f']]);
+        $added = new SoftXorCheckSpec('CHK_ADD', ['col_a', 'col_b']);
+        $modified = new SoftXorCheckSpec('CHK_MOD', ['col_c', 'col_d']);
+        $dropped = new SoftXorCheckSpec('CHK_DROP', ['col_e', 'col_f']);
 
         $diff->addAddedChecks([$added]);
         $diff->addModifiedChecks([$modified]);

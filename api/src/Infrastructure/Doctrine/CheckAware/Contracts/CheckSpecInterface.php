@@ -9,13 +9,4 @@ interface CheckSpecInterface
     public string $name {
         get;
     }
-
-    /** @var array<string, mixed> */
-    public array $expr {
-        get;
-    }
-
-    public bool $deferrable {
-        get;
-    }
 }

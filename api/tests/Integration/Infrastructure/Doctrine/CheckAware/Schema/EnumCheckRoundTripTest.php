@@ -81,7 +81,7 @@ final class EnumCheckRoundTripTest extends ConfigurableKernelTestCase
     {
         return array_any(
             $checks,
-            static fn ($spec): bool => $spec instanceof EnumCheckSpec && 'status' === $spec->expr['column']
+            static fn ($spec): bool => $spec instanceof EnumCheckSpec && 'status' === $spec->column
         );
     }
 }

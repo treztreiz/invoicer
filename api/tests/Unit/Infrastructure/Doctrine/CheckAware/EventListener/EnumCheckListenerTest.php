@@ -60,10 +60,9 @@ final class EnumCheckListenerTest extends TestCase
 
         static::assertCount(1, $checks);
         static::assertInstanceOf(EnumCheckSpec::class, $checks[0]);
-        static::assertSame(
-            ['column' => 'status', 'values' => ['draft', 'issued'], 'is_string' => true],
-            $checks[0]->expr
-        );
+        static::assertSame('status', $checks[0]->column);
+        static::assertSame(['draft', 'issued'], $checks[0]->values);
+        static::assertTrue($checks[0]->isString);
     }
 
     /**
@@ -87,7 +86,7 @@ final class EnumCheckListenerTest extends TestCase
         $args = new GenerateSchemaTableEventArgs($metadata, $this->schemaStub(), $table);
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('EnumCheck on '.UntypedEnumEntity::class.'::status requires enumClass because the property is not typed as a backed enum.');
+        $this->expectExceptionMessage('EnumCheck on '.UntypedEnumEntity::class.'::status requires enumFqcn because the property is not typed as a backed enum.');
 
         $this->listener->postGenerateSchemaTable($args);
     }
@@ -116,7 +115,9 @@ final class EnumCheckListenerTest extends TestCase
 
         $checks = $this->registry->getDeclaredSpecs($table);
         static::assertCount(1, $checks);
-        static::assertSame(['column' => 'status', 'values' => ['draft', 'issued'], 'is_string' => true], $checks[0]->expr);
+        static::assertSame('status', $checks[0]->column);
+        static::assertSame(['draft', 'issued'], $checks[0]->values);
+        static::assertTrue($checks[0]->isString);
     }
 
     /**

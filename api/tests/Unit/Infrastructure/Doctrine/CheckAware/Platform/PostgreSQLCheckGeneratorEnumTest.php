@@ -24,11 +24,7 @@ final class PostgreSQLCheckGeneratorEnumTest extends TestCase
 
     public function test_build_expression_sql_handles_string_enum_values(): void
     {
-        $spec = new EnumCheckSpec('CHK_ENUM', [
-            'column' => 'status',
-            'values' => ['draft', 'issued'],
-            'is_string' => true,
-        ]);
+        $spec = new EnumCheckSpec('CHK_ENUM', 'status', ['draft', 'issued'], true);
 
         static::assertSame(
             '"status" = ANY(ARRAY[\'draft\'::text, \'issued\'::text])',
@@ -38,11 +34,7 @@ final class PostgreSQLCheckGeneratorEnumTest extends TestCase
 
     public function test_build_expression_sql_handles_int_enum_values(): void
     {
-        $spec = new EnumCheckSpec('CHK_ENUM_INT', [
-            'column' => 'priority',
-            'values' => [0, 1],
-            'is_string' => false,
-        ]);
+        $spec = new EnumCheckSpec('CHK_ENUM_INT', 'priority', [0, 1], false);
 
         static::assertSame(
             '"priority" = ANY(ARRAY[0, 1])',

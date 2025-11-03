@@ -8,7 +8,7 @@ use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\ORM\Mapping as ORM;
 
 #[EnumCheck(property: 'status')]
-#[EnumCheck(property: 'legacyStatus', name: 'CHK_ENUM_LEGACY', enumClass: EnumStatusStub::class)]
+#[EnumCheck(property: 'legacyStatus', name: 'CHK_ENUM_LEGACY', enumFqcn: EnumStatusStub::class)]
 #[ORM\Entity]
 #[ORM\Table(name: 'enum_check_stub')]
 class EnumCheckStub

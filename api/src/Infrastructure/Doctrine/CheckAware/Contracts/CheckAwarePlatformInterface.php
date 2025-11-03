@@ -25,12 +25,12 @@ interface CheckAwarePlatformInterface
     public function setCheckGenerator(CheckGeneratorInterface $generator): void;
 
     /**
-     * @return list<CheckSpecInterface> desired checks defined on the schema table
+     * @return list<CheckSpecInterface> declared checks defined on the schema table
      */
-    public function getDesiredChecks(Table $table): array;
+    public function getDeclaredChecks(Table $table): array;
 
     /**
-     * Append SQL snippets that create desired checks for a freshly created table.
+     * Append SQL snippets that create declared checks for a freshly created table.
      *
      * @param list<string> $sql
      */

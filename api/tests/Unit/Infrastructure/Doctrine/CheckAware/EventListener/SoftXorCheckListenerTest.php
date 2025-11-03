@@ -52,7 +52,7 @@ final class SoftXorCheckListenerTest extends TestCase
                 static::identicalTo($table),
                 static::callback(static fn ($spec): bool => $spec instanceof SoftXorCheckSpec
                     && 'SOFT_XOR' === $spec->name
-                    && $spec->expr['columns'] === ['recurrence_id', 'installment_plan_id']),
+                    && $spec->columns === ['recurrence_id', 'installment_plan_id']),
             );
 
         $listener = new SoftXorCheckListener($manager);

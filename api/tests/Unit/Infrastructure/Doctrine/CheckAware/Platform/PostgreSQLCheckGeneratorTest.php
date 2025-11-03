@@ -24,7 +24,7 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_expression_sql_quotes_identifiers(): void
     {
-        $spec = new SoftXorCheckSpec('CHK', ['columns' => ['recurrence_id', 'installment_plan_id']]);
+        $spec = new SoftXorCheckSpec('CHK', ['recurrence_id', 'installment_plan_id']);
 
         $expression = $this->generator->buildExpressionSQL($spec);
 
@@ -33,7 +33,7 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_add_check_sql_is_idempotent(): void
     {
-        $spec = new SoftXorCheckSpec('CHK_INV', ['columns' => ['col_a', 'col_b']]);
+        $spec = new SoftXorCheckSpec('CHK_INV', ['col_a', 'col_b']);
         $sql = $this->generator->buildAddCheckSQL('"invoice"', $spec);
 
         static::assertStringContainsString('DO $$', $sql);
@@ -43,7 +43,7 @@ final class PostgreSQLCheckGeneratorTest extends TestCase
 
     public function test_build_drop_check_sql_uses_if_exists(): void
     {
-        $sql = $this->generator->buildDropCheckSQL('"invoice"', new SoftXorCheckSpec('CHK_INV', ['columns' => ['a', 'b']]));
+        $sql = $this->generator->buildDropCheckSQL('"invoice"', new SoftXorCheckSpec('CHK_INV', ['a', 'b']));
 
         static::assertSame('ALTER TABLE "invoice" DROP CONSTRAINT IF EXISTS "CHK_INV"', $sql);
     }

@@ -69,11 +69,10 @@ final readonly class EnumCheckListener
 
         return new EnumCheckSpec(
             $config->name,
-            [
-                'column' => $column,
-                'values' => $cases,
-                'is_string' => 'string' === $enumReflection->getBackingType()->getName(),
-            ],
+            $column,
+            $cases,
+            'string' === $enumReflection->getBackingType()->getName(),
+            $config->deferrable,
         );
     }
 
@@ -128,8 +127,11 @@ final readonly class EnumCheckListener
             return $explicitReflection;
         }
 
-        return $inferredReflection ?:
+        if (null === $inferredReflection) {
             throw new \LogicException(sprintf('EnumCheck on %s::%s requires enumFqcn because the property is not typed as a backed enum.', $classFqcn, $property));
+        }
+
+        return $inferredReflection;
     }
 
     /**

@@ -8,28 +8,29 @@ use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckNormalizer;
 
 final class SoftXorCheckSpec extends AbstractCheckSpec
 {
-    /** @param array{columns: list<string>} $expr */
+    /**
+     * @param non-empty-string $name
+     * @param non-empty-list<string> $columns
+     */
     public function __construct(
-        private(set) readonly string $name,
-        private(set) readonly array $expr,
-        private(set) readonly bool $deferrable = false,
+        string $name,
+        private(set) readonly array $columns,
+        bool $deferrable = false,
     ) {
-        if (!isset($this->expr['columns']) || !is_array($this->expr['columns']) || count($this->expr['columns']) < 2) {
+        parent::__construct($name, $deferrable);
+
+        if (count($this->columns) < 2) {
             throw new \InvalidArgumentException('SoftXorCheckSpec requires at least two columns.');
         }
     }
 
-    public function normalizeWith(CheckNormalizer $normalizer): self
+    protected function normalize(CheckNormalizer $normalizer): self
     {
-        if ($this->normalized) {
-            return $this;
-        }
+        $columns = array_map([$normalizer, 'normalizeIdentifier'], array_values($this->columns));
 
-        $cols = array_map([$normalizer, 'normalizeIdentifier'], $this->expr['columns']);
-
-        return self::fromNormalized(
+        return new self(
             $normalizer->normalizeConstraintName($this->name),
-            ['columns' => $cols],
+            $columns,
             $this->deferrable,
         );
     }
