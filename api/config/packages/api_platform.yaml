@@ -1,0 +1,39 @@
+api_platform:
+    title: 'Invoicer API'
+    description: 'Single-user invoicing & quoting service.'
+    version: 1.0.0
+    show_webby: false
+
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: [ 'Content-Type', 'Authorization', 'Origin' ]
+
+    enable_entrypoint: false
+    enable_re_doc: false
+    enable_swagger: true
+    enable_swagger_ui: true
+    enable_docs: true
+
+    formats:
+        jsonld:
+            mime_types: [ 'application/ld+json' ]
+        json:
+            mime_types: [ 'application/json' ]
+
+    patch_formats:
+        json:
+            mime_types: [ 'application/merge-patch+json' ]
+
+    error_formats:
+        jsonproblem:
+            mime_types: [ 'application/problem+json' ]
+        json:
+            mime_types: [ 'application/json' ]
+
+when@prod:
+    api_platform:
+        enable_docs: false
+        enable_entrypoint: false
+        enable_swagger: false
+        enable_swagger_ui: false

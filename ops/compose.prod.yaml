@@ -15,6 +15,7 @@ services:
             JWT_SECRET_KEY: ${JWT_SECRET_KEY?}
             JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY?}
             JWT_PASSPHRASE: ${JWT_PASSPHRASE?}
+            CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN?}
         volumes:
             - uploads:/app/public/uploads
 
