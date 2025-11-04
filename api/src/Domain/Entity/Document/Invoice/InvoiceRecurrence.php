@@ -9,11 +9,14 @@ use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\Guard\DomainGuard;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice_recurrence')]
+#[EnumCheck(property: 'frequency', name: 'CHK_RECURRENCE_FREQUENCY')]
+#[EnumCheck(property: 'endStrategy', name: 'CHK_RECURRENCE_END_STRATEGY')]
 class InvoiceRecurrence
 {
     use UuidTrait;

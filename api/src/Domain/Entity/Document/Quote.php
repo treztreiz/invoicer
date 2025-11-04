@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Entity\Document;
 
 use App\Domain\Enum\QuoteStatus;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -12,6 +13,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'quote')]
+#[EnumCheck(property: 'status', name: 'CHK_QUOTE_STATUS')]
 class Quote extends Document
 {
     #[ORM\Column(enumType: QuoteStatus::class)]

@@ -11,11 +11,13 @@ use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'document_line')]
+#[EnumCheck(property: 'rateUnit', name: 'CHK_DOCUMENT_LINE_RATE_UNIT')]
 class DocumentLine
 {
     use UuidTrait;

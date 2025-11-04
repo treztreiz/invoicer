@@ -7,6 +7,7 @@ namespace App\Domain\Entity\Document;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
+use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,7 +16,8 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'invoice')]
-#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'], name: 'RSSf')]
+#[EnumCheck(property: 'status', name: 'CHK_INVOICE_STATUS')]
+#[SoftXorCheck(properties: ['recurrence', 'installmentPlan'], name: 'CHK_INVOICE_SCHEDULE_XOR')]
 class Invoice extends Document
 {
     #[ORM\Column(enumType: InvoiceStatus::class)]
