@@ -20,7 +20,7 @@ final class EnumCheckSpecTest extends TestCase
         $this->normalizer = new CheckNormalizer();
     }
 
-    public function test_valid_spec_is_accepted(): void
+    public function test_valid_spec_is_normalized(): void
     {
         $spec = new EnumCheckSpec('chk_status', 'STATUS', ['draft', 'issued'], true);
         $normalized = $spec->normalizeWith($this->normalizer);
