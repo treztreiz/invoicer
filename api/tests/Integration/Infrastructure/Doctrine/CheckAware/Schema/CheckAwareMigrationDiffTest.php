@@ -9,6 +9,7 @@ use App\Tests\TestKernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -18,7 +19,7 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 /**
  * @testType integration
  */
-final class MigrationDiffTest extends ConfigurableKernelTestCase
+final class CheckAwareMigrationDiffTest extends ConfigurableKernelTestCase
 {
     use ResetDatabase;
 
@@ -33,7 +34,7 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
         yield 'doctrine' => [
             'orm' => [
                 'mappings' => [
-                    'SoftXorTest' => [
+                    'CheckAwareTests' => [
                         'type' => 'attribute',
                         'is_bundle' => false,
                         'dir' => __DIR__,
@@ -66,34 +67,62 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
     }
 
     /**
+     * @param non-empty-string $filterExpression
+     * @param non-empty-string $expectedConstraint
+     * @param non-empty-string $expectedSnippet
+     *
      * @throws \Exception
      */
-    public function test_migration_diff_contains_soft_xor_check_once(): void
-    {
-        // Ensure database is empty before generating diff
+    #[DataProvider('migrationDiffProvider')]
+    public function test_migration_diff_contains_check_once(
+        string $filterExpression,
+        string $expectedConstraint,
+        string $expectedSnippet,
+    ): void {
         $schemaTool = new SchemaTool($this->entityManager);
         $schemaTool->dropDatabase();
 
-        $firstDiffOutput = $this->runDiffCommand();
+        $firstDiffOutput = $this->runDiffCommand($filterExpression);
 
         $generatedMigrations = glob($this->migrationsDir.'/*.php') ?: [];
         static::assertCount(1, $generatedMigrations, $firstDiffOutput);
 
         $migrationContents = file_get_contents($generatedMigrations[0]) ?: '';
-        static::assertStringContainsString('TEST_SOFT_XOR', $migrationContents);
-        static::assertSame(1, substr_count(strtoupper($migrationContents), ' CHECK '), 'Check constraint should appear exactly once.');
+        static::assertStringContainsString($expectedConstraint, $migrationContents);
+        static::assertStringContainsString($expectedSnippet, $migrationContents);
+        static::assertSame(
+            1,
+            substr_count($migrationContents, sprintf('ADD CONSTRAINT "%s"', $expectedConstraint)),
+            'Expected constraint should be added exactly once.'
+        );
 
-        // Clean directory for the second run
         $this->filesystem->remove($generatedMigrations);
 
-        // Bring the database schema in sync with metadata
         $metadata = $this->filteredMetadata();
         $schemaTool->createSchema($metadata);
 
-        $secondDiffOutput = $this->runDiffCommand();
+        $secondDiffOutput = $this->runDiffCommand($filterExpression);
         $generatedMigrations = glob($this->migrationsDir.'/*.php') ?: [];
 
         static::assertCount(0, $generatedMigrations, $secondDiffOutput);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function migrationDiffProvider(): iterable
+    {
+        yield 'soft_xor' => [
+            '/^soft_xor_check_stub$/',
+            'TEST_SOFT_XOR',
+            'num_nonnulls',
+        ];
+
+        yield 'enum_check' => [
+            '/^enum_check_stub$/',
+            'CHK_ENUM_LEGACY',
+            'ALTER TABLE enum_check_stub ADD CONSTRAINT "CHK_ENUM_LEGACY"',
+        ];
     }
 
     /**
@@ -115,9 +144,11 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
     }
 
     /**
+     * @param non-empty-string $filterExpression
+     *
      * @throws \Exception
      */
-    private function runDiffCommand(): string
+    private function runDiffCommand(string $filterExpression): string
     {
         $application = new Application(static::$kernel);
         $application->setAutoExit(false);
@@ -126,7 +157,7 @@ final class MigrationDiffTest extends ConfigurableKernelTestCase
             'command' => 'doctrine:migrations:diff',
             '--env' => 'test',
             '--no-interaction' => true,
-            '--filter-expression' => '/^soft_xor_check_stub$/',
+            '--filter-expression' => $filterExpression,
         ]);
 
         $output = new BufferedOutput();
