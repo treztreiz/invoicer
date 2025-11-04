@@ -2,7 +2,9 @@
 
 The `CheckAware` feature extends Doctrine so that database check constraints can be
 generated, enforced, and diffed consistently across the entire stack (schema tool,
-migrations, runtime assertions).
+migrations, runtime assertions). It is specifically wired into the ORM metadata
+pipeline, so annotating entities automatically registers both application-level and
+database-level invariants.
 
 This document describes the moving pieces, how they are wired together, and how
 to extend or customise the behaviour when new check specs or dialects are added.
@@ -13,7 +15,9 @@ to extend or customise the behaviour when new check specs or dialects are added.
 
 1. **Attribute & Spec**
    - `Attribute\SoftXorCheck` and `Attribute\EnumCheck` annotate Doctrine entities with
-     check metadata (participating properties, optional constraint name, etc.).
+     check metadata (participating properties, optional constraint name, etc.). Once
+     applied, the invariants are enforced in three places: domain validation, Doctrine
+     metadata (via listeners), and a generated database `CHECK` constraint.
    - Each attribute maps to a spec (`Spec\SoftXorCheckSpec`, `Spec\EnumCheckSpec`)
      implementing `CheckSpecInterface` so the rest of the pipeline can treat checks
      generically.
