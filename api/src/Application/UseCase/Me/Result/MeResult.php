@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 final class MeResult
 {
+    /** @param array<int, string> $roles */
     public function __construct(
         #[Groups(['me:read'])]
         public string $id,

@@ -19,6 +19,7 @@ final readonly class SerializerContextBuilder implements SerializerContextBuilde
     ) {
     }
 
+    /** @param array<string, mixed> $extractedAttributes */
     public function createFromRequest(Request $request, bool $normalization, ?array $extractedAttributes = null): array
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);

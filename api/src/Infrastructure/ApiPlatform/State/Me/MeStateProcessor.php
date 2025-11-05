@@ -25,9 +25,6 @@ final readonly class MeStateProcessor implements ProcessorInterface
     ) {
     }
 
-    /**
-     * @param MeCommand $data
-     */
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): MeResult
     {
         if (!$data instanceof MeCommand) {

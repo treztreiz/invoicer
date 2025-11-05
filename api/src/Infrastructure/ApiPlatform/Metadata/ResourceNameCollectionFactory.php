@@ -19,21 +19,15 @@ final readonly class ResourceNameCollectionFactory implements ResourceNameCollec
     ) {
     }
 
-    public function create(?string $resourceClass = null): ResourceNameCollection
+    public function create(): ResourceNameCollection
     {
-        $resourceNameCollection = $this->decorated->create($resourceClass);
+        $collection = $this->decorated->create();
 
-        if (null !== $resourceClass) {
-            return $resourceNameCollection;
-        }
-
-        $existing = iterator_to_array($resourceNameCollection);
+        $existing = iterator_to_array($collection);
         $additional = array_diff($this->registry->resourceClasses(), $existing);
 
-        if (empty($additional)) {
-            return $resourceNameCollection;
-        }
-
-        return new ResourceNameCollection([...$existing, ...$additional]);
+        return empty($additional)
+            ? $collection
+            : new ResourceNameCollection([...$existing, ...$additional]);
     }
 }

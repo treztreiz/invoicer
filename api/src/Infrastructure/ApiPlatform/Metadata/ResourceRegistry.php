@@ -14,9 +14,12 @@ final class ResourceRegistry
     /** @var array<class-string, ApiResource> */
     private array $resources;
 
-    public function __construct()
+    /**
+     * @param array<class-string, ApiResource>|null $resources
+     */
+    public function __construct(?array $resources = null)
     {
-        $this->resources = [
+        $this->resources = $resources ?? [
             MeResult::class => new ApiResource(
                 uriTemplate: '/me',
                 operations: [

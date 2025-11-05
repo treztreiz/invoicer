@@ -23,9 +23,6 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
     {
     }
 
-    /**
-     * @param MeCommand $command
-     */
     public function handle(object $command): User
     {
         if (!$command instanceof MeCommand) {

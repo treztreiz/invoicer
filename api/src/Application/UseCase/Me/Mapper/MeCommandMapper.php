@@ -12,7 +12,7 @@ final class MeCommandMapper implements CommandMapperInterface
     public function fromPayload(object $payload): MeCommand
     {
         if (!$payload instanceof MeCommand) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, is_object($payload) ? $payload::class : gettype($payload)));
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, $payload::class));
         }
 
         // The payload already carries the command structure (thanks to Api Platform denormalization).

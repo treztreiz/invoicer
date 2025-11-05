@@ -11,17 +11,12 @@ use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 
 #[AsDecorator(decorates: 'api_platform.metadata.resource.metadata_collection_factory')]
 final class ResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    // Convention templates target the default state provider/processor/command classes.
-    private const string PROVIDER_CLASS_TEMPLATE = 'App\\Infrastructure\\ApiPlatform\\State\\%s\\%sStateProvider';
-    private const string PROCESSOR_CLASS_TEMPLATE = 'App\\Infrastructure\\ApiPlatform\\State\\%s\\%sStateProcessor';
-    private const string COMMAND_CLASS_TEMPLATE = 'App\\Application\\UseCase\\%s\\Command\\%sCommand';
-    private const string DEFAULT_CONTROLLER_SERVICE = 'api_platform.symfony.main_controller';
-
     /** @var array{useCase: string, baseName: string}|null */
     private ?array $useCaseTokens = null;
 
@@ -29,9 +24,22 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         #[AutowireDecorated]
         private readonly ResourceMetadataCollectionFactoryInterface $decorated,
         private readonly ResourceRegistry $registry,
+        #[Autowire(param: 'app.api_platform.metadata.result_class_template')]
+        private readonly string $resultClassTemplate,
+        #[Autowire(param: 'app.api_platform.metadata.command_class_template')]
+        private readonly string $commandClassTemplate,
+        #[Autowire(param: 'app.api_platform.metadata.provider_class_template')]
+        private readonly string $providerClassTemplate,
+        #[Autowire(param: 'app.api_platform.metadata.processor_class_template')]
+        private readonly string $processorClassTemplate,
+        #[Autowire(param: 'app.api_platform.metadata.controller')]
+        private readonly string $controller,
     ) {
     }
 
+    /** @param class-string $resourceClass
+     * @throws ResourceClassNotFoundException
+     */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
         // Merge Api Platform's metadata with our registry defaults (if any).
@@ -51,14 +59,6 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
      */
     private function extractUseCaseTokens(string $resourceClass): ?array
     {
-        if (!str_starts_with($resourceClass, 'App\\Application\\UseCase\\')) {
-            return null;
-        }
-
-        if (!str_contains($resourceClass, '\\Result\\')) {
-            return null;
-        }
-
         if (!str_ends_with($resourceClass, 'Result')) {
             return null;
         }
@@ -78,6 +78,12 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         $baseName = substr($shortClass, 0, -strlen('Result'));
 
         if ('' === $baseName) {
+            return null;
+        }
+
+        $expectedClass = sprintf($this->resultClassTemplate, $useCase, $baseName);
+
+        if ($resourceClass !== $expectedClass) {
             return null;
         }
 
@@ -200,7 +206,7 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     private function applyControllerDefaults(HttpOperation $operation): HttpOperation
     {
         if (null === $operation->getController()) {
-            $operation = $operation->withController(self::DEFAULT_CONTROLLER_SERVICE);
+            $operation = $operation->withController($this->controller);
         }
 
         return $operation;
@@ -208,10 +214,10 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
 
     private function applyUseCaseDefaults(HttpOperation $operation): HttpOperation
     {
-        $method = strtoupper($operation->getMethod() ?? 'GET');
+        $method = strtoupper($operation->getMethod());
 
         if ('GET' === $method) {
-            $providerClass = $this->generateUseCaseClass(self::PROVIDER_CLASS_TEMPLATE);
+            $providerClass = $this->generateUseCaseClass($this->providerClassTemplate);
 
             if (null === $operation->getProvider() && class_exists($providerClass)) {
                 $operation = $operation->withProvider($providerClass);
@@ -220,13 +226,13 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
             return $operation;
         }
 
-        $processorClass = $this->generateUseCaseClass(self::PROCESSOR_CLASS_TEMPLATE);
+        $processorClass = $this->generateUseCaseClass($this->processorClassTemplate);
 
         if (null === $operation->getProcessor() && class_exists($processorClass)) {
             $operation = $operation->withProcessor($processorClass);
         }
 
-        $commandClass = $this->generateUseCaseClass(self::COMMAND_CLASS_TEMPLATE);
+        $commandClass = $this->generateUseCaseClass($this->commandClassTemplate);
 
         if (null === $operation->getInput() && class_exists($commandClass)) {
             $operation = $operation->withInput($commandClass);
@@ -258,6 +264,9 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
             throw new \LogicException('Use case tokens must be resolved before generating use case class names.');
         }
 
-        return sprintf($template, $this->useCaseTokens['useCase'], $this->useCaseTokens['baseName']);
+        /** @var class-string $class */
+        $class = sprintf($template, $this->useCaseTokens['useCase'], $this->useCaseTokens['baseName']);
+
+        return $class;
     }
 }
