@@ -43,4 +43,44 @@ final class Company
         },
     ) {
     }
+
+    public function legalName(): string
+    {
+        return $this->legalName;
+    }
+
+    public function contact(): Contact
+    {
+        return $this->contact;
+    }
+
+    public function address(): Address
+    {
+        return $this->address;
+    }
+
+    public function defaultCurrency(): string
+    {
+        return $this->defaultCurrency;
+    }
+
+    public function defaultHourlyRate(): Money
+    {
+        return $this->defaultHourlyRate;
+    }
+
+    public function defaultDailyRate(): Money
+    {
+        return $this->defaultDailyRate;
+    }
+
+    public function defaultVatRate(): VatRate
+    {
+        return $this->defaultVatRate;
+    }
+
+    public function legalMention(): ?string
+    {
+        return $this->legalMention;
+    }
 }
