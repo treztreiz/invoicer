@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Command;
+namespace App\Application\UseCase\Me\Input;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class MeCommand
+final class MeInput
 {
     /**
      * Filled internally to identify the authenticated user.
@@ -39,7 +39,7 @@ final class MeCommand
 
         #[Groups(['me:write'])]
         #[Assert\Valid]
-        public CompanyCommand $company,
+        public CompanyInput $company,
 
         #[Groups(['me:write'])]
         #[Assert\Length(max: 32)]

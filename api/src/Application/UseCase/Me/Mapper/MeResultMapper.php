@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Me\Mapper;
 
 use App\Application\Contract\ResultMapperInterface;
-use App\Application\UseCase\Me\Result\CompanyAddressResult;
-use App\Application\UseCase\Me\Result\CompanyResult;
-use App\Application\UseCase\Me\Result\MeResult;
+use App\Application\UseCase\Me\Output\CompanyAddressOutput;
+use App\Application\UseCase\Me\Output\CompanyOutput;
+use App\Application\UseCase\Me\Output\MeOutput;
 use App\Domain\Entity\User\User;
 
 final class MeResultMapper implements ResultMapperInterface
 {
-    public function toResult(object $model): MeResult
+    public function toResult(object $model): MeOutput
     {
         if (!$model instanceof User) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', User::class, $model::class));
@@ -26,11 +26,11 @@ final class MeResultMapper implements ResultMapperInterface
         $address = $company->address();
         $logo = $user->logo;
 
-        $companyResult = new CompanyResult(
+        $companyResult = new CompanyOutput(
             legalName: $company->legalName,
             email: $companyContact->email,
             phone: $companyContact->phone,
-            address: new CompanyAddressResult(
+            address: new CompanyAddressOutput(
                 streetLine1: $address->streetLine1,
                 streetLine2: $address->streetLine2,
                 postalCode: $address->postalCode,
@@ -46,7 +46,7 @@ final class MeResultMapper implements ResultMapperInterface
             logoUrl: $logo->url()
         );
 
-        return new MeResult(
+        return new MeOutput(
             id: $user->id->toRfc4122(),
             firstName: $name->firstName,
             lastName: $name->lastName,

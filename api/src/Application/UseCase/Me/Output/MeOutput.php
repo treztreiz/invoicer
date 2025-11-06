@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Result;
+namespace App\Application\UseCase\Me\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class MeResult
+final class MeOutput
 {
     /** @param array<int, string> $roles */
     public function __construct(
@@ -25,7 +25,7 @@ final class MeResult
         #[Groups(['me:read'])]
         public array $roles,
         #[Groups(['me:read'])]
-        public CompanyResult $company,
+        public CompanyOutput $company,
     ) {
     }
 }

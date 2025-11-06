@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
@@ -156,7 +157,14 @@ final class MeApiTest extends ApiTestCase
         static::assertSame('New Corp', $user->company->legalName());
     }
 
-    private function authenticate($client): string
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    private function authenticate(Client $client): string
     {
         $response = $client->request('POST', '/api/auth/login', [
             'json' => [

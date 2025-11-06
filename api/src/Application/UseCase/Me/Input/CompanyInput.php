@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Command;
+namespace App\Application\UseCase\Me\Input;
 
+use ApiPlatform\Metadata\ApiProperty;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class CompanyCommand
+final class CompanyInput
 {
     /**
      * @param numeric-string $defaultHourlyRate
@@ -22,7 +23,7 @@ final class CompanyCommand
 
         #[Groups(['me:write'])]
         #[Assert\Valid]
-        public CompanyAddressCommand $address,
+        public CompanyAddressInput $address,
 
         #[Groups(['me:write'])]
         #[Assert\NotBlank]
@@ -32,16 +33,19 @@ final class CompanyCommand
         #[Groups(['me:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/')]
+        #[ApiProperty(openapiContext: ['example' => '50.00'])]
         public string $defaultHourlyRate,
 
         #[Groups(['me:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/')]
+        #[ApiProperty(openapiContext: ['example' => '350.00'])]
         public string $defaultDailyRate,
 
         #[Groups(['me:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^(?:100(?:\.0{1,2})?|\d{1,2}(?:\.\d{1,2})?)$/')]
+        #[ApiProperty(openapiContext: ['example' => '00.00'])]
         public string $defaultVatRate,
 
         #[Groups(['me:write'])]

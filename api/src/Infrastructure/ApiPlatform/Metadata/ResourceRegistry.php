@@ -7,20 +7,20 @@ namespace App\Infrastructure\ApiPlatform\Metadata;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
-use App\Application\UseCase\Me\Result\MeResult;
+use App\Application\UseCase\Me\Output\MeOutput;
 
 final class ResourceRegistry
 {
-    /** @var array<class-string, ApiResource> */
+    /** @var array<class-string, list<ApiResource>> */
     private array $resources;
 
     /**
-     * @param array<class-string, ApiResource>|null $resources
+     * @param array<class-string, ApiResource|list<ApiResource>>|null $resources
      */
     public function __construct(?array $resources = null)
     {
-        $this->resources = $resources ?? [
-            MeResult::class => new ApiResource(
+        $defaults = [
+            MeOutput::class => new ApiResource(
                 uriTemplate: '/me',
                 operations: [
                     new Get(
@@ -36,11 +36,34 @@ final class ResourceRegistry
                 uriVariables: []
             ),
         ];
+
+        $this->register($resources ?? $defaults);
     }
 
-    public function find(string $resourceClasse): ?ApiResource
+    /** @param array<class-string, ApiResource|list<ApiResource>|array<ApiResource>> $resources */
+    private function register(array $resources): void
     {
-        return $this->resources[$resourceClasse] ?? null;
+        $this->resources = [];
+
+        foreach ($resources as $resourceClass => $resource) {
+            $resourceList = \is_array($resource) ? array_values($resource) : [$resource];
+
+            $this->resources[$resourceClass] = array_map(
+                static fn (ApiResource $resource) => $resource->withExtraProperties([
+                    'api.autoconfigure' => true,
+                    ...$resource->getExtraProperties(),
+                ]),
+                $resourceList
+            );
+        }
+    }
+
+    /**
+     * @return list<ApiResource>
+     */
+    public function resourcesFor(string $resourceClass): array
+    {
+        return $this->resources[$resourceClass] ?? [];
     }
 
     /**

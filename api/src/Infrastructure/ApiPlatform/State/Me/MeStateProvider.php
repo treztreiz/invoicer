@@ -7,12 +7,12 @@ namespace App\Infrastructure\ApiPlatform\State\Me;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Application\UseCase\Me\Mapper\MeResultMapper;
-use App\Application\UseCase\Me\Result\MeResult;
+use App\Application\UseCase\Me\Output\MeOutput;
 use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
-/** @implements ProviderInterface<MeResult> */
+/** @implements ProviderInterface<MeOutput> */
 final readonly class MeStateProvider implements ProviderInterface
 {
     public function __construct(
@@ -21,7 +21,7 @@ final readonly class MeStateProvider implements ProviderInterface
     ) {
     }
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): MeResult
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): MeOutput
     {
         $user = $this->security->getUser();
 

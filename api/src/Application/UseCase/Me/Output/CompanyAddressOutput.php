@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Result;
+namespace App\Application\UseCase\Me\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class CompanyAddressResult
+final class CompanyAddressOutput
 {
     public function __construct(
         #[Groups(['me:read'])]

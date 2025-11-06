@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Command;
+namespace App\Application\UseCase\Me\Input;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class CompanyAddressCommand
+final class CompanyAddressInput
 {
     public function __construct(
         #[Groups(['me:write'])]

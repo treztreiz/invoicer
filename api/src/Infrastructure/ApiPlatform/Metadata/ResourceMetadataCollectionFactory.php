@@ -15,33 +15,32 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 
 #[AsDecorator(decorates: 'api_platform.metadata.resource.metadata_collection_factory')]
-final class ResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
+final readonly class ResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    /** @var array{useCase: string, baseName: string}|null */
-    private ?array $useCaseTokens = null;
-
     /**
      * @param array<string, list<string>> $defaultFormats
      * @param array<string, list<string>> $defaultPatchFormats
      */
     public function __construct(
         #[AutowireDecorated]
-        private readonly ResourceMetadataCollectionFactoryInterface $decorated,
-        private readonly ResourceRegistry $registry,
-        #[Autowire(param: 'app.api_platform.metadata.result_class_template')]
-        private readonly string $resultClassTemplate,
-        #[Autowire(param: 'app.api_platform.metadata.command_class_template')]
-        private readonly string $commandClassTemplate,
+        private ResourceMetadataCollectionFactoryInterface $decorated,
+        private ResourceRegistry $registry,
+        #[Autowire(param: 'app.api_platform.metadata.output_suffix')]
+        private string $outputSuffix,
+        #[Autowire(param: 'app.api_platform.metadata.output_class_template')]
+        private string $outputClassTemplate,
+        #[Autowire(param: 'app.api_platform.metadata.input_class_template')]
+        private string $inputClassTemplate,
         #[Autowire(param: 'app.api_platform.metadata.provider_class_template')]
-        private readonly string $providerClassTemplate,
+        private string $providerClassTemplate,
         #[Autowire(param: 'app.api_platform.metadata.processor_class_template')]
-        private readonly string $processorClassTemplate,
+        private string $processorClassTemplate,
         #[Autowire(param: 'app.api_platform.metadata.controller')]
-        private readonly string $controller,
+        private string $controller,
         #[Autowire(param: 'api_platform.formats')]
-        private readonly array $defaultFormats,
+        private array $defaultFormats,
         #[Autowire(param: 'api_platform.patch_formats')]
-        private readonly array $defaultPatchFormats,
+        private array $defaultPatchFormats,
     ) {
     }
 
@@ -52,55 +51,10 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
      */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        // Merge Api Platform's metadata with our registry defaults (if any).
-        $resourceMetadataCollection = $this->seedCollection($resourceClass);
-
-        // Only DTOs following the "UseCase\Result\*Result" convention get extra wiring.
-        $this->useCaseTokens = $this->extractUseCaseTokens($resourceClass);
-        if (null === $this->useCaseTokens) {
-            return $resourceMetadataCollection;
-        }
-
-        return $this->configureCollection($resourceMetadataCollection, $resourceClass);
-    }
-
-    /**
-     * @return array{useCase: string, baseName: string}|null [useCase, baseName]
-     */
-    private function extractUseCaseTokens(string $resourceClass): ?array
-    {
-        if (!str_ends_with($resourceClass, 'Result')) {
-            return null;
-        }
-
-        $parts = explode('\\', $resourceClass);
-        $resultSegmentIndex = array_search('Result', $parts, true);
-        if (false === $resultSegmentIndex || 0 === $resultSegmentIndex) {
-            return null;
-        }
-
-        $useCase = $parts[$resultSegmentIndex - 1] ?? null;
-        if (null === $useCase) {
-            return null;
-        }
-
-        $shortClass = $parts[array_key_last($parts)];
-        $baseName = substr($shortClass, 0, -strlen('Result'));
-
-        if ('' === $baseName) {
-            return null;
-        }
-
-        $expectedClass = sprintf($this->resultClassTemplate, $useCase, $baseName);
-
-        if ($resourceClass !== $expectedClass) {
-            return null;
-        }
-
-        return [
-            'useCase' => $useCase,
-            'baseName' => $baseName,
-        ];
+        return $this->configureCollection(
+            $this->seedCollection($resourceClass),
+            $resourceClass
+        );
     }
 
     /**
@@ -109,19 +63,17 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     private function seedCollection(string $resourceClass): ResourceMetadataCollection
     {
         $resourceMetadataCollection = $this->decorated->create($resourceClass);
+        $registryResources = $this->registry->resourcesFor($resourceClass);
 
-        // Attributes/config already described the resource → nothing to seed from the registry.
-        if (0 !== count($resourceMetadataCollection)) {
+        if ([] === $registryResources) {
             return $resourceMetadataCollection;
         }
 
-        $resource = $this->registry->find($resourceClass);
-        if (null === $resource) {
-            return $resourceMetadataCollection;
+        foreach ($registryResources as $resource) {
+            $resourceMetadataCollection[] = $resource;
         }
 
-        // Registry entry provides a first ApiResource definition for this DTO.
-        return new ResourceMetadataCollection($resourceClass, [$resource]);
+        return $resourceMetadataCollection;
     }
 
     /**
@@ -130,6 +82,16 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     private function configureCollection(ResourceMetadataCollection $collection, string $resourceClass): ResourceMetadataCollection
     {
         foreach ($collection as $index => $resource) {
+            /* @phpstan-ignore-next-line defensive runtime guard */
+            if (!$resource instanceof ApiResource) {
+                continue;
+            }
+
+            $autoconfigure = $resource->getExtraProperties()['api.autoconfigure'] ?? false;
+            if (false === $autoconfigure) {
+                continue;
+            }
+
             $collection[$index] = $this->configureResource($resource, $resourceClass);
         }
 
@@ -144,6 +106,7 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     private function configureResource(ApiResource $resource, string $resourceClass): ApiResource
     {
         $resource = $this->applyResourceDefaults($resource, $resourceClass);
+        $resource = $this->applyClassesTokens($resource);
 
         $operations = $resource->getOperations();
 
@@ -177,6 +140,40 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         return $resource;
     }
 
+    private function applyClassesTokens(ApiResource $resource): ApiResource
+    {
+        $parts = explode('\\', $resource->getClass());
+
+        // Skip if last segment doesn't contain expected suffixe
+        $outputSegmentIndex = array_search($this->outputSuffix, $parts, true);
+        if (false === $outputSegmentIndex || 0 === $outputSegmentIndex) {
+            return $resource;
+        }
+
+        // Retrieve useCase and baseName placeholders
+        $useCase = $parts[$outputSegmentIndex - 1] ?? null;
+
+        $shortClass = $parts[array_key_last($parts)];
+        $baseName = substr($shortClass, 0, -strlen($this->outputSuffix));
+
+        // Skip if resource fqcn doesn't contain expected placeholders
+        if (null === $useCase || '' === $baseName) {
+            return $resource;
+        }
+
+        // Skip if resource fqcn doesn't match expected fqcn
+        $expectedClass = sprintf($this->outputClassTemplate, $useCase, $baseName);
+        if ($resource->getClass() !== $expectedClass) {
+            return $resource;
+        }
+
+        return $resource->withExtraProperties([
+            ...$resource->getExtraProperties(),
+            'token.use_case' => $useCase,
+            'token.base_name' => $baseName,
+        ]);
+    }
+
     /**
      * @param class-string $resourceClass
      */
@@ -196,7 +193,7 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         $operation = $this->applyUriDefaults($operation, $resource);
         $operation = $this->applyFormatDefaults($operation);
         $operation = $this->applyControllerDefaults($operation);
-        $operation = $this->applyUseCaseDefaults($operation);
+        $operation = $this->applyClassesDefaults($operation, $resource);
 
         return $this->applyPresentationDefaults($operation, $resource);
     }
@@ -248,30 +245,56 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         return $operation;
     }
 
-    private function applyUseCaseDefaults(HttpOperation $operation): HttpOperation
+    private function applyClassesDefaults(HttpOperation $operation, ApiResource $resource): HttpOperation
     {
-        $method = strtoupper($operation->getMethod());
+        $method = strtoupper($operation->getMethod() ?: 'GET');
 
-        if ('GET' === $method) {
-            $providerClass = $this->generateUseCaseClass($this->providerClassTemplate);
-
-            if (null === $operation->getProvider() && class_exists($providerClass)) {
-                $operation = $operation->withProvider($providerClass);
+        // Apply provider configuration
+        if (null === $operation->getProvider()) {
+            $provider = $resource->getProvider();
+            if (null === $provider && 'GET' === $method) {
+                $provider = $this->generateClassFromTokens($resource, $this->providerClassTemplate);
             }
 
+            if (is_callable($provider) || (is_string($provider) && class_exists($provider))) {
+                $operation = $operation->withProvider($provider);
+            }
+        }
+
+        // GET operation doesn't need processor/input/output configuration
+        if ('GET' === $method) {
             return $operation;
         }
 
-        $processorClass = $this->generateUseCaseClass($this->processorClassTemplate);
+        // Apply processor configuration
+        if (null === $operation->getProcessor()) {
+            $processor = $resource->getProcessor() ?: $this->generateClassFromTokens($resource, $this->processorClassTemplate);
 
-        if (null === $operation->getProcessor() && class_exists($processorClass)) {
-            $operation = $operation->withProcessor($processorClass);
+            if (is_callable($processor) || (is_string($processor) && class_exists($processor))) {
+                $operation = $operation->withProcessor($processor);
+            }
         }
 
-        $commandClass = $this->generateUseCaseClass($this->commandClassTemplate);
+        // Apply Input configuration
+        if (null === $operation->getInput()) {
+            $input = $resource->getInput() ?: $this->generateClassFromTokens($resource, $this->inputClassTemplate);
 
-        if (null === $operation->getInput() && class_exists($commandClass)) {
-            $operation = $operation->withInput(['class' => $commandClass]);
+            if (is_string($input) && class_exists($input)) {
+                $operation = $operation->withInput(['class' => $input]);
+            } elseif (is_callable($input)) {
+                $operation = $operation->withInput($input);
+            }
+        }
+
+        // Apply output configuration
+        if (null === $operation->getOutput()) {
+            $output = $resource->getOutput();
+
+            if (is_string($output) && class_exists($output)) {
+                $operation = $operation->withOutput(['class' => $output]);
+            } elseif (is_callable($output)) {
+                $operation = $operation->withOutput($output);
+            }
         }
 
         return $operation;
@@ -293,15 +316,23 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         return $operation;
     }
 
-    /** @return class-string */
-    private function generateUseCaseClass(string $template): string
+    /**
+     * @return class-string|null
+     */
+    private function generateClassFromTokens(ApiResource $resource, string $template): ?string
     {
-        if (null === $this->useCaseTokens) {
-            throw new \LogicException('Use case tokens must be resolved before generating use case class names.');
+        $extra = $resource->getExtraProperties();
+
+        if (!isset($extra['token.use_case']) || !isset($extra['token.base_name'])) {
+            return null;
+        }
+
+        if (!is_string($extra['token.use_case']) || !is_string($extra['token.base_name'])) {
+            throw new \InvalidArgumentException('"token.use_case" and "token.base_name" must be strings.');
         }
 
         /** @var class-string $class */
-        $class = sprintf($template, $this->useCaseTokens['useCase'], $this->useCaseTokens['baseName']);
+        $class = sprintf($template, $extra['token.use_case'], $extra['token.base_name']);
 
         return $class;
     }

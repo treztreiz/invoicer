@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Me\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\UseCase\Me\Command\CompanyAddressCommand;
-use App\Application\UseCase\Me\Command\MeCommand;
+use App\Application\UseCase\Me\Input\CompanyAddressInput;
+use App\Application\UseCase\Me\Input\MeInput;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
@@ -25,8 +25,8 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
 
     public function handle(object $command): User
     {
-        if (!$command instanceof MeCommand) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, $command::class));
+        if (!$command instanceof MeInput) {
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeInput::class, $command::class));
         }
 
         $userId = Uuid::fromString($command->userId);
@@ -79,7 +79,7 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
         return $user;
     }
 
-    private function mapAddress(CompanyAddressCommand $address): Address
+    private function mapAddress(CompanyAddressInput $address): Address
     {
         return new Address(
             streetLine1: $address->streetLine1,

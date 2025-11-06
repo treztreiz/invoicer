@@ -1,6 +1,7 @@
 parameters:
-    app.api_platform.metadata.result_class_template: 'App\Application\UseCase\%%%%s\Result\%sResult'
-    app.api_platform.metadata.command_class_template: 'App\Application\UseCase\%%%%s\Command\%sCommand'
+    app.api_platform.metadata.output_suffix: 'Output'
+    app.api_platform.metadata.output_class_template: 'App\Application\UseCase\%%%%s\Output\%sOutput'
+    app.api_platform.metadata.input_class_template: 'App\Application\UseCase\%%%%s\Input\%sInput'
     app.api_platform.metadata.provider_class_template: 'App\Infrastructure\ApiPlatform\State\%%%%s\%sStateProvider'
     app.api_platform.metadata.processor_class_template: 'App\Infrastructure\ApiPlatform\State\%%%%s\%sStateProcessor'
     app.api_platform.metadata.controller: 'api_platform.symfony.main_controller'

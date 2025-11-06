@@ -27,8 +27,9 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
     protected static function setKernelConfiguration(TestKernel $kernel): iterable
     {
         yield 'parameters' => [
-            'app.api_platform.metadata.result_class_template' => 'App\Tests\Fixtures\ApiPlatform\UseCase\%%%%s\Result\%sResult',
-            'app.api_platform.metadata.command_class_template' => 'App\Tests\Fixtures\ApiPlatform\UseCase\%%%%s\Command\%sCommand',
+            'app.api_platform.metadata.output_suffix' => 'Result',
+            'app.api_platform.metadata.output_class_template' => 'App\Tests\Fixtures\ApiPlatform\UseCase\%%%%s\Result\%sResult',
+            'app.api_platform.metadata.input_class_template' => 'App\Tests\Fixtures\ApiPlatform\UseCase\%%%%s\Command\%sCommand',
             'app.api_platform.metadata.provider_class_template' => 'App\Tests\Fixtures\ApiPlatform\State\%%%%s\%sStateProvider',
             'app.api_platform.metadata.processor_class_template' => 'App\Tests\Fixtures\ApiPlatform\State\%%%%s\%sStateProcessor',
             'app.api_platform.metadata.controller' => 'dummy_controller',
@@ -43,21 +44,33 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
         self::bootKernel();
 
         $stubRegistry = new ResourceRegistry([
-            DummyResult::class => new ApiResource(
-                uriTemplate: '/dummy',
-                operations: [
-                    new Get(
-                        normalizationContext: ['groups' => ['dummy:read']],
-                        name: 'api_dummy_get'
-                    ),
-                    new Put(
-                        normalizationContext: ['groups' => ['dummy:read']],
-                        denormalizationContext: ['groups' => ['dummy:write']],
-                        name: 'api_dummy_update'
-                    ),
-                ],
-                uriVariables: []
-            ),
+            DummyResult::class => [
+                new ApiResource(
+                    uriTemplate: '/dummy',
+                    operations: [
+                        new Get(
+                            normalizationContext: ['groups' => ['dummy:read']],
+                            name: 'api_dummy_get'
+                        ),
+                        new Put(
+                            normalizationContext: ['groups' => ['dummy:read']],
+                            denormalizationContext: ['groups' => ['dummy:write']],
+                            name: 'api_dummy_update'
+                        ),
+                    ],
+                    uriVariables: []
+                ),
+                new ApiResource(
+                    uriTemplate: '/dummy/secondary',
+                    operations: [
+                        new Get(
+                            normalizationContext: ['groups' => ['dummy:read']],
+                            name: 'api_dummy_secondary_get'
+                        ),
+                    ],
+                    uriVariables: []
+                ),
+            ],
         ]);
 
         self::getContainer()->set(ResourceRegistry::class, $stubRegistry);
@@ -66,16 +79,16 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
         static::assertContains(DummyResult::class, $resourceNames);
 
         $metadataCollection = $this->resourceMetadataFactory()->create(DummyResult::class);
-        static::assertCount(1, $metadataCollection);
+        static::assertCount(2, $metadataCollection);
 
-        /** @var ApiResource $resource */
-        $resource = $metadataCollection[0];
-        static::assertSame(DummyResult::class, $resource->getClass());
-        static::assertSame('DummyResult', $resource->getShortName());
-        static::assertSame('/dummy', $resource->getUriTemplate());
-        static::assertSame([], $resource->getUriVariables());
+        /** @var ApiResource $primaryResource */
+        $primaryResource = $metadataCollection[0];
+        static::assertSame(DummyResult::class, $primaryResource->getClass());
+        static::assertSame('DummyResult', $primaryResource->getShortName());
+        static::assertSame('/dummy', $primaryResource->getUriTemplate());
+        static::assertSame([], $primaryResource->getUriVariables());
 
-        $operations = iterator_to_array($resource->getOperations());
+        $operations = iterator_to_array($primaryResource->getOperations());
         static::assertArrayHasKey('api_dummy_get', $operations);
         static::assertArrayHasKey('api_dummy_update', $operations);
 
@@ -100,6 +113,19 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
         static::assertSame('/dummy', $putOperation->getUriTemplate());
         static::assertSame([], $putOperation->getUriVariables());
         static::assertNotEmpty($putOperation->getInputFormats());
+
+        /** @var ApiResource $secondaryResource */
+        $secondaryResource = $metadataCollection[1];
+        static::assertSame('/dummy/secondary', $secondaryResource->getUriTemplate());
+        $secondaryOperations = iterator_to_array($secondaryResource->getOperations());
+        static::assertCount(1, $secondaryOperations);
+        static::assertArrayHasKey('api_dummy_secondary_get', $secondaryOperations);
+
+        /** @var HttpOperation $secondaryGet */
+        $secondaryGet = $secondaryOperations['api_dummy_secondary_get'];
+        static::assertSame('GET', $secondaryGet->getMethod());
+        static::assertSame('dummy_controller', $secondaryGet->getController());
+        static::assertSame(DummyStateProvider::class, $secondaryGet->getProvider());
     }
 
     private function resourceNameFactory(): ResourceNameCollectionFactoryInterface

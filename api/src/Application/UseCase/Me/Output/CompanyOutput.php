@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Me\Result;
+namespace App\Application\UseCase\Me\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class CompanyResult
+final class CompanyOutput
 {
     public function __construct(
         #[Groups(['me:read'])]
@@ -16,7 +16,7 @@ final class CompanyResult
         #[Groups(['me:read'])]
         public ?string $phone,
         #[Groups(['me:read'])]
-        public CompanyAddressResult $address,
+        public CompanyAddressOutput $address,
         #[Groups(['me:read'])]
         public string $defaultCurrency,
         #[Groups(['me:read'])]

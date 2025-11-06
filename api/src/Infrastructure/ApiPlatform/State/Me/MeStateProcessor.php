@@ -6,17 +6,17 @@ namespace App\Infrastructure\ApiPlatform\State\Me;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Application\UseCase\Me\Command\MeCommand;
 use App\Application\UseCase\Me\Handler\UpdateProfileHandler;
+use App\Application\UseCase\Me\Input\MeInput;
 use App\Application\UseCase\Me\Mapper\MeCommandMapper;
 use App\Application\UseCase\Me\Mapper\MeResultMapper;
-use App\Application\UseCase\Me\Result\MeResult;
+use App\Application\UseCase\Me\Output\MeOutput;
 use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 /**
- * @implements ProcessorInterface<MeCommand, MeResult>
+ * @implements ProcessorInterface<MeInput, MeOutput>
  */
 final readonly class MeStateProcessor implements ProcessorInterface
 {
@@ -28,11 +28,11 @@ final readonly class MeStateProcessor implements ProcessorInterface
     ) {
     }
 
-    public function process($data, Operation $operation, array $uriVariables = [], array $context = []): MeResult
+    public function process($data, Operation $operation, array $uriVariables = [], array $context = []): MeOutput
     {
         /* @phpstan-ignore-next-line defensive runtime guard */
-        if (!$data instanceof MeCommand) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, get_debug_type($data)));
+        if (!$data instanceof MeInput) {
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeInput::class, get_debug_type($data)));
         }
 
         $user = $this->security->getUser();
