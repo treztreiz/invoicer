@@ -9,31 +9,34 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class CompanyAddressCommand
 {
-    #[Groups(['me:write'])]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
-    public ?string $streetLine1 = null;
+    public function __construct(
+        #[Groups(['me:write'])]
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 255)]
+        public string $streetLine1,
 
-    #[Groups(['me:write'])]
-    #[Assert\Length(max: 255)]
-    public ?string $streetLine2 = null;
+        #[Groups(['me:write'])]
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 20)]
+        public string $postalCode,
 
-    #[Groups(['me:write'])]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 20)]
-    public ?string $postalCode = null;
+        #[Groups(['me:write'])]
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 150)]
+        public string $city,
 
-    #[Groups(['me:write'])]
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 150)]
-    public ?string $city = null;
+        #[Groups(['me:write'])]
+        #[Assert\NotBlank]
+        #[Assert\Country]
+        public string $countryCode,
 
-    #[Groups(['me:write'])]
-    #[Assert\Length(max: 150)]
-    public ?string $region = null;
+        #[Groups(['me:write'])]
+        #[Assert\Length(max: 255)]
+        public ?string $streetLine2 = null,
 
-    #[Groups(['me:write'])]
-    #[Assert\NotBlank]
-    #[Assert\Country]
-    public ?string $countryCode = null;
+        #[Groups(['me:write'])]
+        #[Assert\Length(max: 150)]
+        public ?string $region = null,
+    ) {
+    }
 }

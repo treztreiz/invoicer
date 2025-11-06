@@ -13,6 +13,7 @@ final class CompanyLogo
 {
     private const int MAX_FILE_SIZE = 2_000_000; // 2 MiB
 
+    /** @param array{width?: int, height?: int}|null $dimensions */
     public function __construct(
         #[ORM\Column(length: 255, nullable: true)]
         private(set) ?string $name = null {
@@ -34,7 +35,6 @@ final class CompanyLogo
             set => DomainGuard::optionalNonEmpty($value, 'Logo mime type');
         },
 
-        /** @var array{width: int, height: int}|null */
         #[ORM\Column(type: Types::JSON, nullable: true)]
         private(set) ?array $dimensions = null,
     ) {
@@ -46,7 +46,7 @@ final class CompanyLogo
         return new self();
     }
 
-    /** @param array{width: int, height: int}|null $dimensions */
+    /** @param array{width?: int, height?: int}|null $dimensions */
     public static function fromUpload(
         string $storedName,
         ?string $originalName,
@@ -87,7 +87,7 @@ final class CompanyLogo
     }
 
     /**
-     * @param array{width: int, height: int}|null $dimensions
+     * @param array{width?: int, height?: int}|null $dimensions
      *
      * @return array{width: int, height: int}|null
      */

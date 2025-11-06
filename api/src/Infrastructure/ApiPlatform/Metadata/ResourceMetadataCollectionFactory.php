@@ -20,6 +20,10 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     /** @var array{useCase: string, baseName: string}|null */
     private ?array $useCaseTokens = null;
 
+    /**
+     * @param array<string, list<string>> $defaultFormats
+     * @param array<string, list<string>> $defaultPatchFormats
+     */
     public function __construct(
         #[AutowireDecorated]
         private readonly ResourceMetadataCollectionFactoryInterface $decorated,
@@ -34,10 +38,16 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         private readonly string $processorClassTemplate,
         #[Autowire(param: 'app.api_platform.metadata.controller')]
         private readonly string $controller,
+        #[Autowire(param: 'api_platform.formats')]
+        private readonly array $defaultFormats,
+        #[Autowire(param: 'api_platform.patch_formats')]
+        private readonly array $defaultPatchFormats,
     ) {
     }
 
-    /** @param class-string $resourceClass
+    /**
+     * @param class-string $resourceClass
+     *
      * @throws ResourceClassNotFoundException
      */
     public function create(string $resourceClass): ResourceMetadataCollection
@@ -114,13 +124,12 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         return new ResourceMetadataCollection($resourceClass, [$resource]);
     }
 
+    /**
+     * @param class-string $resourceClass
+     */
     private function configureCollection(ResourceMetadataCollection $collection, string $resourceClass): ResourceMetadataCollection
     {
         foreach ($collection as $index => $resource) {
-            if (!$resource instanceof ApiResource) {
-                continue;
-            }
-
             $collection[$index] = $this->configureResource($resource, $resourceClass);
         }
 
@@ -129,6 +138,9 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
 
     // API RESOURCE METADATA ///////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @param class-string $resourceClass
+     */
     private function configureResource(ApiResource $resource, string $resourceClass): ApiResource
     {
         $resource = $this->applyResourceDefaults($resource, $resourceClass);
@@ -142,17 +154,15 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         $updatedOperations = [];
 
         foreach ($operations as $operationName => $operation) {
-            if (!$operation instanceof HttpOperation) {
-                $updatedOperations[$operationName] = $operation;
-                continue;
-            }
-
             $updatedOperations[$operationName] = $this->configureOperation($operation, $resource);
         }
 
         return $resource->withOperations(new Operations($updatedOperations));
     }
 
+    /**
+     * @param class-string $resourceClass
+     */
     private function applyResourceDefaults(ApiResource $resource, string $resourceClass): ApiResource
     {
         if (null === $resource->getClass()) {
@@ -167,6 +177,9 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         return $resource;
     }
 
+    /**
+     * @param class-string $resourceClass
+     */
     private function guessShortName(string $resourceClass): string
     {
         if (false === $pos = strrpos($resourceClass, '\\')) {
@@ -181,6 +194,7 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
     private function configureOperation(HttpOperation $operation, ApiResource $resource): HttpOperation
     {
         $operation = $this->applyUriDefaults($operation, $resource);
+        $operation = $this->applyFormatDefaults($operation);
         $operation = $this->applyControllerDefaults($operation);
         $operation = $this->applyUseCaseDefaults($operation);
 
@@ -189,15 +203,37 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
 
     private function applyUriDefaults(HttpOperation $operation, ApiResource $resource): HttpOperation
     {
-        $resourceUriTemplate = $resource->getUriTemplate();
+        /** @var array<int|string, mixed>|null $resourceUriVariables */
         $resourceUriVariables = $resource->getUriVariables();
+        $resourceUriTemplate = $resource->getUriTemplate();
+
+        if (null === $operation->getUriVariables() && null !== $resourceUriVariables) {
+            $operation = $operation->withUriVariables($resourceUriVariables);
+        }
 
         if (null === $operation->getUriTemplate() && null !== $resourceUriTemplate) {
             $operation = $operation->withUriTemplate($resourceUriTemplate);
         }
 
-        if (null === $operation->getUriVariables() && null !== $resourceUriVariables) {
-            $operation = $operation->withUriVariables($resourceUriVariables);
+        return $operation;
+    }
+
+    private function applyFormatDefaults(HttpOperation $operation): HttpOperation
+    {
+        $method = strtoupper($operation->getMethod() ?: 'GET');
+
+        if (\in_array($method, ['POST', 'PUT', 'PATCH'], true) && empty($operation->getInputFormats())) {
+            $inputFormats = 'PATCH' === $method && !empty($this->defaultPatchFormats)
+                ? $this->defaultPatchFormats
+                : $this->defaultFormats;
+
+            if (!empty($inputFormats)) {
+                $operation = $operation->withInputFormats($inputFormats);
+            }
+        }
+
+        if (empty($operation->getOutputFormats()) && !empty($this->defaultFormats)) {
+            $operation = $operation->withOutputFormats($this->defaultFormats);
         }
 
         return $operation;
@@ -235,7 +271,7 @@ final class ResourceMetadataCollectionFactory implements ResourceMetadataCollect
         $commandClass = $this->generateUseCaseClass($this->commandClassTemplate);
 
         if (null === $operation->getInput() && class_exists($commandClass)) {
-            $operation = $operation->withInput($commandClass);
+            $operation = $operation->withInput(['class' => $commandClass]);
         }
 
         return $operation;

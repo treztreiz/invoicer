@@ -9,11 +9,12 @@ use ApiPlatform\State\ProcessorInterface;
 use App\Tests\Fixtures\ApiPlatform\UseCase\Dummy\Command\DummyCommand;
 use App\Tests\Fixtures\ApiPlatform\UseCase\Dummy\Result\DummyResult;
 
+/** @implements ProcessorInterface<DummyCommand, DummyResult> */
 final class DummyStateProcessor implements ProcessorInterface
 {
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): DummyResult
     {
-        if ($data instanceof DummyCommand) {
+        if ($data->name) {
             return new DummyResult(id: 'demo-id', name: $data->name);
         }
 

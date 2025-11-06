@@ -12,6 +12,7 @@ use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
+/** @implements ProviderInterface<MeResult> */
 final readonly class MeStateProvider implements ProviderInterface
 {
     public function __construct(

@@ -29,6 +29,8 @@ final class MeApiTest extends ApiTestCase
 
     private const string PASSWORD = 'Password123!';
 
+    protected static ?bool $alwaysBootKernel = false;
+
     private EntityManagerInterface $entityManager;
 
     protected function setUp(): void

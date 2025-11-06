@@ -15,6 +15,9 @@ use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
+/**
+ * @implements ProcessorInterface<MeCommand, MeResult>
+ */
 final readonly class MeStateProcessor implements ProcessorInterface
 {
     public function __construct(
@@ -27,8 +30,9 @@ final readonly class MeStateProcessor implements ProcessorInterface
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): MeResult
     {
+        /* @phpstan-ignore-next-line defensive runtime guard */
         if (!$data instanceof MeCommand) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, is_object($data) ? $data::class : gettype($data)));
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeCommand::class, get_debug_type($data)));
         }
 
         $user = $this->security->getUser();

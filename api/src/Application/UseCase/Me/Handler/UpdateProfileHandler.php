@@ -37,8 +37,8 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
         }
 
         $name = new Name(
-            firstName: (string) $command->firstName,
-            lastName: (string) $command->lastName,
+            firstName: $command->firstName,
+            lastName: $command->lastName,
         );
 
         $contact = new Contact(
@@ -56,13 +56,13 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
         $address = $this->mapAddress($addressCommand);
 
         $company = new Company(
-            legalName: (string) $companyCommand->legalName,
+            legalName: $companyCommand->legalName,
             contact: $companyContact,
             address: $address,
-            defaultCurrency: (string) $companyCommand->defaultCurrency,
-            defaultHourlyRate: new Money((string) $companyCommand->defaultHourlyRate),
-            defaultDailyRate: new Money((string) $companyCommand->defaultDailyRate),
-            defaultVatRate: new VatRate((string) $companyCommand->defaultVatRate),
+            defaultCurrency: $companyCommand->defaultCurrency,
+            defaultHourlyRate: new Money($companyCommand->defaultHourlyRate),
+            defaultDailyRate: new Money($companyCommand->defaultDailyRate),
+            defaultVatRate: new VatRate($companyCommand->defaultVatRate),
             legalMention: $companyCommand->legalMention,
         );
 
@@ -70,8 +70,8 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
             $name,
             $contact,
             $company,
-            (string) $command->locale,
-            (string) $command->email,
+            $command->locale,
+            $command->email,
         );
 
         $this->userRepository->save($user);
@@ -82,12 +82,12 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
     private function mapAddress(CompanyAddressCommand $address): Address
     {
         return new Address(
-            streetLine1: (string) $address->streetLine1,
+            streetLine1: $address->streetLine1,
             streetLine2: $address->streetLine2,
-            postalCode: (string) $address->postalCode,
-            city: (string) $address->city,
+            postalCode: $address->postalCode,
+            city: $address->city,
             region: $address->region,
-            countryCode: (string) $address->countryCode,
+            countryCode: $address->countryCode,
         );
     }
 }

@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use App\Infrastructure\ApiPlatform\Metadata\ResourceRegistry;
 use App\Tests\ConfigurableKernelTestCase;
 use App\Tests\Fixtures\ApiPlatform\State\Dummy\DummyStateProcessor;
@@ -67,7 +66,6 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
         static::assertContains(DummyResult::class, $resourceNames);
 
         $metadataCollection = $this->resourceMetadataFactory()->create(DummyResult::class);
-        static::assertInstanceOf(ResourceMetadataCollection::class, $metadataCollection);
         static::assertCount(1, $metadataCollection);
 
         /** @var ApiResource $resource */
@@ -95,10 +93,13 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
         static::assertSame('PUT', $putOperation->getMethod());
         static::assertSame('dummy_controller', $putOperation->getController());
         static::assertSame(DummyStateProcessor::class, $putOperation->getProcessor());
-        static::assertSame(DummyCommand::class, $putOperation->getInput());
+        $inputMetadata = $putOperation->getInput();
+        static::assertIsArray($inputMetadata);
+        static::assertSame(DummyCommand::class, $inputMetadata['class'] ?? null);
         static::assertSame(DummyResult::class, $putOperation->getClass());
         static::assertSame('/dummy', $putOperation->getUriTemplate());
         static::assertSame([], $putOperation->getUriVariables());
+        static::assertNotEmpty($putOperation->getInputFormats());
     }
 
     private function resourceNameFactory(): ResourceNameCollectionFactoryInterface
