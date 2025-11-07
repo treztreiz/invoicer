@@ -2,40 +2,46 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCase\Customer\Input;
+namespace App\Application\UseCase\User\Input;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class CustomerInput
+final class UserInput
 {
     /**
-     * Filled internally for update operations (PUT), not exposed over the wire.
+     * Filled internally to identify the authenticated user.
+     * Not exposed via serialization groups.
      */
     public string $id = '';
 
     public function __construct(
-        #[Groups(['customer:write'])]
+        #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
         public string $firstName,
 
-        #[Groups(['customer:write'])]
+        #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
         public string $lastName,
 
-        #[Groups(['customer:write'])]
+        #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Email]
         #[Assert\Length(max: 180)]
         public string $email,
 
-        #[Groups(['customer:write'])]
-        #[Assert\Valid]
-        public CustomerAddressInput $address,
+        #[Groups(['user:write'])]
+        #[Assert\NotBlank]
+        #[Assert\Locale]
+        public string $locale,
 
-        #[Groups(['customer:write'])]
+        #[Groups(['user:write'])]
+        #[Assert\Valid]
+        public CompanyInput $company,
+
+        #[Groups(['user:write'])]
         #[Assert\Length(max: 32)]
         public ?string $phone = null,
     ) {

@@ -158,7 +158,7 @@ final class CustomerApiTest extends ApiTestCase
         $client = static::createClient();
         $token = $this->authenticate($client);
 
-        $response = $client->request('GET', sprintf('/api/customers/%s', $customer->id?->toRfc4122()), [
+        $response = $client->request('GET', sprintf('/api/customers/%s', $customer->id->toRfc4122()), [
             'headers' => ['Authorization' => 'Bearer '.$token],
         ]);
 
@@ -167,6 +167,56 @@ final class CustomerApiTest extends ApiTestCase
 
         static::assertSame('Diane', $data['firstName']);
         static::assertSame('Watson', $data['lastName']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_customer_persists_changes(): void
+    {
+        $customer = $this->persistCustomer('Eve', 'Vector');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $payload = [
+            'firstName' => 'Evelyn',
+            'lastName' => 'Vector',
+            'email' => 'evelyn.vector@example.com',
+            'phone' => '+33000000000',
+            'address' => [
+                'streetLine1' => '22 rue des Lilas',
+                'streetLine2' => 'Appartement 4',
+                'postalCode' => '31000',
+                'city' => 'Toulouse',
+                'region' => 'Occitanie',
+                'countryCode' => 'FR',
+            ],
+        ];
+
+        $response = $client->request('PUT', sprintf('/api/customers/%s', $customer->id->toRfc4122()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $payload,
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('Evelyn', $data['firstName']);
+        static::assertSame('evelyn.vector@example.com', $data['email']);
+        static::assertSame('22 rue des Lilas', $data['address']['streetLine1']);
+
+        $this->entityManager->clear();
+        $repository = $this->entityManager->getRepository(Customer::class);
+        $updated = $repository->find($customer->id);
+
+        static::assertNotNull($updated);
+        static::assertSame('Evelyn', $updated->name->firstName);
+        static::assertSame('Occitanie', $updated->address->region);
     }
 
     private function persistCustomer(string $firstName, string $lastName): Customer

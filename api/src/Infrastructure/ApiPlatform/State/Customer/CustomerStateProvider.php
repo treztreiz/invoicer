@@ -8,18 +8,18 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Application\UseCase\Customer\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\Handler\GetCustomerHandler;
+use App\Application\UseCase\Customer\Handler\ListCustomersHandler;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
-use App\Domain\Contracts\CustomerRepositoryInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Uid\Uuid;
+use App\Application\UseCase\Customer\Query\GetCustomerQuery;
+use App\Application\UseCase\Customer\Query\ListCustomersQuery;
 
 /** @implements ProviderInterface<CustomerOutput> */
 final readonly class CustomerStateProvider implements ProviderInterface
 {
     public function __construct(
-        private CustomerRepositoryInterface $customerRepository,
-        private CustomerOutputMapper $outputMapper,
+        private ListCustomersHandler $listCustomersHandler,
+        private GetCustomerHandler $getCustomerHandler,
     ) {
     }
 
@@ -27,24 +27,13 @@ final readonly class CustomerStateProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array|CustomerOutput
     {
         if ($operation instanceof GetCollection) {
-            $customers = $this->customerRepository->listActive();
-
-            return array_map(
-                fn ($customer) => $this->outputMapper->toOutput($customer),
-                $customers
-            );
+            return $this->listCustomersHandler->handle(new ListCustomersQuery());
         }
 
         if ($operation instanceof Get) {
-            $id = $uriVariables['id'] ?? null;
-            $uuid = Uuid::fromString((string) $id);
-            $customer = $this->customerRepository->findOneById($uuid);
+            $query = new GetCustomerQuery((string) ($uriVariables['id'] ?? ''));
 
-            if (null === $customer) {
-                throw new NotFoundHttpException('Customer not found.');
-            }
-
-            return $this->outputMapper->toOutput($customer);
+            return $this->getCustomerHandler->handle($query);
         }
 
         throw new \LogicException(sprintf('Unsupported operation %s for customer provider.', $operation::class));

@@ -12,9 +12,9 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
-use App\Application\UseCase\Me\Input\ChangePasswordInput;
-use App\Application\UseCase\Me\Output\MeOutput;
-use App\Infrastructure\ApiPlatform\State\Me\ChangePasswordStateProcessor;
+use App\Application\UseCase\User\Input\PasswordInput;
+use App\Application\UseCase\User\Output\UserOutput;
+use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ResourceRegistry
@@ -28,7 +28,7 @@ final class ResourceRegistry
     public function __construct(?array $resources = null)
     {
         $defaults = [
-            MeOutput::class => new ApiResource(
+            UserOutput::class => new ApiResource(
                 shortName: 'Me',
                 operations: [
                     new Get(name: 'api_me_get'),
@@ -36,25 +36,23 @@ final class ResourceRegistry
                 ],
                 routePrefix: '/me',
             ),
-            ChangePasswordInput::class => new ApiResource(
-                shortName: 'ChangePassword',
+            PasswordInput::class => new ApiResource(
+                shortName: 'Password',
                 operations: [
                     new Post(
                         status: Response::HTTP_NO_CONTENT,
                         openapi: new OpenApiOperation(
                             responses: [
-                                Response::HTTP_NO_CONTENT => new OpenApiResponse(
-                                    description: 'Password updated; client must re-authenticate with the new secret.'
-                                ),
+                                Response::HTTP_NO_CONTENT => new OpenApiResponse(description: 'Password updated; client must re-authenticate with the new secret.'),
                             ],
                             summary: 'Rotate current user password',
                             description: 'Hashes the new password, persists it, and invalidates active sessions.',
                         ),
-                        denormalizationContext: ['groups' => ['me:password:write']],
+                        denormalizationContext: ['groups' => ['user:password:write']],
                         output: false,
                         read: false,
                         name: 'api_me_change_password',
-                        processor: ChangePasswordStateProcessor::class,
+                        processor: PasswordStateProcessor::class,
                     ),
                 ],
                 routePrefix: '/me/password',
@@ -66,6 +64,7 @@ final class ResourceRegistry
                         new GetCollection(name: 'api_customers_get_collection'),
                         new Get(uriTemplate: '/{id}', name: 'api_customers_get'),
                         new Post(status: Response::HTTP_CREATED, name: 'api_customers_post'),
+                        new Put(uriTemplate: '/{id}', read: false, name: 'api_customers_put'),
                     ],
                     routePrefix: '/customers',
                 ),

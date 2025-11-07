@@ -5,9 +5,17 @@ declare(strict_types=1);
 namespace App\Application\Contract;
 
 /**
- * Handles a use-case input and returns a result (usually a view model or DTO).
+ * @doc Handles a use-case input/query and returns an output or list of outputs.
+ *
+ * @template T1 of object
+ * @template T2 of object|null
  */
 interface UseCaseHandlerInterface
 {
-    public function handle(object $input): object;
+    /**
+     * @param T1 $data
+     *
+     * @return T2|array<T2>|null
+     */
+    public function handle(object $data): object|array|null;
 }

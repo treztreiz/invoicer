@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\User;
 
+use App\Domain\DTO\UserUpdateProfilePayload;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Guard\DomainGuard;
@@ -67,13 +68,13 @@ class User
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function updateProfile(Name $name, Contact $contact, Company $company, string $locale, string $userIdentifier): void
+    public function updateProfile(UserUpdateProfilePayload $payload): void
     {
-        $this->name = $name;
-        $this->contact = $contact;
-        $this->company = $company;
-        $this->locale = $locale;
-        $this->userIdentifier = $userIdentifier;
+        $this->name = $payload->name;
+        $this->contact = $payload->contact;
+        $this->company = $payload->company;
+        $this->locale = $payload->locale;
+        $this->userIdentifier = $payload->userIdentifier;
     }
 
     public function updateLogo(CompanyLogo $logo): void

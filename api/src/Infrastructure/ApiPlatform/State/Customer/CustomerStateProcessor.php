@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Infrastructure\ApiPlatform\State\Customer;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProcessorInterface;
+use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Customer\Handler\CreateCustomerHandler;
+use App\Application\UseCase\Customer\Handler\UpdateCustomerHandler;
 use App\Application\UseCase\Customer\Input\CustomerInput;
-use App\Application\UseCase\Customer\Mapper\CustomerInputMapper;
-use App\Application\UseCase\Customer\Mapper\CustomerOutputMapper;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 
 /**
@@ -18,22 +20,23 @@ use App\Application\UseCase\Customer\Output\CustomerOutput;
 final readonly class CustomerStateProcessor implements ProcessorInterface
 {
     public function __construct(
-        private CustomerInputMapper $inputMapper,
-        private CustomerOutputMapper $outputMapper,
         private CreateCustomerHandler $createCustomerHandler,
+        private UpdateCustomerHandler $updateCustomerHandler,
     ) {
     }
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): CustomerOutput
     {
-        /* @phpstan-ignore-next-line defensive runtime guard */
-        if (!$data instanceof CustomerInput) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', CustomerInput::class, get_debug_type($data)));
+        $customerInput = TypeGuard::assertClass(CustomerInput::class, $data);
+
+        if (isset($uriVariables['id'])) {
+            $customerInput->id = (string) $uriVariables['id'];
         }
 
-        $input = $this->inputMapper->fromPayload($data);
-        $customer = $this->createCustomerHandler->handle($input);
-
-        return $this->outputMapper->toOutput($customer);
+        return match ($operation::class) {
+            Post::class => $this->createCustomerHandler->handle($customerInput),
+            Put::class => $this->updateCustomerHandler->handle($customerInput),
+            default => throw new \LogicException(sprintf('Unsupported operation "%s" for customer processor.', $operation::class)),
+        };
     }
 }

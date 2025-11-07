@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Customer\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
+use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Customer\Input\CustomerInput;
-use App\Application\UseCase\Customer\Input\Mapper\CreateCustomerMapper;
+use App\Application\UseCase\Customer\Input\Mapper\UpdateCustomerMapper;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
+use Symfony\Component\Uid\Uuid;
 
 /** @implements UseCaseHandlerInterface<CustomerInput,CustomerOutput> */
-final readonly class CreateCustomerHandler implements UseCaseHandlerInterface
+final readonly class UpdateCustomerHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private CustomerRepositoryInterface $customerRepository,
-        private CreateCustomerMapper $mapper,
+        private UpdateCustomerMapper $mapper,
         private CustomerOutputMapper $outputMapper,
     ) {
     }
@@ -26,9 +28,19 @@ final readonly class CreateCustomerHandler implements UseCaseHandlerInterface
     {
         $customerInput = TypeGuard::assertClass(CustomerInput::class, $data);
 
-        $customer = $this->mapper->map($customerInput);
+        if ('' === $customerInput->id) {
+            throw new \InvalidArgumentException('Customer id is required for update operations.');
+        }
 
-        $this->customerRepository->save($customer);
+        $customerId = Uuid::fromString($customerInput->id);
+        $customer = $this->customerRepository->findOneById($customerId);
+
+        if (null === $customer) {
+            throw new ResourceNotFoundException('Customer', $customerInput->id);
+        }
+
+        $updatedCustomer = $this->mapper->map($customer, $customerInput);
+        $this->customerRepository->save($updatedCustomer);
 
         return $this->outputMapper->map($customer);
     }
