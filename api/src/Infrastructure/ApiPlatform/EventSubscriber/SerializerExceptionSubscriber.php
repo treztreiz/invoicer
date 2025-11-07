@@ -27,6 +27,11 @@ final class SerializerExceptionSubscriber implements EventSubscriberInterface
 
     public function onKernelException(ExceptionEvent $event): void
     {
+        $env = $event->getRequest()->server->get('APP_ENV');
+        if ('dev' === $env) {
+            return;
+        }
+
         $throwable = $event->getThrowable();
 
         if (!$throwable instanceof MissingConstructorArgumentsException) {

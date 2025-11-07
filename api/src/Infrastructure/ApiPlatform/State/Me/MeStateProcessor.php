@@ -8,8 +8,8 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\UseCase\Me\Handler\UpdateProfileHandler;
 use App\Application\UseCase\Me\Input\MeInput;
-use App\Application\UseCase\Me\Mapper\MeCommandMapper;
-use App\Application\UseCase\Me\Mapper\MeResultMapper;
+use App\Application\UseCase\Me\Mapper\MeInputMapper;
+use App\Application\UseCase\Me\Mapper\MeOutputMapper;
 use App\Application\UseCase\Me\Output\MeOutput;
 use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -23,8 +23,8 @@ final readonly class MeStateProcessor implements ProcessorInterface
     public function __construct(
         private Security $security,
         private UpdateProfileHandler $handler,
-        private MeCommandMapper $commandMapper,
-        private MeResultMapper $resultMapper,
+        private MeInputMapper $inputMapper,
+        private MeOutputMapper $outputMapper,
     ) {
     }
 
@@ -41,11 +41,11 @@ final readonly class MeStateProcessor implements ProcessorInterface
             throw new AuthenticationCredentialsNotFoundException('User is not authenticated.');
         }
 
-        $command = $this->commandMapper->fromPayload($data);
-        $command->userId = $user->domainUser->id->toRfc4122();
+        $input = $this->inputMapper->fromPayload($data);
+        $input->userId = $user->domainUser->id->toRfc4122();
 
-        $updatedUser = $this->handler->handle($command);
+        $updatedUser = $this->handler->handle($input);
 
-        return $this->resultMapper->toResult($updatedUser);
+        return $this->outputMapper->toOutput($updatedUser);
     }
 }

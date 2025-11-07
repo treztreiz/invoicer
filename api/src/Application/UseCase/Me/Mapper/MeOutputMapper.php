@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Me\Mapper;
 
-use App\Application\Contract\ResultMapperInterface;
+use App\Application\Contract\OutputMapperInterface;
 use App\Application\UseCase\Me\Output\CompanyAddressOutput;
 use App\Application\UseCase\Me\Output\CompanyOutput;
 use App\Application\UseCase\Me\Output\MeOutput;
 use App\Domain\Entity\User\User;
 
-final class MeResultMapper implements ResultMapperInterface
+final class MeOutputMapper implements OutputMapperInterface
 {
-    public function toResult(object $model): MeOutput
+    public function toOutput(object $model): MeOutput
     {
         if (!$model instanceof User) {
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', User::class, $model::class));
@@ -26,7 +26,7 @@ final class MeResultMapper implements ResultMapperInterface
         $address = $company->address();
         $logo = $user->logo;
 
-        $companyResult = new CompanyOutput(
+        $companyOutput = new CompanyOutput(
             legalName: $company->legalName,
             email: $companyContact->email,
             phone: $companyContact->phone,
@@ -54,7 +54,7 @@ final class MeResultMapper implements ResultMapperInterface
             phone: $contact->phone,
             locale: $user->locale,
             roles: $user->roles,
-            company: $companyResult,
+            company: $companyOutput,
         );
     }
 }

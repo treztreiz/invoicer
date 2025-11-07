@@ -29,6 +29,7 @@ final class MeApiTest extends ApiTestCase
     use ResetDatabase;
 
     private const string PASSWORD = 'Password123!';
+    private const string NEW_PASSWORD = 'BetterPass123!';
 
     protected static ?bool $alwaysBootKernel = false;
 
@@ -206,6 +207,77 @@ final class MeApiTest extends ApiTestCase
         static::assertArrayHasKey('violations', $data);
         static::assertSame('email', $data['violations'][0]['propertyPath']);
         static::assertSame('This value should not be blank.', $data['violations'][0]['message']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_change_password_updates_credentials(): void
+    {
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $response = $client->request('POST', '/api/me/password', [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => [
+                'currentPassword' => self::PASSWORD,
+                'newPassword' => self::NEW_PASSWORD,
+                'confirmPassword' => self::NEW_PASSWORD,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(204);
+        static::assertSame('', $response->getContent());
+
+        $client->request('POST', '/api/auth/login', [
+            'json' => [
+                'userIdentifier' => 'john.doe@example.com',
+                'password' => self::PASSWORD,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+
+        $client->request('POST', '/api/auth/login', [
+            'json' => [
+                'userIdentifier' => 'john.doe@example.com',
+                'password' => self::NEW_PASSWORD,
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_change_password_with_invalid_current_password_returns_validation_error(): void
+    {
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $response = $client->request('POST', '/api/me/password', [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => [
+                'currentPassword' => 'wrong-password',
+                'newPassword' => self::NEW_PASSWORD,
+                'confirmPassword' => self::NEW_PASSWORD,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $data = $response->toArray(false);
+
+        static::assertSame('currentPassword', $data['violations'][0]['propertyPath']);
+        static::assertSame('Current password is invalid.', $data['violations'][0]['message']);
     }
 
     /**

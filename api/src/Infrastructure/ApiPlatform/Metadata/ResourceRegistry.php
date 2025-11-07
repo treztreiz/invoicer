@@ -6,8 +6,14 @@ namespace App\Infrastructure\ApiPlatform\Metadata;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
+use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
+use App\Application\UseCase\Me\Input\ChangePasswordInput;
 use App\Application\UseCase\Me\Output\MeOutput;
+use App\Infrastructure\ApiPlatform\State\Me\ChangePasswordStateProcessor;
+use Symfony\Component\HttpFoundation\Response;
 
 final class ResourceRegistry
 {
@@ -22,9 +28,34 @@ final class ResourceRegistry
         $defaults = [
             MeOutput::class => new ApiResource(
                 uriTemplate: '/me',
+                shortName: 'Me',
                 operations: [
                     new Get(name: 'api_me_get'),
                     new Put(name: 'api_me_update'),
+                ],
+                uriVariables: []
+            ),
+            ChangePasswordInput::class => new ApiResource(
+                uriTemplate: '/me/password',
+                shortName: 'ChangePassword',
+                operations: [
+                    new Post(
+                        status: Response::HTTP_NO_CONTENT,
+                        openapi: new OpenApiOperation(
+                            responses: [
+                                Response::HTTP_NO_CONTENT => new OpenApiResponse(
+                                    description: 'Password updated; client must re-authenticate with the new secret.'
+                                ),
+                            ],
+                            summary: 'Rotate current user password',
+                            description: 'Hashes the new password, persists it, and invalidates active sessions.',
+                        ),
+                        denormalizationContext: ['groups' => ['me:password:write']],
+                        output: false,
+                        read: false,
+                        name: 'api_me_change_password',
+                        processor: ChangePasswordStateProcessor::class,
+                    ),
                 ],
                 uriVariables: []
             ),

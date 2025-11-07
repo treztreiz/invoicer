@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Me\Mapper;
 
-use App\Application\Contract\CommandMapperInterface;
+use App\Application\Contract\InputMapperInterface;
 use App\Application\UseCase\Me\Input\MeInput;
 
-final class MeCommandMapper implements CommandMapperInterface
+final class MeInputMapper implements InputMapperInterface
 {
     public function fromPayload(object $payload): MeInput
     {
@@ -15,7 +15,7 @@ final class MeCommandMapper implements CommandMapperInterface
             throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeInput::class, $payload::class));
         }
 
-        // The payload already carries the command structure (thanks to Api Platform denormalization).
+        // The payload already carries the input structure (thanks to Api Platform denormalization).
         // Returning the same instance keeps mutations (like userId assignment) possible downstream.
         return $payload;
     }

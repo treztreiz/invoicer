@@ -6,7 +6,7 @@ namespace App\Infrastructure\ApiPlatform\State\Me;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Application\UseCase\Me\Mapper\MeResultMapper;
+use App\Application\UseCase\Me\Mapper\MeOutputMapper;
 use App\Application\UseCase\Me\Output\MeOutput;
 use App\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -17,7 +17,7 @@ final readonly class MeStateProvider implements ProviderInterface
 {
     public function __construct(
         private Security $security,
-        private MeResultMapper $mapper,
+        private MeOutputMapper $mapper,
     ) {
     }
 
@@ -29,6 +29,6 @@ final readonly class MeStateProvider implements ProviderInterface
             throw new AuthenticationCredentialsNotFoundException('User is not authenticated.');
         }
 
-        return $this->mapper->toResult($user->domainUser);
+        return $this->mapper->toOutput($user->domainUser);
     }
 }

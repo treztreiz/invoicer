@@ -23,13 +23,13 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
     {
     }
 
-    public function handle(object $command): User
+    public function handle(object $input): User
     {
-        if (!$command instanceof MeInput) {
-            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeInput::class, $command::class));
+        if (!$input instanceof MeInput) {
+            throw new \InvalidArgumentException(sprintf('Expected %s, got %s.', MeInput::class, $input::class));
         }
 
-        $userId = Uuid::fromString($command->userId);
+        $userId = Uuid::fromString($input->userId);
         $user = $this->userRepository->findOneById($userId);
 
         if (!$user instanceof User) {
@@ -37,41 +37,41 @@ final readonly class UpdateProfileHandler implements UseCaseHandlerInterface
         }
 
         $name = new Name(
-            firstName: $command->firstName,
-            lastName: $command->lastName,
+            firstName: $input->firstName,
+            lastName: $input->lastName,
         );
 
         $contact = new Contact(
-            email: $command->email,
-            phone: $command->phone,
+            email: $input->email,
+            phone: $input->phone,
         );
 
-        $companyCommand = $command->company;
+        $companyInput = $input->company;
         $companyContact = new Contact(
-            email: $companyCommand->email,
-            phone: $companyCommand->phone,
+            email: $companyInput->email,
+            phone: $companyInput->phone,
         );
 
-        $addressCommand = $companyCommand->address;
-        $address = $this->mapAddress($addressCommand);
+        $addressInput = $companyInput->address;
+        $address = $this->mapAddress($addressInput);
 
         $company = new Company(
-            legalName: $companyCommand->legalName,
+            legalName: $companyInput->legalName,
             contact: $companyContact,
             address: $address,
-            defaultCurrency: $companyCommand->defaultCurrency,
-            defaultHourlyRate: new Money($companyCommand->defaultHourlyRate),
-            defaultDailyRate: new Money($companyCommand->defaultDailyRate),
-            defaultVatRate: new VatRate($companyCommand->defaultVatRate),
-            legalMention: $companyCommand->legalMention,
+            defaultCurrency: $companyInput->defaultCurrency,
+            defaultHourlyRate: new Money($companyInput->defaultHourlyRate),
+            defaultDailyRate: new Money($companyInput->defaultDailyRate),
+            defaultVatRate: new VatRate($companyInput->defaultVatRate),
+            legalMention: $companyInput->legalMention,
         );
 
         $user->updateProfile(
             $name,
             $contact,
             $company,
-            $command->locale,
-            $command->email,
+            $input->locale,
+            $input->email,
         );
 
         $this->userRepository->save($user);
