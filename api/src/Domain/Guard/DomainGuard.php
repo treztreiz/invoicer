@@ -95,6 +95,15 @@ final class DomainGuard
         return $code;
     }
 
+    public static function optionalNonNegativeInt(?int $value, string $label = 'Value'): ?int
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return self::nonNegativeInt($value, $label);
+    }
+
     public static function nonNegativeInt(int $value, string $label = 'Value'): int
     {
         if ($value < 0) {

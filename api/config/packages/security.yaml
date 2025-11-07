@@ -28,6 +28,7 @@ security:
     access_control:
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS, allow_if: "'dev' == request.server.get('APP_ENV')" }
         - { path: ^/api, roles: ROLE_USER }
 
 when@test:

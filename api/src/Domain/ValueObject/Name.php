@@ -29,4 +29,14 @@ final class Name
     {
         return sprintf('%s %s', $this->lastName, $this->firstName);
     }
+
+    public function first(): string
+    {
+        return $this->firstName;
+    }
+
+    public function last(): string
+    {
+        return $this->lastName;
+    }
 }

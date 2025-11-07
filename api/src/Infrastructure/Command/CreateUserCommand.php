@@ -8,6 +8,7 @@ use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
+use App\Domain\ValueObject\CompanyLogo;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
@@ -61,6 +62,7 @@ final readonly class CreateUserCommand
                 defaultDailyRate: new Money('0'),
                 defaultVatRate: new VatRate('0'),
             ),
+            logo: CompanyLogo::empty(),
             userIdentifier: $userIdentifier,
             roles: ['ROLE_USER'],
             password: 'test',

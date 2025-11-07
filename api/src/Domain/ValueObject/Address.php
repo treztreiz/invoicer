@@ -42,4 +42,34 @@ final class Address
         },
     ) {
     }
+
+    public function streetLine1(): string
+    {
+        return $this->streetLine1;
+    }
+
+    public function streetLine2(): ?string
+    {
+        return $this->streetLine2;
+    }
+
+    public function postalCode(): string
+    {
+        return $this->postalCode;
+    }
+
+    public function city(): string
+    {
+        return $this->city;
+    }
+
+    public function region(): ?string
+    {
+        return $this->region;
+    }
+
+    public function countryCode(): string
+    {
+        return $this->countryCode;
+    }
 }

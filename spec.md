@@ -482,6 +482,7 @@ InstallmentPlan ||--o{ Installment
 * Entities (User+embedded CompanyProfile, Customer, Document STI, DocumentLine, Recurrence/Installments,
   NumberSequence) + migrations.
 * STI constraints & triggers, repositories, basic fixtures.
+* Company logo uploads handled via custom storage service (no Vich). Service validates file (≤2 MB, allowed MIME), stores under `public/uploads/logos` with unique filename, extracts metadata, and hydrates the `CompanyLogo` value object.
 
 **M3 – API Resources & Auth (week 3)**
 

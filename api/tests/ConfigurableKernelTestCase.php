@@ -41,12 +41,26 @@ abstract class ConfigurableKernelTestCase extends KernelTestCase
 
     protected static function applyKernelConfiguration(TestKernel $kernel): void
     {
-        $options = static::setKernelConfiguration($kernel);
+        $options = iterator_to_array(static::setKernelConfiguration($kernel));
         if (empty($options)) {
             return;
         }
 
-        // Add bundles configuration
+        // Set parameters
+        $parameters = $options['parameters'] ?? null;
+        if ($parameters) {
+            if (!is_array($parameters)) {
+                throw new \InvalidArgumentException('Parameters must be an array');
+            }
+
+            foreach ($parameters as $key => $value) {
+                $kernel->setParameter($key, $value);
+            }
+
+            unset($options['parameters']);
+        }
+
+        // Add bundles config
         foreach ($options as $extension => $config) {
             $kernel->addExtensionConfig($extension, $config);
         }

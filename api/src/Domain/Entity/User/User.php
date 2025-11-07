@@ -8,6 +8,7 @@ use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Guard\DomainGuard;
 use App\Domain\ValueObject\Company;
+use App\Domain\ValueObject\CompanyLogo;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Name;
 use Doctrine\DBAL\Types\Types;
@@ -34,6 +35,9 @@ class User
         #[ORM\Embedded]
         public Company $company,
 
+        #[ORM\Embedded]
+        public CompanyLogo $logo,
+
         #[ORM\Column(length: 180, unique: true)]
         public string $userIdentifier {
             set {
@@ -59,5 +63,21 @@ class User
             set => DomainGuard::nonEmpty($value, 'Locale');
         },
     ) {
+    }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public function updateProfile(Name $name, Contact $contact, Company $company, string $locale, string $userIdentifier): void
+    {
+        $this->name = $name;
+        $this->contact = $contact;
+        $this->company = $company;
+        $this->locale = $locale;
+        $this->userIdentifier = $userIdentifier;
+    }
+
+    public function updateLogo(CompanyLogo $logo): void
+    {
+        $this->logo = $logo;
     }
 }
