@@ -6,10 +6,12 @@ namespace App\Infrastructure\ApiPlatform\Metadata;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
+use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Me\Input\ChangePasswordInput;
 use App\Application\UseCase\Me\Output\MeOutput;
 use App\Infrastructure\ApiPlatform\State\Me\ChangePasswordStateProcessor;
@@ -27,16 +29,14 @@ final class ResourceRegistry
     {
         $defaults = [
             MeOutput::class => new ApiResource(
-                uriTemplate: '/me',
                 shortName: 'Me',
                 operations: [
                     new Get(name: 'api_me_get'),
                     new Put(name: 'api_me_update'),
                 ],
-                uriVariables: []
+                routePrefix: '/me',
             ),
             ChangePasswordInput::class => new ApiResource(
-                uriTemplate: '/me/password',
                 shortName: 'ChangePassword',
                 operations: [
                     new Post(
@@ -57,8 +57,19 @@ final class ResourceRegistry
                         processor: ChangePasswordStateProcessor::class,
                     ),
                 ],
-                uriVariables: []
+                routePrefix: '/me/password',
             ),
+            CustomerOutput::class => [
+                new ApiResource(
+                    shortName: 'Customer',
+                    operations: [
+                        new GetCollection(name: 'api_customers_get_collection'),
+                        new Get(uriTemplate: '/{id}', name: 'api_customers_get'),
+                        new Post(status: Response::HTTP_CREATED, name: 'api_customers_post'),
+                    ],
+                    routePrefix: '/customers',
+                ),
+            ],
         ];
 
         $this->register($resources ?? $defaults);

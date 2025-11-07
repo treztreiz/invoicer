@@ -14,4 +14,9 @@ interface CustomerRepositoryInterface
     public function remove(Customer $customer): void;
 
     public function findOneById(Uuid $id): ?Customer;
+
+    /**
+     * @return list<Customer>
+     */
+    public function listActive(): array;
 }
