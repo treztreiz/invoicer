@@ -164,6 +164,57 @@ final class MeApiTest extends ApiTestCase
      * @throws DecodingExceptionInterface
      * @throws ClientExceptionInterface
      */
+    public function test_update_me_missing_required_field_returns_validation_error(): void
+    {
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $payload = [
+            'firstName' => 'Jane',
+            'lastName' => 'Doe',
+            // email intentionally omitted
+            'phone' => '+33111111111',
+            'locale' => 'fr_FR',
+            'company' => [
+                'legalName' => 'New Corp',
+                'email' => 'hello@newcorp.test',
+                'phone' => '+33222222222',
+                'address' => [
+                    'streetLine1' => '99 avenue de France',
+                    'streetLine2' => 'Bâtiment B',
+                    'postalCode' => '69000',
+                    'city' => 'Lyon',
+                    'region' => 'Auvergne-Rhône-Alpes',
+                    'countryCode' => 'FR',
+                ],
+                'defaultCurrency' => 'EUR',
+                'defaultHourlyRate' => '120',
+                'defaultDailyRate' => '960',
+                'defaultVatRate' => '20',
+                'legalMention' => 'TVA FR',
+            ],
+        ];
+
+        $response = $client->request('PUT', '/api/me', [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $payload,
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('violations', $data);
+        static::assertSame('email', $data['violations'][0]['propertyPath']);
+        static::assertSame('This value should not be blank.', $data['violations'][0]['message']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
     private function authenticate(Client $client): string
     {
         $response = $client->request('POST', '/api/auth/login', [
