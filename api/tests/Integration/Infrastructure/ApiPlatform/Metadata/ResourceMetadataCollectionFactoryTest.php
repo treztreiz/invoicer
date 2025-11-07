@@ -63,10 +63,7 @@ final class ResourceMetadataCollectionFactoryTest extends ConfigurableKernelTest
                 new ApiResource(
                     uriTemplate: '/dummy/secondary',
                     operations: [
-                        new Get(
-                            normalizationContext: ['groups' => ['dummy:read']],
-                            name: 'api_dummy_secondary_get'
-                        ),
+                        new Get(name: 'api_dummy_secondary_get'),
                     ],
                     uriVariables: []
                 ),

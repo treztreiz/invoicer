@@ -194,6 +194,7 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
         $operation = $this->applyFormatDefaults($operation);
         $operation = $this->applyControllerDefaults($operation);
         $operation = $this->applyClassesDefaults($operation, $resource);
+        $operation = $this->applyNormalizationDefaults($operation, $resource);
 
         return $this->applyPresentationDefaults($operation, $resource);
     }
@@ -219,7 +220,7 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
     {
         $method = strtoupper($operation->getMethod() ?: 'GET');
 
-        if (\in_array($method, ['POST', 'PUT', 'PATCH'], true) && empty($operation->getInputFormats())) {
+        if ($this->isWriteOperation($method) && empty($operation->getInputFormats())) {
             $inputFormats = 'PATCH' === $method && !empty($this->defaultPatchFormats)
                 ? $this->defaultPatchFormats
                 : $this->defaultFormats;
@@ -300,6 +301,34 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
         return $operation;
     }
 
+    private function applyNormalizationDefaults(HttpOperation $operation, ApiResource $resource): HttpOperation
+    {
+        $baseName = $resource->getExtraProperties()['token.base_name'] ?? null;
+        if (!is_string($baseName)) {
+            return $operation;
+        }
+
+        $baseGroup = strtolower($baseName);
+
+        if (!($operation->getNormalizationContext()['groups'] ?? false)) {
+            $operation = $operation->withNormalizationContext([
+                ...$operation->getNormalizationContext() ?? [],
+                'groups' => [$baseGroup.':read'],
+            ]);
+        }
+
+        $method = strtoupper($operation->getMethod() ?: 'GET');
+
+        if ($this->isWriteOperation($method) && !($operation->getDenormalizationContext()['groups'] ?? false)) {
+            $operation = $operation->withDenormalizationContext([
+                ...$operation->getDenormalizationContext() ?? [],
+                'groups' => [$baseGroup.':write'],
+            ]);
+        }
+
+        return $operation;
+    }
+
     private function applyPresentationDefaults(HttpOperation $operation, ApiResource $resource): HttpOperation
     {
         $resourceClass = $resource->getClass() ?? throw new \LogicException('Resource class must be resolved before configuring presentation defaults.');
@@ -335,5 +364,10 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
         $class = sprintf($template, $extra['token.use_case'], $extra['token.base_name']);
 
         return $class;
+    }
+
+    private function isWriteOperation(string $method): bool
+    {
+        return \in_array($method, ['POST', 'PUT', 'PATCH'], true);
     }
 }

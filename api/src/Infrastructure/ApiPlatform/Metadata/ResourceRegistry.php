@@ -23,15 +23,8 @@ final class ResourceRegistry
             MeOutput::class => new ApiResource(
                 uriTemplate: '/me',
                 operations: [
-                    new Get(
-                        normalizationContext: ['groups' => ['me:read']],
-                        name: 'api_me_get'
-                    ),
-                    new Put(
-                        normalizationContext: ['groups' => ['me:read']],
-                        denormalizationContext: ['groups' => ['me:write']],
-                        name: 'api_me_update'
-                    ),
+                    new Get(name: 'api_me_get'),
+                    new Put(name: 'api_me_update'),
                 ],
                 uriVariables: []
             ),
