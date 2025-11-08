@@ -219,13 +219,81 @@ final class CustomerApiTest extends ApiTestCase
         static::assertSame('Occitanie', $updated->address->region);
     }
 
-    private function persistCustomer(string $firstName, string $lastName): Customer
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_archive_customer_marks_it_archived(): void
+    {
+        $customer = $this->persistCustomer('Frank', 'Zero');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $response = $client->request('POST', sprintf('/api/customers/%s/archive', $customer->id?->toRfc4122()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertTrue($data['isArchived']);
+
+        $this->entityManager->clear();
+        $repository = $this->entityManager->getRepository(Customer::class);
+        $archivedCustomer = $repository->find($customer->id);
+
+        static::assertTrue($archivedCustomer?->isArchived);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_restore_customer_reactivates_it(): void
+    {
+        $customer = $this->persistCustomer('Grace', 'Young', archived: true);
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+
+        $response = $client->request('POST', sprintf('/api/customers/%s/restore', $customer->id?->toRfc4122()), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertFalse($data['isArchived']);
+
+        $listResponse = $client->request('GET', '/api/customers', [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $customers = $listResponse->toArray(false);
+
+        $matching = array_filter($customers['member'], static fn (array $row) => $row['id'] === $customer->id?->toRfc4122());
+        static::assertNotEmpty($matching);
+    }
+
+    private function persistCustomer(string $firstName, string $lastName, bool $archived = false): Customer
     {
         $customer = new Customer(
             name: new Name($firstName, $lastName),
             contact: new Contact(strtolower("$firstName.$lastName@example.com"), null),
             address: new Address('1 rue Test', null, '75000', 'Paris', null, 'FR')
         );
+
+        if ($archived) {
+            $customer->archive();
+        }
 
         $this->entityManager->persist($customer);
         $this->entityManager->flush();

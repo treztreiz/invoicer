@@ -14,6 +14,7 @@ use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
+use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -65,6 +66,22 @@ final class ResourceRegistry
                         new Get(uriTemplate: '/{id}', name: 'api_customers_get'),
                         new Post(status: Response::HTTP_CREATED, name: 'api_customers_post'),
                         new Put(uriTemplate: '/{id}', read: false, name: 'api_customers_put'),
+                        new Post(
+                            uriTemplate: '/{id}/archive',
+                            input: false,
+                            read: false,
+                            deserialize: false,
+                            name: 'api_customers_archive',
+                            processor: CustomerStatusStateProcessor::class,
+                        ),
+                        new Post(
+                            uriTemplate: '/{id}/restore',
+                            input: false,
+                            read: false,
+                            deserialize: false,
+                            name: 'api_customers_restore',
+                            processor: CustomerStatusStateProcessor::class,
+                        ),
                     ],
                     routePrefix: '/customers',
                 ),
