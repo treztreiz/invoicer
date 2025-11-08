@@ -14,4 +14,9 @@ interface QuoteRepositoryInterface
     public function remove(Quote $quote): void;
 
     public function findOneById(Uuid $id): ?Quote;
+
+    /**
+     * @return list<Quote>
+     */
+    public function list(): array;
 }

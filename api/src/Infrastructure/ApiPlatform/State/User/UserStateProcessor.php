@@ -10,9 +10,8 @@ use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\User\Handler\UpdateUserHandler;
 use App\Application\UseCase\User\Input\UserInput;
 use App\Application\UseCase\User\Output\UserOutput;
-use App\Infrastructure\Security\SecurityUser;
+use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 /**
  * @implements ProcessorInterface<UserInput, UserOutput>
@@ -28,12 +27,7 @@ final readonly class UserStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): UserOutput
     {
         $userInput = TypeGuard::assertClass(UserInput::class, $data);
-
-        $user = $this->security->getUser();
-
-        if (!$user instanceof SecurityUser) {
-            throw new AuthenticationCredentialsNotFoundException('User is not authenticated.');
-        }
+        $user = SecurityGuard::assertAuth($this->security->getUser());
 
         $userInput->id = $user->domainUser->id->toRfc4122();
 

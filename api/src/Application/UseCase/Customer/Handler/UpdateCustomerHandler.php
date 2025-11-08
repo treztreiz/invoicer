@@ -39,8 +39,10 @@ final readonly class UpdateCustomerHandler implements UseCaseHandlerInterface
             throw new ResourceNotFoundException('Customer', $customerInput->id);
         }
 
-        $updatedCustomer = $this->mapper->map($customer, $customerInput);
-        $this->customerRepository->save($updatedCustomer);
+        $payload = $this->mapper->map($customerInput);
+        $customer->apply($payload);
+
+        $this->customerRepository->save($customer);
 
         return $this->outputMapper->map($customer);
     }

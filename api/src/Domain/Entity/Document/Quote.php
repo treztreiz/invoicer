@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\DTO\QuotePayload;
 use App\Domain\Enum\QuoteStatus;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
@@ -32,6 +33,25 @@ class Quote extends Document
     private(set) ?Uuid $convertedInvoiceId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function fromPayload(QuotePayload $payload): self
+    {
+        $quote = new self(
+            title: $payload->title,
+            currency: $payload->currency,
+            vatRate: $payload->vatRate,
+            total: $payload->total,
+            customerSnapshot: $payload->customerSnapshot,
+            companySnapshot: $payload->companySnapshot,
+            subtitle: $payload->subtitle,
+        );
+
+        foreach ($payload->lines as $linePayload) {
+            $quote->addLine($linePayload);
+        }
+
+        return $quote;
+    }
 
     public function send(\DateTimeImmutable $sentAt): self
     {
@@ -80,5 +100,10 @@ class Quote extends Document
         $this->convertedInvoiceId = $invoiceId;
 
         return $this;
+    }
+
+    public function status(): QuoteStatus
+    {
+        return $this->status;
     }
 }

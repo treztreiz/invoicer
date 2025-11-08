@@ -11,6 +11,7 @@ use App\Application\UseCase\Customer\Input\Mapper\CreateCustomerMapper;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Domain\Entity\Customer\Customer;
 
 /** @implements UseCaseHandlerInterface<CustomerInput,CustomerOutput> */
 final readonly class CreateCustomerHandler implements UseCaseHandlerInterface
@@ -26,7 +27,8 @@ final readonly class CreateCustomerHandler implements UseCaseHandlerInterface
     {
         $customerInput = TypeGuard::assertClass(CustomerInput::class, $data);
 
-        $customer = $this->mapper->map($customerInput);
+        $payload = $this->mapper->map($customerInput);
+        $customer = Customer::fromPayload($payload);
 
         $this->customerRepository->save($customer);
 

@@ -43,4 +43,12 @@ final class QuoteRepository extends ServiceEntityRepository implements QuoteRepo
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function list(): array
+    {
+        return $this->createQueryBuilder('quote')
+            ->orderBy('quote.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

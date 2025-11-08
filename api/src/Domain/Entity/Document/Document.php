@@ -76,7 +76,7 @@ abstract class Document
         $this->reference = DomainGuard::nonEmpty($reference, 'Reference');
     }
 
-    protected function addLine(DocumentLinePayload $payload): DocumentLine
+    public function addLine(DocumentLinePayload $payload): DocumentLine
     {
         $line = DocumentLine::fromPayload($this, $payload);
 
@@ -95,5 +95,51 @@ abstract class Document
     protected function removeLine(DocumentLine $line): void
     {
         $this->lines->removeElement($line);
+    }
+
+    public function lines(): Collection
+    {
+        return $this->lines;
+    }
+
+    public function title(): string
+    {
+        return $this->title;
+    }
+
+    public function subtitle(): ?string
+    {
+        return $this->subtitle;
+    }
+
+    public function currency(): string
+    {
+        return $this->currency;
+    }
+
+    public function vatRate(): VatRate
+    {
+        return $this->vatRate;
+    }
+
+    public function total(): AmountBreakdown
+    {
+        return $this->total;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function customerSnapshot(): array
+    {
+        return $this->customerSnapshot;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function companySnapshot(): array
+    {
+        return $this->companySnapshot;
     }
 }

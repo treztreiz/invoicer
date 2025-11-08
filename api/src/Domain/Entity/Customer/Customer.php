@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Customer;
 
+use App\Domain\DTO\CustomerPayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
@@ -30,5 +31,17 @@ class Customer
         #[ORM\Embedded]
         public Address $address,
     ) {
+    }
+
+    public static function fromPayload(CustomerPayload $payload): self
+    {
+        return new self($payload->name, $payload->contact, $payload->address);
+    }
+
+    public function apply(CustomerPayload $payload): void
+    {
+        $this->name = $payload->name;
+        $this->contact = $payload->contact;
+        $this->address = $payload->address;
     }
 }

@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
+use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
@@ -64,10 +65,11 @@ final class ResourceRegistry
                     operations: [
                         new GetCollection(name: 'api_customers_get_collection'),
                         new Get(uriTemplate: '/{id}', name: 'api_customers_get'),
-                        new Post(status: Response::HTTP_CREATED, name: 'api_customers_post'),
+                        new Post(name: 'api_customers_post'),
                         new Put(uriTemplate: '/{id}', read: false, name: 'api_customers_put'),
                         new Post(
                             uriTemplate: '/{id}/archive',
+                            status: Response::HTTP_OK,
                             input: false,
                             read: false,
                             deserialize: false,
@@ -76,6 +78,7 @@ final class ResourceRegistry
                         ),
                         new Post(
                             uriTemplate: '/{id}/restore',
+                            status: Response::HTTP_OK,
                             input: false,
                             read: false,
                             deserialize: false,
@@ -84,6 +87,17 @@ final class ResourceRegistry
                         ),
                     ],
                     routePrefix: '/customers',
+                ),
+            ],
+            QuoteOutput::class => [
+                new ApiResource(
+                    shortName: 'Quote',
+                    operations: [
+                        new GetCollection(name: 'api_quotes_get_collection'),
+                        new Get(uriTemplate: '/{id}', name: 'api_quotes_get'),
+                        new Post(name: 'api_quotes_post'),
+                    ],
+                    routePrefix: '/quotes',
                 ),
             ],
         ];
