@@ -12,7 +12,9 @@ use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\Quote\Query\GetQuoteQuery;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 /** @implements UseCaseHandlerInterface<GetQuoteQuery, QuoteOutput> */
 final readonly class GetQuoteHandler implements UseCaseHandlerInterface
@@ -20,6 +22,8 @@ final readonly class GetQuoteHandler implements UseCaseHandlerInterface
     public function __construct(
         private QuoteRepositoryInterface $quoteRepository,
         private QuoteOutputMapper $outputMapper,
+        #[Autowire(service: 'state_machine.quote_flow')]
+        private WorkflowInterface $quoteWorkflow,
     ) {
     }
 
@@ -33,6 +37,21 @@ final readonly class GetQuoteHandler implements UseCaseHandlerInterface
             throw new ResourceNotFoundException('Quote', $query->id);
         }
 
-        return $this->outputMapper->map($quote);
+        $availableActions = $this->availableActions($quote);
+
+        return $this->outputMapper->map($quote, $availableActions);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableActions(Quote $quote): array
+    {
+        return array_values(
+            array_map(
+                static fn ($transition) => $transition->getName(),
+                $this->quoteWorkflow->getEnabledTransitions($quote)
+            )
+        );
     }
 }

@@ -12,35 +12,41 @@ use App\Domain\Entity\Document\Quote;
 
 final class QuoteOutputMapper
 {
-    public function map(Quote $quote): QuoteOutput
+    /**
+     * @param list<string> $availableActions
+     */
+    public function map(Quote $quote, array $availableActions = []): QuoteOutput
     {
         return new QuoteOutput(
             id: $quote->id?->toRfc4122() ?? '',
-            title: $quote->title(),
-            subtitle: $quote->subtitle(),
-            status: $quote->status()->value,
-            currency: $quote->currency(),
-            vatRate: $quote->vatRate()->value,
+            title: $quote->title,
+            subtitle: $quote->subtitle,
+            status: $quote->status->value,
+            currency: $quote->currency,
+            vatRate: $quote->vatRate->value,
             total: new QuoteTotalsOutput(
-                net: $quote->total()->net->value,
-                tax: $quote->total()->tax->value,
-                gross: $quote->total()->gross->value,
+                net: $quote->total->net->value,
+                tax: $quote->total->tax->value,
+                gross: $quote->total->gross->value,
             ),
-            lines: array_map(
-                fn (DocumentLine $line) => new QuoteLineOutput(
-                    description: $line->description,
-                    quantity: $line->quantity->value,
-                    rateUnit: $line->rateUnit->value,
-                    rate: $line->rate->value,
-                    net: $line->amount->net->value,
-                    tax: $line->amount->tax->value,
-                    gross: $line->amount->gross->value,
-                ),
-                $quote->lines()->toArray()
+            lines: array_values(
+                array_map(
+                    fn (DocumentLine $line) => new QuoteLineOutput(
+                        description: $line->description,
+                        quantity: $line->quantity->value,
+                        rateUnit: $line->rateUnit->value,
+                        rate: $line->rate->value,
+                        net: $line->amount->net->value,
+                        tax: $line->amount->tax->value,
+                        gross: $line->amount->gross->value,
+                    ),
+                    $quote->lines->toArray()
+                )
             ),
-            customerSnapshot: $quote->customerSnapshot(),
-            companySnapshot: $quote->companySnapshot(),
+            customerSnapshot: $quote->customerSnapshot,
+            companySnapshot: $quote->companySnapshot,
             createdAt: $quote->createdAt,
+            availableActions: $availableActions,
         );
     }
 }

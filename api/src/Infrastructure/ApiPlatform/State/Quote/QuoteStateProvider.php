@@ -14,7 +14,7 @@ use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\Quote\Query\GetQuoteQuery;
 use App\Application\UseCase\Quote\Query\ListQuotesQuery;
 
-/** @implements ProviderInterface<QuoteOutput|array<int, QuoteOutput>> */
+/** @implements ProviderInterface<QuoteOutput> */
 final readonly class QuoteStateProvider implements ProviderInterface
 {
     public function __construct(
@@ -23,6 +23,7 @@ final readonly class QuoteStateProvider implements ProviderInterface
     ) {
     }
 
+    /** @return QuoteOutput|list<QuoteOutput> */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): QuoteOutput|array
     {
         if ($operation instanceof GetCollection) {

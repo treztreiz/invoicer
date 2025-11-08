@@ -9,6 +9,7 @@ use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Entity\User\User;
+use App\Domain\Enum\QuoteStatus;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
 use App\Domain\ValueObject\CompanyLogo;
@@ -95,14 +96,15 @@ final class QuoteApiTest extends ApiTestCase
         $data = $response->toArray(false);
 
         static::assertSame('Website revamp', $data['title']);
-        static::assertSame('DRAFT', $data['status']);
         static::assertSame('2400.00', $data['total']['gross']);
+        static::assertSame(QuoteStatus::DRAFT->value, $data['status']);
+        static::assertSame(['send'], $data['availableActions']);
 
         $this->entityManager->clear();
         $quote = $this->entityManager->getRepository(Quote::class)->find($data['id']);
 
         static::assertInstanceOf(Quote::class, $quote);
-        static::assertSame('DRAFT', $quote->status()->value);
+        static::assertSame(QuoteStatus::DRAFT, $quote->status());
     }
 
     /**
@@ -129,6 +131,7 @@ final class QuoteApiTest extends ApiTestCase
 
         static::assertNotEmpty($data);
         static::assertSame('Website revamp', $data['member'][0]['title']);
+        static::assertNotEmpty($data['member'][0]['availableActions']);
     }
 
     private function quotePayload(Customer $customer): array
@@ -156,12 +159,19 @@ final class QuoteApiTest extends ApiTestCase
         ];
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
     private function createQuoteFixture(Customer $customer): void
     {
         $client = static::createClient();
         $token = $this->authenticate($client);
 
-        $response = $client->request('POST', '/api/quotes', [
+        $client->request('POST', '/api/quotes', [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => $this->quotePayload($customer),
         ]);
@@ -169,6 +179,13 @@ final class QuoteApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
     private function authenticate(Client $client): string
     {
         $response = $client->request('POST', '/api/auth/login', [

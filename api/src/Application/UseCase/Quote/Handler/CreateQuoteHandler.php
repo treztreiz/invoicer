@@ -16,7 +16,9 @@ use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Entity\User\User;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 /** @implements UseCaseHandlerInterface<QuoteInput, QuoteOutput> */
 final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
@@ -27,6 +29,8 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
         private QuoteRepositoryInterface $quoteRepository,
         private CreateQuoteMapper $mapper,
         private QuoteOutputMapper $outputMapper,
+        #[Autowire(service: 'state_machine.quote_flow')]
+        private WorkflowInterface $quoteWorkflow,
     ) {
     }
 
@@ -47,7 +51,9 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
 
         $this->quoteRepository->save($quote);
 
-        return $this->outputMapper->map($quote);
+        $availableActions = $this->availableActions($quote);
+
+        return $this->outputMapper->map($quote, $availableActions);
     }
 
     private function loadUser(string $id): User
@@ -59,5 +65,18 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
         }
 
         return $user;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableActions(Quote $quote): array
+    {
+        return array_values(
+            array_map(
+                static fn ($transition) => $transition->getName(),
+                $this->quoteWorkflow->getEnabledTransitions($quote)
+            )
+        );
     }
 }

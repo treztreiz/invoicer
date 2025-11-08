@@ -29,7 +29,7 @@ final class QuoteInput
         public float $vatRate,
 
         /**
-         * @var list<QuoteLineInput>
+         * @var list<QuoteLineInput|array<string, mixed>>
          */
         #[Groups(['quote:write'])]
         #[Assert\Count(min: 1)]
