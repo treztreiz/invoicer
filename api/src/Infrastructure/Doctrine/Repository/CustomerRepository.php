@@ -45,4 +45,18 @@ class CustomerRepository extends ServiceEntityRepository implements CustomerRepo
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * @return list<Customer>
+     */
+    public function listActive(): array
+    {
+        return $this->createQueryBuilder('customer')
+            ->andWhere('customer.isArchived = :archived')
+            ->setParameter('archived', false)
+            ->orderBy('customer.name.lastName', 'ASC')
+            ->addOrderBy('customer.name.firstName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

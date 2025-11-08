@@ -7,6 +7,7 @@ namespace App\Infrastructure\ApiPlatform\Metadata;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -203,14 +204,23 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
     {
         /** @var array<int|string, mixed>|null $resourceUriVariables */
         $resourceUriVariables = $resource->getUriVariables();
+        $resourceRoutePrefix = $resource->getRoutePrefix();
         $resourceUriTemplate = $resource->getUriTemplate();
+
+        if (null !== $operation->getUriTemplate() && null === $operation->getRoutePrefix() && null !== $resourceRoutePrefix) {
+            $operation = $operation->withRoutePrefix($resourceRoutePrefix);
+        }
+
+        if (null === $operation->getUriTemplate()) {
+            $operation = $operation->withUriTemplate($resourceUriTemplate ?? $resourceRoutePrefix ?? null);
+        }
 
         if (null === $operation->getUriVariables() && null !== $resourceUriVariables) {
             $operation = $operation->withUriVariables($resourceUriVariables);
         }
 
-        if (null === $operation->getUriTemplate() && null !== $resourceUriTemplate) {
-            $operation = $operation->withUriTemplate($resourceUriTemplate);
+        if (null === $operation->getUriVariables() && null !== $operationUriVariables = $this->guessUriVariables($operation)) {
+            $operation = $operation->withUriVariables($operationUriVariables);
         }
 
         return $operation;
@@ -343,6 +353,31 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
         }
 
         return $operation;
+    }
+
+    /** @return array<string, Link>|null */
+    private function guessUriVariables(HttpOperation $operation): ?array
+    {
+        $uriTemplate = $operation->getUriTemplate();
+
+        if (null === $uriTemplate) {
+            return null;
+        }
+
+        preg_match_all('/\{([^}]+)}/', $uriTemplate, $matches);
+
+        /** @phpstan-ignore-next-line */
+        $variables = $matches[1] ?? [];
+        if ([] === $variables) {
+            return null;
+        }
+
+        $links = [];
+        foreach ($variables as $variable) {
+            $links[$variable] = new Link(parameterName: $variable);
+        }
+
+        return $links;
     }
 
     /**

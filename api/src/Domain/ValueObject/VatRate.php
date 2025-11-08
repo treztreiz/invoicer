@@ -26,10 +26,4 @@ final class VatRate
     {
         return $this->value === $other->value;
     }
-
-    /** @return numeric-string */
-    public function value(): string
-    {
-        return $this->value;
-    }
 }
