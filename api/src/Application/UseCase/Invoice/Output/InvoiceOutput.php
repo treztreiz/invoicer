@@ -55,6 +55,9 @@ final readonly class InvoiceOutput
         public ?string $paidAt,
 
         #[Groups(['invoice:read'])]
+        public ?InvoiceRecurrenceOutput $recurrence = null,
+
+        #[Groups(['invoice:read'])]
         public array $availableActions = [],
     ) {
     }

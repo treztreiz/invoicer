@@ -22,7 +22,7 @@ final class QuoteMarkingStore implements MarkingStoreInterface
     }
 
     /**
-     * @param Quote $subject
+     * @param Quote            $subject
      * @param array<int,mixed> $context
      */
     public function setMarking(object $subject, Marking $marking, array $context = []): void

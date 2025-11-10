@@ -8,6 +8,7 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
@@ -19,6 +20,7 @@ use App\Domain\ValueObject\VatRate;
 use App\Infrastructure\Security\SecurityUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -215,6 +217,198 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertSame('PAID', $data['status']);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_attach_invoice_recurrence(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('MONTHLY', $data['recurrence']['frequency']);
+        static::assertSame('2025-01-01', $data['recurrence']['anchorDate']);
+
+        $this->entityManager->clear();
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+
+        static::assertInstanceOf(Invoice::class, $invoice);
+        static::assertNotNull($invoice->recurrence);
+        static::assertSame('MONTHLY', $invoice->recurrence->frequency->value);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_invoice_recurrence(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $response = $client->request('PUT', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload([
+                'frequency' => 'QUARTERLY',
+                'interval' => 3,
+                'anchorDate' => '2025-02-01',
+            ]),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('QUARTERLY', $data['recurrence']['frequency']);
+        static::assertSame(3, $data['recurrence']['interval']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_delete_invoice_recurrence(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $response = $client->request('DELETE', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertNull($data['recurrence']);
+
+        $this->entityManager->clear();
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+
+        static::assertInstanceOf(Invoice::class, $invoice);
+        static::assertNull($invoice->recurrence);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_attach_invoice_recurrence_rejected_when_installment_plan_exists(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        $invoice->attachInstallmentPlan(new InstallmentPlan());
+        $this->entityManager->flush();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('both a recurrence and an installment plan', $data['detail'] ?? '');
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_attach_invoice_recurrence_rejected_when_invoice_generated_from_recurrence(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        $invoice->markGeneratedFromRecurrence(Uuid::v7());
+        $this->entityManager->flush();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_attach_invoice_recurrence_rejected_when_invoice_generated_from_installment(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        $invoice->markGeneratedFromInstallment(Uuid::v7());
+        $this->entityManager->flush();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
+    }
+
     private function createInvoiceFixture(Customer $customer): void
     {
         $client = static::createClient();
@@ -265,6 +459,18 @@ final class InvoiceApiTest extends ApiTestCase
         $data = $response->toArray(false);
 
         return $data['token'];
+    }
+
+    private function recurrencePayload(array $override = []): array
+    {
+        return array_merge([
+            'frequency' => 'MONTHLY',
+            'interval' => 1,
+            'anchorDate' => '2025-01-01',
+            'endStrategy' => 'UNTIL_DATE',
+            'endDate' => '2025-12-31',
+            'occurrenceCount' => null,
+        ], $override);
     }
 
     private function persistCustomer(string $firstName, string $lastName): Customer

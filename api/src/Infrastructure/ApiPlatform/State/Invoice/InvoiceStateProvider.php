@@ -14,7 +14,7 @@ use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Query\GetInvoiceQuery;
 use App\Application\UseCase\Invoice\Query\ListInvoicesQuery;
 
-/** @implements ProviderInterface<InvoiceOutput|array<int, InvoiceOutput>> */
+/** @implements ProviderInterface<InvoiceOutput> */
 final readonly class InvoiceStateProvider implements ProviderInterface
 {
     public function __construct(
@@ -23,6 +23,7 @@ final readonly class InvoiceStateProvider implements ProviderInterface
     ) {
     }
 
+    /** @return InvoiceOutput|list<InvoiceOutput> */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput|array
     {
         if ($operation instanceof GetCollection) {

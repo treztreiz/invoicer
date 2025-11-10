@@ -21,10 +21,6 @@ final class InvoiceInput
         public string $title,
 
         #[Groups(['invoice:write'])]
-        #[Assert\Length(max: 200)]
-        public ?string $subtitle = null,
-
-        #[Groups(['invoice:write'])]
         #[Assert\Currency]
         public string $currency,
 
@@ -47,6 +43,10 @@ final class InvoiceInput
         #[Groups(['invoice:write'])]
         #[Assert\NotBlank]
         public string $dueDate,
+
+        #[Groups(['invoice:write'])]
+        #[Assert\Length(max: 200)]
+        public ?string $subtitle = null,
     ) {
     }
 }

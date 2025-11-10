@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\ApiPlatform\Metadata;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -12,19 +13,22 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
+use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
+use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
+use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Quote\Input\QuoteActionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
-use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProvider;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProvider;
-use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceActionStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceDeleteStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProvider;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProvider;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -151,6 +155,33 @@ final class ResourceRegistry
                             read: false,
                             name: 'api_invoices_action',
                             processor: InvoiceActionStateProcessor::class,
+                        ),
+                        new Post(
+                            uriTemplate: '/{id}/recurrence',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['invoice:recurrence']],
+                            input: ['class' => InvoiceRecurrenceInput::class],
+                            read: false,
+                            name: 'api_invoices_recurrence_post',
+                            processor: InvoiceRecurrenceStateProcessor::class,
+                        ),
+                        new Put(
+                            uriTemplate: '/{id}/recurrence',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['invoice:recurrence']],
+                            input: ['class' => InvoiceRecurrenceInput::class],
+                            read: false,
+                            name: 'api_invoices_recurrence_put',
+                            processor: InvoiceRecurrenceStateProcessor::class,
+                        ),
+                        new Delete(
+                            uriTemplate: '/{id}/recurrence',
+                            status: Response::HTTP_OK,
+                            input: false,
+                            read: false,
+                            deserialize: false,
+                            name: 'api_invoices_recurrence_delete',
+                            processor: InvoiceRecurrenceDeleteStateProcessor::class,
                         ),
                     ],
                     routePrefix: '/invoices',

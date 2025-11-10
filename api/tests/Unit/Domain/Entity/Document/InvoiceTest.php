@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\Enum\RecurrenceEndStrategy;
+use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @testType solitary-unit
@@ -87,6 +92,47 @@ final class InvoiceTest extends TestCase
         $this->invoice->void();
     }
 
+    public function test_attach_recurrence_rejected_when_installment_plan_exists(): void
+    {
+        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+
+        static::expectException(\LogicException::class);
+        $this->invoice->attachRecurrence($this->createRecurrence());
+    }
+
+    public function test_detach_recurrence_resets_reference(): void
+    {
+        $this->invoice->attachRecurrence($this->createRecurrence());
+
+        $this->invoice->detachRecurrence();
+
+        static::assertNull($this->invoice->recurrence);
+    }
+
+    public function test_generated_from_recurrence_cannot_attach_recurrence(): void
+    {
+        $this->invoice->markGeneratedFromRecurrence(Uuid::v7());
+
+        static::expectException(\LogicException::class);
+        $this->invoice->attachRecurrence($this->createRecurrence());
+    }
+
+    public function test_generated_from_installment_cannot_attach_recurrence(): void
+    {
+        $this->invoice->markGeneratedFromInstallment(Uuid::v7());
+
+        static::expectException(\LogicException::class);
+        $this->invoice->attachRecurrence($this->createRecurrence());
+    }
+
+    public function test_generated_invoice_cannot_attach_installment_plan(): void
+    {
+        $this->invoice->markGeneratedFromRecurrence(Uuid::v7());
+
+        static::expectException(\LogicException::class);
+        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private function createInvoice(): Invoice
@@ -102,6 +148,16 @@ final class InvoiceTest extends TestCase
             ),
             customerSnapshot: ['name' => 'Client'],
             companySnapshot: ['name' => 'My Company']
+        );
+    }
+
+    private function createRecurrence(): InvoiceRecurrence
+    {
+        return new InvoiceRecurrence(
+            frequency: RecurrenceFrequency::MONTHLY,
+            interval: 1,
+            anchorDate: new \DateTimeImmutable('2025-01-01'),
+            endStrategy: RecurrenceEndStrategy::NEVER,
         );
     }
 }

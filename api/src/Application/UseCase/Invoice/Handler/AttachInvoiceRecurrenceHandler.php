@@ -7,7 +7,8 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\InvoiceActionCommand;
+use App\Application\UseCase\Invoice\Command\AttachInvoiceRecurrenceCommand;
+use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
@@ -17,16 +18,13 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<InvoiceActionCommand, InvoiceOutput> */
-final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
+/** @implements UseCaseHandlerInterface<AttachInvoiceRecurrenceCommand, InvoiceOutput> */
+final readonly class AttachInvoiceRecurrenceHandler implements UseCaseHandlerInterface
 {
-    private const string ACTION_ISSUE = 'issue';
-    private const string ACTION_MARK_PAID = 'mark_paid';
-    private const string ACTION_VOID = 'void';
-
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
         private InvoiceOutputMapper $outputMapper,
+        private InvoiceRecurrenceMapper $recurrenceMapper,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
     ) {
@@ -34,7 +32,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
 
     public function handle(object $data): InvoiceOutput
     {
-        $command = TypeGuard::assertClass(InvoiceActionCommand::class, $data);
+        $command = TypeGuard::assertClass(AttachInvoiceRecurrenceCommand::class, $data);
 
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
 
@@ -42,32 +40,36 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
             throw new ResourceNotFoundException('Invoice', $command->invoiceId);
         }
 
-        if (!$this->invoiceWorkflow->can($invoice, $command->action)) {
-            throw new BadRequestHttpException(sprintf('Invoice cannot transition via "%s".', $command->action));
-        }
+        $this->guardAgainstScheduleConflicts($invoice);
 
-        $this->applyTransition($invoice, $command->action);
+        $invoice->attachRecurrence($this->recurrenceMapper->map($command->input));
+
         $this->invoiceRepository->save($invoice);
 
-        $available = array_values(
+        return $this->outputMapper->map($invoice, $this->availableActions($invoice));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableActions(Invoice $invoice): array
+    {
+        return array_values(
             array_map(
                 static fn ($transition) => $transition->getName(),
                 $this->invoiceWorkflow->getEnabledTransitions($invoice)
             )
         );
-
-        return $this->outputMapper->map($invoice, $available);
     }
 
-    private function applyTransition(Invoice $invoice, string $action): void
+    private function guardAgainstScheduleConflicts(Invoice $invoice): void
     {
-        $now = new \DateTimeImmutable();
+        if (null !== $invoice->installmentPlan) {
+            throw new BadRequestHttpException('Invoices cannot have both a recurrence and an installment plan.');
+        }
 
-        match ($action) {
-            self::ACTION_ISSUE => $invoice->issue($now, $invoice->dueDate ?? $now),
-            self::ACTION_MARK_PAID => $invoice->markPaid($now),
-            self::ACTION_VOID => $invoice->void(),
-            default => throw new BadRequestHttpException(sprintf('Unknown action "%s".', $action)),
-        };
+        if (null !== $invoice->recurrenceSeedId || null !== $invoice->installmentSeedId) {
+            throw new BadRequestHttpException('Generated invoices cannot attach new scheduling rules.');
+        }
     }
 }

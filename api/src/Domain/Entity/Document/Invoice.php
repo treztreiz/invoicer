@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\DTO\InvoicePayload;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
-use App\Domain\DTO\InvoicePayload;
 use App\Domain\Enum\InvoiceStatus;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
@@ -142,6 +142,8 @@ class Invoice extends Document
 
     public function attachRecurrence(InvoiceRecurrence $recurrence): void
     {
+        $this->assertNotGeneratedFromSeed();
+
         if (null !== $this->installmentPlan) {
             throw new \LogicException('Invoices cannot have both a recurrence and an installment plan.');
         }
@@ -151,10 +153,34 @@ class Invoice extends Document
 
     public function attachInstallmentPlan(InstallmentPlan $plan): void
     {
+        $this->assertNotGeneratedFromSeed();
+
         if (null !== $this->recurrence) {
             throw new \LogicException('Invoices cannot have both an installment plan and a recurrence.');
         }
 
         $this->installmentPlan = $plan;
+    }
+
+    public function detachRecurrence(): void
+    {
+        $this->recurrence = null;
+    }
+
+    public function markGeneratedFromRecurrence(Uuid $seedId): void
+    {
+        $this->recurrenceSeedId = $seedId;
+    }
+
+    public function markGeneratedFromInstallment(Uuid $seedId): void
+    {
+        $this->installmentSeedId = $seedId;
+    }
+
+    private function assertNotGeneratedFromSeed(): void
+    {
+        if (null !== $this->recurrenceSeedId || null !== $this->installmentSeedId) {
+            throw new \LogicException('Generated invoices cannot attach new scheduling rules.');
+        }
     }
 }

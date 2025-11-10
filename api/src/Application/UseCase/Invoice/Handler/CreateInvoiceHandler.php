@@ -7,8 +7,8 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Input\Mapper\CreateInvoiceMapper;
 use App\Application\UseCase\Invoice\Input\InvoiceInput;
+use App\Application\UseCase\Invoice\Input\Mapper\CreateInvoiceMapper;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
@@ -18,8 +18,8 @@ use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\User\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Workflow\WorkflowInterface;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 /** @implements UseCaseHandlerInterface<InvoiceInput, InvoiceOutput> */
 final readonly class CreateInvoiceHandler implements UseCaseHandlerInterface
@@ -78,9 +78,11 @@ final readonly class CreateInvoiceHandler implements UseCaseHandlerInterface
      */
     private function availableActions(Invoice $invoice): array
     {
-        return array_map(
-            static fn ($transition) => $transition->getName(),
-            $this->invoiceWorkflow->getEnabledTransitions($invoice)
+        return array_values(
+            array_map(
+                static fn ($transition) => $transition->getName(),
+                $this->invoiceWorkflow->getEnabledTransitions($invoice)
+            )
         );
     }
 }

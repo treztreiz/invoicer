@@ -22,7 +22,8 @@ final class InvoiceMarkingStore implements MarkingStoreInterface
     }
 
     /**
-     * @param Invoice $subject
+     * @param Invoice          $subject
+     * @param array<int,mixed> $context
      */
     public function setMarking(object $subject, Marking $marking, array $context = []): void
     {
