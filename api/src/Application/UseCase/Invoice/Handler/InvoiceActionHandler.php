@@ -10,6 +10,7 @@ use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Command\InvoiceActionCommand;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -29,6 +30,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
         private InvoiceOutputMapper $outputMapper,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -49,14 +51,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
         $this->applyTransition($invoice, $command->action);
         $this->invoiceRepository->save($invoice);
 
-        $available = array_values(
-            array_map(
-                static fn ($transition) => $transition->getName(),
-                $this->invoiceWorkflow->getEnabledTransitions($invoice)
-            )
-        );
-
-        return $this->outputMapper->map($invoice, $available);
+        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
     }
 
     private function applyTransition(Invoice $invoice, string $action): void

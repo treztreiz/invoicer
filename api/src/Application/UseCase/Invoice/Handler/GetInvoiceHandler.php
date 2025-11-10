@@ -10,6 +10,7 @@ use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Query\GetInvoiceQuery;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -24,6 +25,7 @@ final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
         private InvoiceOutputMapper $outputMapper,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -37,13 +39,6 @@ final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
             throw new ResourceNotFoundException('Invoice', $query->id);
         }
 
-        $available = array_values(
-            array_map(
-                static fn ($transition) => $transition->getName(),
-                $this->invoiceWorkflow->getEnabledTransitions($invoice)
-            )
-        );
-
-        return $this->outputMapper->map($invoice, $available);
+        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
     }
 }

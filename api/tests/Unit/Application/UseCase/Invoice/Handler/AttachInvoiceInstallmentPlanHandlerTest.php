@@ -9,6 +9,7 @@ use App\Application\UseCase\Invoice\Handler\AttachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceInstallmentPlanMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
@@ -91,6 +92,7 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
             new InvoiceOutputMapper(),
             new InvoiceInstallmentPlanMapper(),
             $this->createWorkflowStub(),
+            actionsHelper: new WorkflowActionsHelper()
         );
     }
 

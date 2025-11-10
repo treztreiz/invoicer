@@ -11,6 +11,7 @@ use App\Application\UseCase\Invoice\Command\AttachInvoiceRecurrenceCommand;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -27,6 +28,7 @@ final readonly class AttachInvoiceRecurrenceHandler implements UseCaseHandlerInt
         private InvoiceRecurrenceMapper $recurrenceMapper,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -46,20 +48,7 @@ final readonly class AttachInvoiceRecurrenceHandler implements UseCaseHandlerInt
 
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->availableActions($invoice));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function availableActions(Invoice $invoice): array
-    {
-        return array_values(
-            array_map(
-                static fn ($transition) => $transition->getName(),
-                $this->invoiceWorkflow->getEnabledTransitions($invoice)
-            )
-        );
+        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
     }
 
     private function guardAgainstScheduleConflicts(Invoice $invoice): void

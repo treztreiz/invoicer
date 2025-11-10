@@ -9,6 +9,7 @@ use App\Application\UseCase\Invoice\Handler\AttachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Enum\RecurrenceEndStrategy;
@@ -36,6 +37,7 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
             $workflow,
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $input = $this->createInput();
@@ -59,6 +61,7 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
             $this->createWorkflowStub(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $command = new AttachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122(), $this->createInput());
@@ -78,6 +81,7 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
             $this->createWorkflowStub(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $command = new AttachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122(), $this->createInput());

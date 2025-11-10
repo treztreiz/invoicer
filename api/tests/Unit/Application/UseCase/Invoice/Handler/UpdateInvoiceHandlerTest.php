@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Service\DocumentLineFactory;
+use App\Application\Service\DocumentSnapshotFactory;
+use App\Application\Service\EntityFetcher;
+use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Invoice\Command\UpdateInvoiceCommand;
 use App\Application\UseCase\Invoice\Handler\UpdateInvoiceHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\DTO\DocumentLinePayload;
@@ -27,6 +32,7 @@ use App\Domain\ValueObject\Name;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -39,13 +45,14 @@ final class UpdateInvoiceHandlerTest extends TestCase
     {
         $invoice = $this->createInvoice();
 
+        $math = new MoneyMath();
         $handler = new UpdateInvoiceHandler(
             invoiceRepository: new InvoiceRepositoryStub($invoice),
-            customerRepository: $this->stubCustomerRepository(),
-            userRepository: $this->stubUserRepository(),
-            payloadMapper: new InvoicePayloadMapper(),
+            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
             outputMapper: new InvoiceOutputMapper(),
+            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
             invoiceWorkflow: $this->stubWorkflow(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $input = $this->invoiceInput();
@@ -64,16 +71,17 @@ final class UpdateInvoiceHandlerTest extends TestCase
         $invoice = $this->createInvoice();
         $invoice->issue(new \DateTimeImmutable('2025-01-01T00:00:00Z'), new \DateTimeImmutable('2025-01-10'));
 
+        $math = new MoneyMath();
         $handler = new UpdateInvoiceHandler(
             invoiceRepository: new InvoiceRepositoryStub($invoice),
-            customerRepository: $this->stubCustomerRepository(),
-            userRepository: $this->stubUserRepository(),
-            payloadMapper: new InvoicePayloadMapper(),
+            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
             outputMapper: new InvoiceOutputMapper(),
+            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
             invoiceWorkflow: $this->stubWorkflow(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\BadRequestHttpException::class);
+        $this->expectException(BadRequestHttpException::class);
 
         $handler->handle(new UpdateInvoiceCommand(Uuid::v7()->toRfc4122(), $this->invoiceInput()));
     }

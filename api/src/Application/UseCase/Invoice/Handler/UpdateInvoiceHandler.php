@@ -7,17 +7,14 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\EntityFetcher;
 use App\Application\UseCase\Invoice\Command\UpdateInvoiceCommand;
-use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Contracts\UserRepositoryInterface;
-use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice;
-use App\Domain\Entity\User\User;
 use App\Domain\Enum\InvoiceStatus;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -29,12 +26,12 @@ final readonly class UpdateInvoiceHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
-        private CustomerRepositoryInterface $customerRepository,
-        private UserRepositoryInterface $userRepository,
         private InvoicePayloadMapper $payloadMapper,
         private InvoiceOutputMapper $outputMapper,
+        private EntityFetcher $entityFetcher,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -52,8 +49,8 @@ final readonly class UpdateInvoiceHandler implements UseCaseHandlerInterface
         }
 
         $input = $command->input;
-        $customer = $this->loadCustomer($input);
-        $user = $this->loadUser($input->userId);
+        $customer = $this->entityFetcher->customer($input->customerId);
+        $user = $this->entityFetcher->user($input->userId);
 
         $payload = $this->payloadMapper->map($input, $customer, $user);
         $invoice->applyPayload($payload);
@@ -62,42 +59,7 @@ final readonly class UpdateInvoiceHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $invoice,
-            $this->availableActions($invoice)
-        );
-    }
-
-    private function loadCustomer(InvoiceInput $input): Customer
-    {
-        $customer = $this->customerRepository->findOneById(Uuid::fromString($input->customerId));
-
-        if (null === $customer) {
-            throw new ResourceNotFoundException('Customer', $input->customerId);
-        }
-
-        return $customer;
-    }
-
-    private function loadUser(string $id): User
-    {
-        $user = $this->userRepository->findOneById(Uuid::fromString($id));
-
-        if (null === $user) {
-            throw new ResourceNotFoundException('User', $id);
-        }
-
-        return $user;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function availableActions(Invoice $invoice): array
-    {
-        return array_values(
-            array_map(
-                static fn ($transition) => $transition->getName(),
-                $this->invoiceWorkflow->getEnabledTransitions($invoice)
-            )
+            $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow)
         );
     }
 }

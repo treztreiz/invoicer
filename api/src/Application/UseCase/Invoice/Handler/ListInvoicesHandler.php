@@ -9,6 +9,7 @@ use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Query\ListInvoicesQuery;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Workflow\WorkflowInterface;
@@ -21,6 +22,7 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
         private InvoiceOutputMapper $outputMapper,
         #[Autowire(service: 'state_machine.invoice_flow')]
         private WorkflowInterface $invoiceWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -36,12 +38,7 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
         return array_map(
             fn ($invoice) => $this->outputMapper->map(
                 $invoice,
-                array_values(
-                    array_map(
-                        static fn ($transition) => $transition->getName(),
-                        $this->invoiceWorkflow->getEnabledTransitions($invoice)
-                    )
-                ),
+                $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow)
             ),
             $invoices
         );

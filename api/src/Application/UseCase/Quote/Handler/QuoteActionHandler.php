@@ -10,6 +10,7 @@ use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Quote\Command\QuoteActionCommand;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -29,6 +30,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
         private QuoteOutputMapper $outputMapper,
         #[Autowire(service: 'state_machine.quote_flow')]
         private WorkflowInterface $quoteWorkflow,
+        private WorkflowActionsHelper $actionsHelper,
     ) {
     }
 
@@ -51,14 +53,10 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
         $this->applyTransition($quote, $transition);
         $this->quoteRepository->save($quote);
 
-        $availableActions = array_values(
-            array_map(
-                static fn ($enabled) => $enabled->getName(),
-                $this->quoteWorkflow->getEnabledTransitions($quote)
-            )
+        return $this->outputMapper->map(
+            $quote,
+            $this->actionsHelper->availableActions($quote, $this->quoteWorkflow)
         );
-
-        return $this->outputMapper->map($quote, $availableActions);
     }
 
     private function applyTransition(Quote $quote, string $transition): void

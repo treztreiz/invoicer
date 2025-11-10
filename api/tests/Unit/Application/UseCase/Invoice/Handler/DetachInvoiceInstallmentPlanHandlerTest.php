@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 use App\Application\UseCase\Invoice\Command\DetachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\ValueObject\AmountBreakdown;
@@ -53,6 +54,7 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
             new InvoiceRepositoryStub($invoice),
             new InvoiceOutputMapper(),
             $workflow,
+            actionsHelper: new WorkflowActionsHelper()
         );
     }
 

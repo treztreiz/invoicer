@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 use App\Application\UseCase\Invoice\Command\DetachInvoiceRecurrenceCommand;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\RecurrenceEndStrategy;
@@ -15,6 +16,7 @@ use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -32,6 +34,7 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
             new InvoiceRepositoryStub($invoice),
             new InvoiceOutputMapper(),
             $this->createWorkflowStub(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $output = $handler->handle(new DetachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122()));
@@ -48,9 +51,10 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
             new InvoiceRepositoryStub($invoice),
             new InvoiceOutputMapper(),
             $this->createWorkflowStub(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\BadRequestHttpException::class);
+        $this->expectException(BadRequestHttpException::class);
 
         $handler->handle(new DetachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122()));
     }

@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Quote\Handler;
 
+use App\Application\Service\DocumentLineFactory;
+use App\Application\Service\DocumentSnapshotFactory;
+use App\Application\Service\EntityFetcher;
+use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Quote\Command\UpdateQuoteCommand;
 use App\Application\UseCase\Quote\Handler\UpdateQuoteHandler;
 use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
 use App\Application\UseCase\Quote\Input\QuoteInput;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
+use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\DTO\DocumentLinePayload;
+use App\Domain\DTO\QuotePayload;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Entity\User\User;
+use App\Domain\Enum\RateUnit;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Company;
@@ -25,6 +32,7 @@ use App\Domain\ValueObject\Name;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -37,13 +45,14 @@ final class UpdateQuoteHandlerTest extends TestCase
     {
         $quote = $this->createQuote();
 
+        $math = new MoneyMath();
         $handler = new UpdateQuoteHandler(
             quoteRepository: new QuoteRepositoryStub($quote),
-            customerRepository: $this->stubCustomerRepository(),
-            userRepository: $this->stubUserRepository(),
-            payloadMapper: new QuotePayloadMapper(),
+            payloadMapper: new QuotePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
             outputMapper: new QuoteOutputMapper(),
+            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
             quoteWorkflow: $this->stubWorkflow(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $input = $this->quoteInput();
@@ -62,18 +71,19 @@ final class UpdateQuoteHandlerTest extends TestCase
         $quote = $this->createQuote();
         $quote->send(new \DateTimeImmutable());
 
+        $math = new MoneyMath();
         $handler = new UpdateQuoteHandler(
             quoteRepository: new QuoteRepositoryStub($quote),
-            customerRepository: $this->stubCustomerRepository(),
-            userRepository: $this->stubUserRepository(),
-            payloadMapper: new QuotePayloadMapper(),
+            payloadMapper: new QuotePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
             outputMapper: new QuoteOutputMapper(),
+            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
             quoteWorkflow: $this->stubWorkflow(),
+            actionsHelper: new WorkflowActionsHelper()
         );
 
         $input = $this->quoteInput();
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\BadRequestHttpException::class);
+        $this->expectException(BadRequestHttpException::class);
 
         $handler->handle(new UpdateQuoteCommand(Uuid::v7()->toRfc4122(), $input));
     }
@@ -128,7 +138,7 @@ final class UpdateQuoteHandlerTest extends TestCase
     private function createQuote(): Quote
     {
         return Quote::fromPayload(
-            new \App\Domain\DTO\QuotePayload(
+            new QuotePayload(
                 title: 'Initial',
                 subtitle: 'Initial subtitle',
                 currency: 'EUR',
@@ -142,7 +152,7 @@ final class UpdateQuoteHandlerTest extends TestCase
                     new DocumentLinePayload(
                         description: 'Development',
                         quantity: new Quantity('1.000'),
-                        rateUnit: \App\Domain\Enum\RateUnit::HOURLY,
+                        rateUnit: RateUnit::HOURLY,
                         rate: new Money('100.00'),
                         amount: new AmountBreakdown(
                             net: new Money('100.00'),
