@@ -6,6 +6,7 @@ namespace App\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
+use App\Domain\DTO\InvoicePayload;
 use App\Domain\Enum\InvoiceStatus;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
@@ -45,6 +46,27 @@ class Invoice extends Document
     private(set) ?Uuid $installmentSeedId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function fromPayload(InvoicePayload $payload): self
+    {
+        $invoice = new self(
+            title: $payload->title,
+            currency: $payload->currency,
+            vatRate: $payload->vatRate,
+            total: $payload->total,
+            customerSnapshot: $payload->customerSnapshot,
+            companySnapshot: $payload->companySnapshot,
+            subtitle: $payload->subtitle,
+        );
+
+        foreach ($payload->lines as $linePayload) {
+            $invoice->addLine($linePayload);
+        }
+
+        $invoice->dueDate = $payload->dueDate;
+
+        return $invoice;
+    }
 
     public function issue(\DateTimeImmutable $issuedAt, \DateTimeImmutable $dueDate): self
     {

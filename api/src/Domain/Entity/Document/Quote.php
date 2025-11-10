@@ -101,9 +101,4 @@ class Quote extends Document
 
         return $this;
     }
-
-    public function status(): QuoteStatus
-    {
-        return $this->status;
-    }
 }

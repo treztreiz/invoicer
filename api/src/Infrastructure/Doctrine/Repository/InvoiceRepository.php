@@ -43,4 +43,12 @@ final class InvoiceRepository extends ServiceEntityRepository implements Invoice
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function list(): array
+    {
+        return $this->createQueryBuilder('invoice')
+            ->orderBy('invoice.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

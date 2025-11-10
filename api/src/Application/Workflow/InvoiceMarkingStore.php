@@ -5,28 +5,27 @@ declare(strict_types=1);
 namespace App\Application\Workflow;
 
 use App\Application\Guard\TypeGuard;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 
-final class QuoteMarkingStore implements MarkingStoreInterface
+final class InvoiceMarkingStore implements MarkingStoreInterface
 {
     /**
-     * @param Quote $subject
+     * @param Invoice $subject
      */
     public function getMarking(object $subject): Marking
     {
-        TypeGuard::assertClass(Quote::class, $subject);
+        TypeGuard::assertClass(Invoice::class, $subject);
 
         return new Marking([$subject->status->value => 1]);
     }
 
     /**
-     * @param Quote $subject
-     * @param array<int,mixed> $context
+     * @param Invoice $subject
      */
     public function setMarking(object $subject, Marking $marking, array $context = []): void
     {
-        // no-op: aggregate methods perform transitions
+        // no-op, domain handles transitions
     }
 }

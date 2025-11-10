@@ -14,10 +14,17 @@ use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Quote\Input\QuoteActionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
+use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
+use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProvider;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProvider;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceActionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -93,9 +100,19 @@ final class ResourceRegistry
                 new ApiResource(
                     shortName: 'Quote',
                     operations: [
-                        new GetCollection(name: 'api_quotes_get_collection'),
-                        new Get(uriTemplate: '/{id}', name: 'api_quotes_get'),
-                        new Post(name: 'api_quotes_post'),
+                        new GetCollection(
+                            name: 'api_quotes_get_collection',
+                            provider: QuoteStateProvider::class,
+                        ),
+                        new Get(
+                            uriTemplate: '/{id}',
+                            name: 'api_quotes_get',
+                            provider: QuoteStateProvider::class,
+                        ),
+                        new Post(
+                            name: 'api_quotes_post',
+                            processor: QuoteStateProcessor::class,
+                        ),
                         new Post(
                             uriTemplate: '/{id}/actions',
                             status: Response::HTTP_OK,
@@ -107,6 +124,36 @@ final class ResourceRegistry
                         ),
                     ],
                     routePrefix: '/quotes',
+                ),
+            ],
+            InvoiceOutput::class => [
+                new ApiResource(
+                    shortName: 'Invoice',
+                    operations: [
+                        new GetCollection(
+                            name: 'api_invoices_get_collection',
+                            provider: InvoiceStateProvider::class,
+                        ),
+                        new Get(
+                            uriTemplate: '/{id}',
+                            name: 'api_invoices_get',
+                            provider: InvoiceStateProvider::class,
+                        ),
+                        new Post(
+                            name: 'api_invoices_post',
+                            processor: InvoiceStateProcessor::class,
+                        ),
+                        new Post(
+                            uriTemplate: '/{id}/actions',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['invoice:action']],
+                            input: ['class' => InvoiceActionInput::class],
+                            read: false,
+                            name: 'api_invoices_action',
+                            processor: InvoiceActionStateProcessor::class,
+                        ),
+                    ],
+                    routePrefix: '/invoices',
                 ),
             ],
         ];
