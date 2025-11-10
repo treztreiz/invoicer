@@ -135,9 +135,9 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertSame('Website revamp', $data['member'][0]['title']);
     }
 
-    private function invoicePayload(Customer $customer): array
+    private function invoicePayload(Customer $customer, array $override = []): array
     {
-        return [
+        $payload = [
             'title' => 'Website revamp',
             'subtitle' => 'Phase 1',
             'currency' => 'EUR',
@@ -159,6 +159,8 @@ final class InvoiceApiTest extends ApiTestCase
                 ],
             ],
         ];
+
+        return array_replace($payload, $override);
     }
 
     /**
@@ -215,6 +217,79 @@ final class InvoiceApiTest extends ApiTestCase
         $data = $response->toArray(false);
 
         static::assertSame('PAID', $data['status']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_invoice_mutates_document(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $response = $client->request('PUT', sprintf('/api/invoices/%s', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->invoicePayload($customer, [
+                'title' => 'Updated invoice',
+                'subtitle' => 'Updated phase',
+                'currency' => 'USD',
+                'dueDate' => new \DateTimeImmutable('+2 weeks')->format('Y-m-d'),
+                'lines' => [
+                    [
+                        'description' => 'Consulting',
+                        'quantity' => 5,
+                        'rateUnit' => 'DAILY',
+                        'rate' => 700,
+                    ],
+                ],
+            ]),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('Updated invoice', $data['title']);
+        static::assertSame('Updated phase', $data['subtitle']);
+        static::assertSame('USD', $data['currency']);
+        static::assertCount(1, $data['lines']);
+
+        $this->entityManager->clear();
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        static::assertSame('Updated invoice', $invoice->title);
+        static::assertCount(1, $invoice->lines);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_invoice_rejected_when_not_draft(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $this->requestInvoiceAction($client, $token, $invoiceId, 'issue');
+
+        $response = $client->request('PUT', sprintf('/api/invoices/%s', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->invoicePayload($customer, ['title' => 'Should fail']),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
     }
 
     /**

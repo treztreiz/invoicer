@@ -209,9 +209,81 @@ final class QuoteApiTest extends ApiTestCase
         static::assertSame([], $data['availableActions']);
     }
 
-    private function quotePayload(Customer $customer): array
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_quote_mutates_document(): void
     {
-        return [
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $quoteId = $this->createQuoteAndReturnId($client, $token, $customer);
+
+        $response = $client->request('PUT', sprintf('/api/quotes/%s', $quoteId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->quotePayload($customer, [
+                'title' => 'Updated quote',
+                'subtitle' => 'Updated scope',
+                'currency' => 'USD',
+                'lines' => [
+                    [
+                        'description' => 'Consulting',
+                        'quantity' => 3,
+                        'rateUnit' => 'DAILY',
+                        'rate' => 750,
+                    ],
+                ],
+            ]),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('Updated quote', $data['title']);
+        static::assertSame('Updated scope', $data['subtitle']);
+        static::assertSame('USD', $data['currency']);
+        static::assertCount(1, $data['lines']);
+
+        $this->entityManager->clear();
+        $quote = $this->entityManager->getRepository(Quote::class)->find($quoteId);
+        static::assertInstanceOf(Quote::class, $quote);
+        static::assertSame('Updated quote', $quote->title);
+        static::assertCount(1, $quote->lines);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_quote_rejected_when_not_draft(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $quoteId = $this->createQuoteAndReturnId($client, $token, $customer);
+
+        $this->requestQuoteAction($client, $token, $quoteId, 'send');
+
+        $response = $client->request('PUT', sprintf('/api/quotes/%s', $quoteId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->quotePayload($customer, ['title' => 'Should fail']),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    private function quotePayload(Customer $customer, array $override = []): array
+    {
+        $payload = [
             'title' => 'Website revamp',
             'subtitle' => 'Phase 1',
             'currency' => 'EUR',
@@ -232,6 +304,8 @@ final class QuoteApiTest extends ApiTestCase
                 ],
             ],
         ];
+
+        return array_replace($payload, $override);
     }
 
     /**

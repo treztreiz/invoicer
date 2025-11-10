@@ -16,7 +16,7 @@ use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 
-final readonly class CreateQuoteMapper
+final readonly class QuotePayloadMapper
 {
     public function map(QuoteInput $input, Customer $customer, User $user): QuotePayload
     {

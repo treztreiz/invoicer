@@ -96,4 +96,18 @@ abstract class Document
     {
         $this->lines->removeElement($line);
     }
+
+    /**
+     * @param list<DocumentLinePayload> $linePayloads
+     */
+    protected function replaceLines(array $linePayloads): void
+    {
+        foreach ($this->lines as $line) {
+            $this->removeLine($line);
+        }
+
+        foreach ($linePayloads as $linePayload) {
+            $this->addLine($linePayload);
+        }
+    }
 }

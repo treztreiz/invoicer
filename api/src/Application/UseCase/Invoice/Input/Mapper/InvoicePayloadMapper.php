@@ -16,7 +16,7 @@ use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 
-final readonly class CreateInvoiceMapper
+final readonly class InvoicePayloadMapper
 {
     public function map(InvoiceInput $input, Customer $customer, User $user): InvoicePayload
     {

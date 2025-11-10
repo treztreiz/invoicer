@@ -53,6 +53,23 @@ class Quote extends Document
         return $quote;
     }
 
+    public function applyPayload(QuotePayload $payload): void
+    {
+        if (QuoteStatus::DRAFT !== $this->status) {
+            throw new \LogicException('Only draft quotes can be updated.');
+        }
+
+        $this->title = $payload->title;
+        $this->subtitle = $payload->subtitle;
+        $this->currency = $payload->currency;
+        $this->vatRate = $payload->vatRate;
+        $this->total = $payload->total;
+        $this->customerSnapshot = $payload->customerSnapshot;
+        $this->companySnapshot = $payload->companySnapshot;
+
+        $this->replaceLines($payload->lines);
+    }
+
     public function send(\DateTimeImmutable $sentAt): self
     {
         if (QuoteStatus::DRAFT !== $this->status) {

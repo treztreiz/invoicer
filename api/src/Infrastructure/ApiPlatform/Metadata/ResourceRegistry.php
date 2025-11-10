@@ -29,9 +29,11 @@ use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceDeleteStatePro
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProvider;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceUpdateStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProvider;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteUpdateStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -120,6 +122,12 @@ final class ResourceRegistry
                             name: 'api_quotes_post',
                             processor: QuoteStateProcessor::class,
                         ),
+                        new Put(
+                            uriTemplate: '/{id}',
+                            name: 'api_quotes_put',
+                            read: false,
+                            processor: QuoteUpdateStateProcessor::class,
+                        ),
                         new Post(
                             uriTemplate: '/{id}/actions',
                             status: Response::HTTP_OK,
@@ -149,6 +157,12 @@ final class ResourceRegistry
                         new Post(
                             name: 'api_invoices_post',
                             processor: InvoiceStateProcessor::class,
+                        ),
+                        new Put(
+                            uriTemplate: '/{id}',
+                            name: 'api_invoices_put',
+                            read: false,
+                            processor: InvoiceUpdateStateProcessor::class,
                         ),
                         new Post(
                             uriTemplate: '/{id}/actions',
