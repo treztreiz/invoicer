@@ -25,6 +25,7 @@ use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class QuoteApiTest extends ApiTestCase
@@ -134,6 +135,80 @@ final class QuoteApiTest extends ApiTestCase
         static::assertNotEmpty($data['member'][0]['availableActions']);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_send_quote_transitions_to_sent(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $quoteId = $this->createQuoteAndReturnId($client, $token, $customer);
+
+        $response = $this->requestQuoteAction($client, $token, $quoteId, 'send');
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame(QuoteStatus::SENT->value, $data['status']);
+        static::assertSame(['accept', 'reject'], $data['availableActions']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_accept_quote_transitions_to_accepted(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $quoteId = $this->createQuoteAndReturnId($client, $token, $customer);
+
+        $this->requestQuoteAction($client, $token, $quoteId, 'send');
+        $response = $this->requestQuoteAction($client, $token, $quoteId, 'accept');
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame(QuoteStatus::ACCEPTED->value, $data['status']);
+        static::assertSame([], $data['availableActions']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_reject_quote_transitions_to_rejected(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $quoteId = $this->createQuoteAndReturnId($client, $token, $customer);
+
+        $this->requestQuoteAction($client, $token, $quoteId, 'send');
+        $response = $this->requestQuoteAction($client, $token, $quoteId, 'reject');
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame(QuoteStatus::REJECTED->value, $data['status']);
+        static::assertSame([], $data['availableActions']);
+    }
+
     private function quotePayload(Customer $customer): array
     {
         return [
@@ -171,12 +246,38 @@ final class QuoteApiTest extends ApiTestCase
         $client = static::createClient();
         $token = $this->authenticate($client);
 
-        $client->request('POST', '/api/quotes', [
+        $this->createQuoteAndReturnId($client, $token, $customer);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    private function createQuoteAndReturnId(Client $client, string $token, Customer $customer): string
+    {
+        $response = $client->request('POST', '/api/quotes', [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => $this->quotePayload($customer),
         ]);
 
         self::assertResponseStatusCodeSame(201);
+        $data = $response->toArray(false);
+
+        return $data['id'];
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     */
+    private function requestQuoteAction(Client $client, string $token, string $quoteId, string $action): ResponseInterface
+    {
+        return $client->request('POST', sprintf('/api/quotes/%s/actions', $quoteId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => ['action' => $action],
+        ]);
     }
 
     /**

@@ -12,10 +12,12 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
+use App\Application\UseCase\Quote\Input\QuoteActionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,35 +32,33 @@ final class ResourceRegistry
     public function __construct(?array $resources = null)
     {
         $defaults = [
-            UserOutput::class => new ApiResource(
-                shortName: 'Me',
-                operations: [
-                    new Get(name: 'api_me_get'),
-                    new Put(name: 'api_me_update'),
-                ],
-                routePrefix: '/me',
-            ),
-            PasswordInput::class => new ApiResource(
-                shortName: 'Password',
-                operations: [
-                    new Post(
-                        status: Response::HTTP_NO_CONTENT,
-                        openapi: new OpenApiOperation(
-                            responses: [
-                                Response::HTTP_NO_CONTENT => new OpenApiResponse(description: 'Password updated; client must re-authenticate with the new secret.'),
-                            ],
-                            summary: 'Rotate current user password',
-                            description: 'Hashes the new password, persists it, and invalidates active sessions.',
+            UserOutput::class => [
+                new ApiResource(
+                    shortName: 'Me',
+                    operations: [
+                        new Get(name: 'api_me_get'),
+                        new Put(name: 'api_me_update'),
+                        new Post(
+                            uriTemplate: '/password',
+                            status: Response::HTTP_NO_CONTENT,
+                            openapi: new OpenApiOperation(
+                                responses: [
+                                    Response::HTTP_NO_CONTENT => new OpenApiResponse(description: 'Password updated; client must re-authenticate with the new secret.'),
+                                ],
+                                summary: 'Rotate current user password',
+                                description: 'Hashes the new password, persists it, and invalidates active sessions.',
+                            ),
+                            denormalizationContext: ['groups' => ['user:password:write']],
+                            input: ['class' => PasswordInput::class],
+                            output: false,
+                            read: false,
+                            name: 'api_me_change_password',
+                            processor: PasswordStateProcessor::class,
                         ),
-                        denormalizationContext: ['groups' => ['user:password:write']],
-                        output: false,
-                        read: false,
-                        name: 'api_me_change_password',
-                        processor: PasswordStateProcessor::class,
-                    ),
-                ],
-                routePrefix: '/me/password',
-            ),
+                    ],
+                    routePrefix: '/me',
+                ),
+            ],
             CustomerOutput::class => [
                 new ApiResource(
                     shortName: 'Customer',
@@ -96,6 +96,15 @@ final class ResourceRegistry
                         new GetCollection(name: 'api_quotes_get_collection'),
                         new Get(uriTemplate: '/{id}', name: 'api_quotes_get'),
                         new Post(name: 'api_quotes_post'),
+                        new Post(
+                            uriTemplate: '/{id}/actions',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['quote:action']],
+                            input: ['class' => QuoteActionInput::class],
+                            read: false,
+                            name: 'api_quotes_action',
+                            processor: QuoteActionStateProcessor::class,
+                        ),
                     ],
                     routePrefix: '/quotes',
                 ),
