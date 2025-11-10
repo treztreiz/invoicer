@@ -7,6 +7,7 @@ namespace App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\ValueObject\AmountBreakdown;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,5 +30,35 @@ class InstallmentPlan
     public function __construct()
     {
         $this->installments = new ArrayCollection();
+    }
+
+    public function addInstallment(int $position, string $percentage, AmountBreakdown $amount, ?\DateTimeImmutable $dueDate = null): Installment
+    {
+        $installment = new Installment(
+            installmentPlan: $this,
+            position: $position,
+            percentage: $percentage,
+            amount: $amount,
+            dueDate: $dueDate,
+        );
+
+        $this->registerInstallment($installment);
+
+        return $installment;
+    }
+
+    /**
+     * @return list<Installment>
+     */
+    public function installments(): array
+    {
+        return array_values($this->installments->toArray());
+    }
+
+    private function registerInstallment(Installment $installment): void
+    {
+        if (!$this->installments->contains($installment)) {
+            $this->installments->add($installment);
+        }
     }
 }

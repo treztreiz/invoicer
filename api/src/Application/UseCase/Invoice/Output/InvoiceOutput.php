@@ -58,6 +58,9 @@ final readonly class InvoiceOutput
         public ?InvoiceRecurrenceOutput $recurrence = null,
 
         #[Groups(['invoice:read'])]
+        public ?InvoiceInstallmentPlanOutput $installmentPlan = null,
+
+        #[Groups(['invoice:read'])]
         public array $availableActions = [],
     ) {
     }

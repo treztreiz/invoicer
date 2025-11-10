@@ -14,6 +14,7 @@ use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
+use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
 use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Quote\Input\QuoteActionInput;
@@ -22,6 +23,8 @@ use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceActionStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanDeleteStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceDeleteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
@@ -182,6 +185,33 @@ final class ResourceRegistry
                             deserialize: false,
                             name: 'api_invoices_recurrence_delete',
                             processor: InvoiceRecurrenceDeleteStateProcessor::class,
+                        ),
+                        new Post(
+                            uriTemplate: '/{id}/installment-plan',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['invoice:installment']],
+                            input: ['class' => InvoiceInstallmentPlanInput::class],
+                            read: false,
+                            name: 'api_invoices_installment_plan_post',
+                            processor: InvoiceInstallmentPlanStateProcessor::class,
+                        ),
+                        new Put(
+                            uriTemplate: '/{id}/installment-plan',
+                            status: Response::HTTP_OK,
+                            denormalizationContext: ['groups' => ['invoice:installment']],
+                            input: ['class' => InvoiceInstallmentPlanInput::class],
+                            read: false,
+                            name: 'api_invoices_installment_plan_put',
+                            processor: InvoiceInstallmentPlanStateProcessor::class,
+                        ),
+                        new Delete(
+                            uriTemplate: '/{id}/installment-plan',
+                            status: Response::HTTP_OK,
+                            input: false,
+                            read: false,
+                            deserialize: false,
+                            name: 'api_invoices_installment_plan_delete',
+                            processor: InvoiceInstallmentPlanDeleteStateProcessor::class,
                         ),
                     ],
                     routePrefix: '/invoices',

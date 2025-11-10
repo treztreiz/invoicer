@@ -83,6 +83,75 @@ final class InvoiceSoftXorPersistenceTest extends KernelTestCase
         }
     }
 
+    public function test_detaching_installment_plan_removes_orphan(): void
+    {
+        $invoice = $this->createInvoice();
+        $plan = new InstallmentPlan();
+        $plan->addInstallment(
+            position: 0,
+            percentage: '50.00',
+            amount: new AmountBreakdown(
+                net: new Money('500.00'),
+                tax: new Money('100.00'),
+                gross: new Money('600.00'),
+            )
+        );
+        $plan->addInstallment(
+            position: 1,
+            percentage: '50.00',
+            amount: new AmountBreakdown(
+                net: new Money('500.00'),
+                tax: new Money('100.00'),
+                gross: new Money('600.00'),
+            )
+        );
+
+        $invoice->attachInstallmentPlan($plan);
+
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $planId = $plan->id?->toRfc4122();
+        static::assertNotNull($planId);
+
+        $invoice->detachInstallmentPlan();
+        static::assertNull($invoice->installmentPlan);
+
+        $this->entityManager->flush();
+
+        $removed = $this->entityManager->getRepository(InstallmentPlan::class)->find($planId);
+        static::assertNull($removed);
+    }
+
+    public function test_detaching_recurrence_removes_orphan(): void
+    {
+        $invoice = $this->createInvoice();
+        $recurrence = new InvoiceRecurrence(
+            RecurrenceFrequency::MONTHLY,
+            interval: 1,
+            anchorDate: new \DateTimeImmutable('2025-01-01'),
+            endStrategy: RecurrenceEndStrategy::UNTIL_DATE,
+            nextRunAt: null,
+            endDate: new \DateTimeImmutable('2025-06-01'),
+        );
+
+        $invoice->attachRecurrence($recurrence);
+
+        $this->entityManager->persist($invoice);
+        $this->entityManager->flush();
+
+        $recurrenceId = $recurrence->id?->toRfc4122();
+        static::assertNotNull($recurrenceId);
+
+        $invoice->detachRecurrence();
+        $this->entityManager->flush();
+
+        static::assertNull($invoice->recurrence);
+
+        $removed = $this->entityManager->getRepository(InvoiceRecurrence::class)->find($recurrenceId);
+        static::assertNull($removed);
+    }
+
     private function createInvoice(): Invoice
     {
         return new Invoice(

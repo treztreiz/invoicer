@@ -409,6 +409,169 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_attach_installment_plan(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+        static::assertCount(2, $data['installmentPlan']['installments']);
+
+        $this->entityManager->clear();
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        static::assertNotNull($invoice->installmentPlan);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_update_installment_plan(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $response = $client->request('PUT', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload([
+                ['percentage' => 40, 'dueDate' => '2025-01-15'],
+                ['percentage' => 60, 'dueDate' => '2025-02-15'],
+            ]),
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+        static::assertSame('60.00', $data['installmentPlan']['installments'][1]['percentage']);
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
+    public function test_delete_installment_plan(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $response = $client->request('DELETE', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+        static::assertNull($data['installmentPlan']);
+
+        $this->entityManager->clear();
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        static::assertNull($invoice->installmentPlan);
+    }
+
+    public function test_attach_installment_plan_rejected_when_recurrence_exists(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $client->request('POST', sprintf('/api/invoices/%s/recurrence', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->recurrencePayload(),
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('both an installment plan and a recurrence', $data['detail'] ?? '');
+    }
+
+    public function test_attach_installment_plan_rejected_when_invoice_generated_from_recurrence(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        $invoice->markGeneratedFromRecurrence(Uuid::v7());
+        $this->entityManager->flush();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
+    }
+
+    public function test_attach_installment_plan_rejected_when_invoice_generated_from_installment(): void
+    {
+        $customer = $this->persistCustomer('Alice', 'Buyer');
+        $client = static::createClient();
+        $token = $this->authenticate($client);
+        $invoiceId = $this->createInvoiceAndReturnId($client, $token, $customer);
+
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($invoiceId);
+        static::assertInstanceOf(Invoice::class, $invoice);
+        $invoice->markGeneratedFromInstallment(Uuid::v7());
+        $this->entityManager->flush();
+
+        $response = $client->request('POST', sprintf('/api/invoices/%s/installment-plan', $invoiceId), [
+            'headers' => ['Authorization' => 'Bearer '.$token],
+            'json' => $this->installmentPayload(),
+        ]);
+
+        self::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+        static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
+    }
+
     private function createInvoiceFixture(Customer $customer): void
     {
         $client = static::createClient();
@@ -471,6 +634,20 @@ final class InvoiceApiTest extends ApiTestCase
             'endDate' => '2025-12-31',
             'occurrenceCount' => null,
         ], $override);
+    }
+
+    private function installmentPayload(array $installments = []): array
+    {
+        if ([] === $installments) {
+            $installments = [
+                ['percentage' => 50, 'dueDate' => '2025-01-01'],
+                ['percentage' => 50, 'dueDate' => '2025-02-01'],
+            ];
+        }
+
+        return [
+            'installments' => array_values($installments),
+        ];
     }
 
     private function persistCustomer(string $firstName, string $lastName): Customer

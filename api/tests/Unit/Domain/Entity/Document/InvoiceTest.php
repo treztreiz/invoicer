@@ -109,6 +109,15 @@ final class InvoiceTest extends TestCase
         static::assertNull($this->invoice->recurrence);
     }
 
+    public function test_detach_installment_plan(): void
+    {
+        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+
+        $this->invoice->detachInstallmentPlan();
+
+        static::assertNull($this->invoice->installmentPlan);
+    }
+
     public function test_generated_from_recurrence_cannot_attach_recurrence(): void
     {
         $this->invoice->markGeneratedFromRecurrence(Uuid::v7());

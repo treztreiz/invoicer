@@ -167,6 +167,11 @@ class Invoice extends Document
         $this->recurrence = null;
     }
 
+    public function detachInstallmentPlan(): void
+    {
+        $this->installmentPlan = null;
+    }
+
     public function markGeneratedFromRecurrence(Uuid $seedId): void
     {
         $this->recurrenceSeedId = $seedId;

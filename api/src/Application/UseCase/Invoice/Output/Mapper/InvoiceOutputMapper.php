@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Output\Mapper;
 
+use App\Application\UseCase\Invoice\Output\InvoiceInstallmentOutput;
+use App\Application\UseCase\Invoice\Output\InvoiceInstallmentPlanOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceLineOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceRecurrenceOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceTotalsOutput;
 use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Installment;
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 
 final class InvoiceOutputMapper
@@ -51,6 +55,7 @@ final class InvoiceOutputMapper
             dueDate: $invoice->dueDate?->format('Y-m-d'),
             paidAt: $invoice->paidAt?->format(\DateTimeInterface::ATOM),
             recurrence: $this->mapRecurrence($invoice->recurrence),
+            installmentPlan: $this->mapInstallmentPlan($invoice->installmentPlan),
             availableActions: $availableActions,
         );
     }
@@ -69,6 +74,32 @@ final class InvoiceOutputMapper
             nextRunAt: $recurrence->nextRunAt?->format(\DateTimeInterface::ATOM),
             endDate: $recurrence->endDate?->format('Y-m-d'),
             occurrenceCount: $recurrence->occurrenceCount,
+        );
+    }
+
+    private function mapInstallmentPlan(?InstallmentPlan $plan): ?InvoiceInstallmentPlanOutput
+    {
+        if (null === $plan) {
+            return null;
+        }
+
+        $installments = array_map(
+            fn (Installment $installment) => new InvoiceInstallmentOutput(
+                position: $installment->position,
+                percentage: $installment->percentage,
+                amount: new InvoiceTotalsOutput(
+                    net: $installment->amount->net->value,
+                    tax: $installment->amount->tax->value,
+                    gross: $installment->amount->gross->value,
+                ),
+                dueDate: $installment->dueDate?->format('Y-m-d'),
+            ),
+            $plan->installments()
+        );
+
+        return new InvoiceInstallmentPlanOutput(
+            id: $plan->id?->toRfc4122() ?? '',
+            installments: $installments,
         );
     }
 }
