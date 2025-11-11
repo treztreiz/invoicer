@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document\Invoice;
 
+use App\Domain\DTO\InvoiceRecurrencePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Document\Invoice;
-use App\Domain\DTO\InvoiceRecurrencePayload;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\Guard\DomainGuard;

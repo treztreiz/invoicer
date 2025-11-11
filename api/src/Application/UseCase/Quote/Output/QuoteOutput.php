@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Quote\Output;
 
+use App\Application\UseCase\Document\Output\DocumentLineOutput;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 final readonly class QuoteOutput
 {
     /**
-     * @param list<QuoteLineOutput> $lines
-     * @param array<string, mixed>  $customerSnapshot
-     * @param array<string, mixed>  $companySnapshot
-     * @param list<string>          $availableActions
+     * @param list<DocumentLineOutput> $lines
+     * @param array<string, mixed>     $customerSnapshot
+     * @param array<string, mixed>     $companySnapshot
+     * @param list<string>             $availableActions
      */
     public function __construct(
         #[Groups(['quote:read'])]

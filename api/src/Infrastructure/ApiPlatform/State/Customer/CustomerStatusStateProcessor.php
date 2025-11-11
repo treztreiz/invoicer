@@ -6,10 +6,10 @@ namespace App\Infrastructure\ApiPlatform\State\Customer;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Application\UseCase\Customer\Action\CustomerStatusAction;
 use App\Application\UseCase\Customer\Handler\ArchiveCustomerHandler;
 use App\Application\UseCase\Customer\Handler\RestoreCustomerHandler;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
+use App\Application\UseCase\Customer\Task\CustomerStatusTask;
 
 /**
  * @implements ProcessorInterface<object, CustomerOutput>
@@ -30,11 +30,11 @@ final readonly class CustomerStatusStateProcessor implements ProcessorInterface
             throw new \InvalidArgumentException('Customer id is required.');
         }
 
-        $action = new CustomerStatusAction($id);
+        $task = new CustomerStatusTask($id);
 
         return match ($operation->getName()) {
-            'api_customers_archive' => $this->archiveCustomerHandler->handle($action),
-            'api_customers_restore' => $this->restoreCustomerHandler->handle($action),
+            'api_customers_archive' => $this->archiveCustomerHandler->handle($task),
+            'api_customers_restore' => $this->restoreCustomerHandler->handle($task),
             default => throw new \LogicException(sprintf('Unsupported operation "%s" for customer status processor.', $operation->getName())),
         };
     }

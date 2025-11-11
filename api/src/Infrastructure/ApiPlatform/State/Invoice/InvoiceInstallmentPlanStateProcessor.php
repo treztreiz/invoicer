@@ -8,10 +8,10 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\AttachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Handler\AttachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
+use App\Application\UseCase\Invoice\Task\AttachInvoiceInstallmentPlanTask;
 
 /**
  * @implements ProcessorInterface<InvoiceInstallmentPlanInput, InvoiceOutput>
@@ -33,10 +33,12 @@ final readonly class InvoiceInstallmentPlanStateProcessor implements ProcessorIn
 
         $replaceExisting = $operation instanceof Put;
 
-        return $this->handler->handle(new AttachInvoiceInstallmentPlanCommand(
-            invoiceId: $invoiceId,
-            input: $input,
-            replaceExisting: $replaceExisting,
-        ));
+        return $this->handler->handle(
+            new AttachInvoiceInstallmentPlanTask(
+                invoiceId: $invoiceId,
+                input: $input,
+                replaceExisting: $replaceExisting,
+            )
+        );
     }
 }

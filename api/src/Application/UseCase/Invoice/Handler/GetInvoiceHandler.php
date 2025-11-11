@@ -5,36 +5,29 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\UseCase\Invoice\Query\GetInvoiceQuery;
-use App\Application\Workflow\WorkflowActionsHelper;
-use App\Domain\Contracts\InvoiceRepositoryInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
+use App\Application\UseCase\Invoice\Task\GetInvoiceTask;
 
-/** @implements UseCaseHandlerInterface<GetInvoiceQuery, InvoiceOutput> */
+/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Invoice\Task\GetInvoiceTask, InvoiceOutput> */
 final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
 {
     public function __construct(
-        private InvoiceRepositoryInterface $invoiceRepository,
+        private DocumentFetcher $documentFetcher,
         private InvoiceOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.invoice_flow')]
-        private WorkflowInterface $invoiceWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): InvoiceOutput
     {
-        $query = TypeGuard::assertClass(GetInvoiceQuery::class, $data);
+        $task = TypeGuard::assertClass(GetInvoiceTask::class, $data);
 
-        $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($query->id));
-        $invoice = InvoiceGuard::assertFound($invoice, $query->invoiceId);
+        $invoice = $this->documentFetcher->invoice($task->invoiceId);
 
-        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
+        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
     }
 }

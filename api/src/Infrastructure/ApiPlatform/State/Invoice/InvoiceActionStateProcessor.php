@@ -7,10 +7,10 @@ namespace App\Infrastructure\ApiPlatform\State\Invoice;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\InvoiceActionCommand;
 use App\Application\UseCase\Invoice\Handler\InvoiceActionHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
+use App\Application\UseCase\Invoice\Task\InvoiceActionTask;
 
 /**
  * @implements ProcessorInterface<InvoiceActionInput, InvoiceOutput>
@@ -31,8 +31,8 @@ final readonly class InvoiceActionStateProcessor implements ProcessorInterface
             throw new \InvalidArgumentException('Invoice id is required.');
         }
 
-        $command = new InvoiceActionCommand($invoiceId, $input->action);
+        $task = new InvoiceActionTask($invoiceId, $input->action);
 
-        return $this->handler->handle($command);
+        return $this->handler->handle($task);
     }
 }

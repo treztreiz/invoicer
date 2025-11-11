@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Input;
 
+use App\Application\UseCase\Document\Input\DocumentLineInput;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -28,9 +29,7 @@ final class InvoiceInput
         #[Assert\PositiveOrZero]
         public float $vatRate,
 
-        /**
-         * @var list<InvoiceLineInput|array<string, mixed>>
-         */
+        /** @var list<DocumentLineInput|array<string, mixed>> */
         #[Groups(['invoice:write'])]
         #[Assert\Count(min: 1)]
         #[Assert\Valid]

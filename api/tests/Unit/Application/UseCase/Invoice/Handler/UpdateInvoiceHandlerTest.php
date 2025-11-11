@@ -4,22 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
-use App\Application\Service\DocumentLineFactory;
-use App\Application\Service\DocumentSnapshotFactory;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Document\DocumentLineFactory;
+use App\Application\Service\Document\DocumentLinePayloadFactory;
+use App\Application\Service\Document\DocumentSnapshotFactory;
 use App\Application\Service\EntityFetcher;
-use App\Application\Service\MoneyMath;
-use App\Application\UseCase\Invoice\Command\UpdateInvoiceCommand;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\UpdateInvoiceHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\UpdateInvoiceTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\DTO\InvoicePayload;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Quote;
 use App\Domain\Entity\User\User;
 use App\Domain\Enum\RateUnit;
 use App\Domain\ValueObject\Address;
@@ -32,7 +36,6 @@ use App\Domain\ValueObject\Name;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -45,18 +48,19 @@ final class UpdateInvoiceHandlerTest extends TestCase
     {
         $invoice = $this->createInvoice();
 
-        $math = new MoneyMath();
+        $lineFactory = new DocumentLineFactory();
+        $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
         $handler = new UpdateInvoiceHandler(
             invoiceRepository: new InvoiceRepositoryStub($invoice),
-            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
+            documentFetcher: $this->documentFetcherStub($invoice),
+            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
             outputMapper: new InvoiceOutputMapper(),
             entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
-            invoiceWorkflow: $this->stubWorkflow(),
-            actionsHelper: new WorkflowActionsHelper()
+            workflowManager: $this->workflowManager($this->stubWorkflow())
         );
 
         $input = $this->invoiceInput();
-        $command = new UpdateInvoiceCommand(Uuid::v7()->toRfc4122(), $input);
+        $command = new UpdateInvoiceTask(Uuid::v7()->toRfc4122(), $input);
 
         $output = $handler->handle($command);
 
@@ -71,19 +75,20 @@ final class UpdateInvoiceHandlerTest extends TestCase
         $invoice = $this->createInvoice();
         $invoice->issue(new \DateTimeImmutable('2025-01-01T00:00:00Z'), new \DateTimeImmutable('2025-01-10'));
 
-        $math = new MoneyMath();
+        $lineFactory = new DocumentLineFactory();
+        $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
         $handler = new UpdateInvoiceHandler(
             invoiceRepository: new InvoiceRepositoryStub($invoice),
-            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), new DocumentLineFactory($math), $math),
+            documentFetcher: $this->documentFetcherStub($invoice),
+            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
             outputMapper: new InvoiceOutputMapper(),
             entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
-            invoiceWorkflow: $this->stubWorkflow(),
-            actionsHelper: new WorkflowActionsHelper()
+            workflowManager: $this->workflowManager($this->stubWorkflow())
         );
 
-        $this->expectException(BadRequestHttpException::class);
+        $this->expectException(DomainRuleViolationException::class);
 
-        $handler->handle(new UpdateInvoiceCommand(Uuid::v7()->toRfc4122(), $this->invoiceInput()));
+        $handler->handle(new UpdateInvoiceTask(Uuid::v7()->toRfc4122(), $this->invoiceInput()));
     }
 
     private function invoiceInput(): InvoiceInput
@@ -198,5 +203,38 @@ final class UpdateInvoiceHandlerTest extends TestCase
             password: 'temp',
             locale: 'en_US',
         );
+    }
+
+    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    {
+        $quoteRepository = new class implements QuoteRepositoryInterface {
+            public function save(Quote $quote): void
+            {
+            }
+
+            public function remove(Quote $quote): void
+            {
+            }
+
+            public function findOneById(Uuid $id): Quote
+            {
+                throw new \LogicException('Quote repository not expected in invoice handler tests.');
+            }
+
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+    }
+
+    private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
+    {
+        $quoteWorkflow = static::createStub(WorkflowInterface::class);
+        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+
+        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
     }
 }

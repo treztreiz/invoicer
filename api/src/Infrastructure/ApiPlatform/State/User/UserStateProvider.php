@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Application\UseCase\User\Handler\GetUserHandler;
 use App\Application\UseCase\User\Output\UserOutput;
-use App\Application\UseCase\User\Query\GetUserQuery;
+use App\Application\UseCase\User\Task\GetUserTask;
 use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -25,9 +25,9 @@ final readonly class UserStateProvider implements ProviderInterface
     {
         $user = SecurityGuard::assertAuth($this->security->getUser());
 
-        $query = new GetUserQuery($user->domainUser->id->toRfc4122());
+        $task = new GetUserTask($user->domainUser->id->toRfc4122());
 
-        $output = $this->handler->handle($query);
+        $output = $this->handler->handle($task);
 
         return $output;
     }

@@ -7,10 +7,10 @@ namespace App\Infrastructure\ApiPlatform\State\Invoice;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\UpdateInvoiceCommand;
 use App\Application\UseCase\Invoice\Handler\UpdateInvoiceHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
+use App\Application\UseCase\Invoice\Task\UpdateInvoiceTask;
 use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -37,6 +37,6 @@ final readonly class InvoiceUpdateStateProcessor implements ProcessorInterface
 
         $input->userId = $user->domainUser->id->toRfc4122();
 
-        return $this->handler->handle(new UpdateInvoiceCommand($invoiceId, $input));
+        return $this->handler->handle(new UpdateInvoiceTask($invoiceId, $input));
     }
 }

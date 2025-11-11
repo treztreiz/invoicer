@@ -7,10 +7,10 @@ namespace App\Infrastructure\ApiPlatform\State\Quote;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Quote\Command\QuoteActionCommand;
 use App\Application\UseCase\Quote\Handler\QuoteActionHandler;
 use App\Application\UseCase\Quote\Input\QuoteActionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
+use App\Application\UseCase\Quote\Task\QuoteActionTask;
 
 /**
  * @implements ProcessorInterface<QuoteActionInput, QuoteOutput>
@@ -32,8 +32,8 @@ final readonly class QuoteActionStateProcessor implements ProcessorInterface
             throw new \InvalidArgumentException('Quote id is required.');
         }
 
-        $command = new QuoteActionCommand($quoteId, $input->action);
+        $task = new QuoteActionTask($quoteId, $input->action);
 
-        return $this->handler->handle($command);
+        return $this->handler->handle($task);
     }
 }

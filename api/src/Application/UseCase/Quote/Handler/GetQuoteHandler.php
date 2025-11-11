@@ -5,43 +5,32 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Quote\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\UseCase\Quote\Query\GetQuoteQuery;
-use App\Application\Workflow\WorkflowActionsHelper;
-use App\Domain\Contracts\QuoteRepositoryInterface;
-use App\Domain\Entity\Document\Quote;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
+use App\Application\UseCase\Quote\Task\GetQuoteTask;
 
-/** @implements UseCaseHandlerInterface<GetQuoteQuery, QuoteOutput> */
+/** @implements UseCaseHandlerInterface<GetQuoteTask, QuoteOutput> */
 final readonly class GetQuoteHandler implements UseCaseHandlerInterface
 {
     public function __construct(
-        private QuoteRepositoryInterface $quoteRepository,
+        private DocumentFetcher $documentFetcher,
         private QuoteOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.quote_flow')]
-        private WorkflowInterface $quoteWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): QuoteOutput
     {
-        $query = TypeGuard::assertClass(GetQuoteQuery::class, $data);
+        $task = TypeGuard::assertClass(GetQuoteTask::class, $data);
 
-        $quote = $this->quoteRepository->findOneById(Uuid::fromString($query->id));
-
-        if (!$quote instanceof Quote) {
-            throw new ResourceNotFoundException('Quote', $query->id);
-        }
+        $quote = $this->documentFetcher->quote($task->quoteId);
 
         return $this->outputMapper->map(
             $quote,
-            $this->actionsHelper->availableActions($quote, $this->quoteWorkflow)
+            $this->workflowManager->quoteActions($quote)
         );
     }
 }

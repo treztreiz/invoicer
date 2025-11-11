@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Output\Mapper;
 
+use App\Application\UseCase\Document\Output\DocumentLineOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceInstallmentOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceInstallmentPlanOutput;
-use App\Application\UseCase\Invoice\Output\InvoiceLineOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceRecurrenceOutput;
 use App\Application\UseCase\Invoice\Output\InvoiceTotalsOutput;
@@ -52,12 +52,12 @@ final class InvoiceOutputMapper
         );
     }
 
-    /** @return list<InvoiceLineOutput> */
+    /** @return list<DocumentLineOutput> */
     private function mapLines(Invoice $invoice): array
     {
         return array_values(
             array_map(
-                fn(DocumentLine $line) => new InvoiceLineOutput(
+                fn (DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,
@@ -95,7 +95,7 @@ final class InvoiceOutputMapper
         }
 
         $installments = array_map(
-            fn(Installment $installment) => new InvoiceInstallmentOutput(
+            fn (Installment $installment) => new InvoiceInstallmentOutput(
                 position: $installment->position,
                 percentage: $installment->percentage,
                 amount: new InvoiceTotalsOutput(

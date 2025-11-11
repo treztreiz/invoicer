@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
-use App\Application\UseCase\Invoice\Command\DetachInvoiceRecurrenceCommand;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\DetachInvoiceRecurrenceTask;
+use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
+use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -32,12 +35,12 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
 
         $handler = new DetachInvoiceRecurrenceHandler(
             new InvoiceRepositoryStub($invoice),
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
-            $this->createWorkflowStub(),
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($this->createWorkflowStub())
         );
 
-        $output = $handler->handle(new DetachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122()));
+        $output = $handler->handle(new DetachInvoiceRecurrenceTask(Uuid::v7()->toRfc4122()));
 
         static::assertNull($invoice->recurrence);
         static::assertNull($output->recurrence);
@@ -49,14 +52,14 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
 
         $handler = new DetachInvoiceRecurrenceHandler(
             new InvoiceRepositoryStub($invoice),
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
-            $this->createWorkflowStub(),
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($this->createWorkflowStub())
         );
 
-        $this->expectException(BadRequestHttpException::class);
+        $this->expectException(DomainRuleViolationException::class);
 
-        $handler->handle(new DetachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122()));
+        $handler->handle(new DetachInvoiceRecurrenceTask(Uuid::v7()->toRfc4122()));
     }
 
     private function createWorkflowStub(): WorkflowInterface
@@ -91,5 +94,38 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
             anchorDate: new \DateTimeImmutable('2025-01-01'),
             endStrategy: RecurrenceEndStrategy::NEVER,
         );
+    }
+
+    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    {
+        $quoteRepository = new class implements QuoteRepositoryInterface {
+            public function save(Quote $quote): void
+            {
+            }
+
+            public function remove(Quote $quote): void
+            {
+            }
+
+            public function findOneById(Uuid $id): Quote
+            {
+                throw new \LogicException('Quote repository not expected in invoice handler tests.');
+            }
+
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+    }
+
+    private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
+    {
+        $quoteWorkflow = static::createStub(WorkflowInterface::class);
+        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+
+        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
     }
 }

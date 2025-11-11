@@ -5,20 +5,17 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Guard\InvoiceGuard;
+use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\InvoiceActionCommand;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\InvoiceActionTask;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<InvoiceActionCommand, InvoiceOutput> */
+/** @implements UseCaseHandlerInterface<InvoiceActionTask, InvoiceOutput> */
 final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
 {
     private const string ACTION_ISSUE = 'issue';
@@ -27,28 +24,26 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
 
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
+        private DocumentFetcher $documentFetcher,
         private InvoiceOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.invoice_flow')]
-        private WorkflowInterface $invoiceWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): InvoiceOutput
     {
-        $command = TypeGuard::assertClass(InvoiceActionCommand::class, $data);
+        $task = TypeGuard::assertClass(InvoiceActionTask::class, $data);
 
-        $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
-        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
+        $invoice = $this->documentFetcher->invoice($task->invoiceId);
 
-        if (!$this->invoiceWorkflow->can($invoice, $command->action)) {
-            throw new BadRequestHttpException(sprintf('Invoice cannot transition via "%s".', $command->action));
+        if (!$this->workflowManager->canInvoiceTransition($invoice, $task->action)) {
+            throw new DomainRuleViolationException(sprintf('Invoice cannot transition via "%s".', $task->action));
         }
 
-        $this->applyTransition($invoice, $command->action);
+        $this->applyTransition($invoice, $task->action);
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
+        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
     }
 
     private function applyTransition(Invoice $invoice, string $action): void
@@ -59,7 +54,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
             self::ACTION_ISSUE => $invoice->issue($now, $invoice->dueDate ?? $now),
             self::ACTION_MARK_PAID => $invoice->markPaid($now),
             self::ACTION_VOID => $invoice->void(),
-            default => throw new BadRequestHttpException(sprintf('Unknown action "%s".', $action)),
+            default => throw new DomainRuleViolationException(sprintf('Unknown action "%s".', $action)),
         };
     }
 }

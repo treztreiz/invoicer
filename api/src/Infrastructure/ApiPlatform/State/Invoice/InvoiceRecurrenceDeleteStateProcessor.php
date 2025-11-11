@@ -6,9 +6,9 @@ namespace App\Infrastructure\ApiPlatform\State\Invoice;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Application\UseCase\Invoice\Command\DetachInvoiceRecurrenceCommand;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
+use App\Application\UseCase\Invoice\Task\DetachInvoiceRecurrenceTask;
 
 /**
  * @implements ProcessorInterface<object, InvoiceOutput>
@@ -27,6 +27,6 @@ final readonly class InvoiceRecurrenceDeleteStateProcessor implements ProcessorI
             throw new \InvalidArgumentException('Invoice id is required.');
         }
 
-        return $this->handler->handle(new DetachInvoiceRecurrenceCommand($invoiceId));
+        return $this->handler->handle(new DetachInvoiceRecurrenceTask($invoiceId));
     }
 }

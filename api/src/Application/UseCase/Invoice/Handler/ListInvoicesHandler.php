@@ -6,23 +6,19 @@ namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\UseCase\Invoice\Query\ListInvoicesQuery;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\ListInvoicesTask;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<ListInvoicesQuery, InvoiceOutput> */
+/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Invoice\Task\ListInvoicesTask, InvoiceOutput> */
 final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
         private InvoiceOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.invoice_flow')]
-        private WorkflowInterface $invoiceWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
@@ -31,14 +27,14 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
      */
     public function handle(object $data): array
     {
-        TypeGuard::assertClass(ListInvoicesQuery::class, $data);
+        TypeGuard::assertClass(ListInvoicesTask::class, $data);
 
         $invoices = $this->invoiceRepository->list();
 
         return array_map(
             fn ($invoice) => $this->outputMapper->map(
                 $invoice,
-                $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow)
+                $this->workflowManager->invoiceActions($invoice)
             ),
             $invoices
         );

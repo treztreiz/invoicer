@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Output;
 
+use App\Application\UseCase\Document\Output\DocumentLineOutput;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 final readonly class InvoiceOutput
 {
     /**
-     * @param list<InvoiceLineOutput> $lines
-     * @param array<string, mixed>    $customerSnapshot
-     * @param array<string, mixed>    $companySnapshot
-     * @param list<string>            $availableActions
+     * @param list<DocumentLineOutput> $lines
+     * @param array<string, mixed>     $customerSnapshot
+     * @param array<string, mixed>     $companySnapshot
+     * @param list<string>             $availableActions
      */
     public function __construct(
         #[Groups(['invoice:read'])]

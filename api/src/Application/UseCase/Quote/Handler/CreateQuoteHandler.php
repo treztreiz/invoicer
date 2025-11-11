@@ -6,16 +6,14 @@ namespace App\Application\UseCase\Quote\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\EntityFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
 use App\Application\UseCase\Quote\Input\QuoteInput;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\Service\EntityFetcher;
-use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Workflow\WorkflowInterface;
 
 /** @implements UseCaseHandlerInterface<QuoteInput, QuoteOutput> */
 final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
@@ -25,9 +23,7 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
         private QuotePayloadMapper $mapper,
         private QuoteOutputMapper $outputMapper,
         private EntityFetcher $entityFetcher,
-        #[Autowire(service: 'state_machine.quote_flow')]
-        private WorkflowInterface $quoteWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
@@ -46,8 +42,7 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $quote,
-            $this->actionsHelper->availableActions($quote, $this->quoteWorkflow)
+            $this->workflowManager->quoteActions($quote)
         );
     }
-
 }

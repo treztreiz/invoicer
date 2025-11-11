@@ -5,7 +5,7 @@ framework:
             supports:
                 - App\Domain\Entity\Document\Quote
             marking_store:
-                service: App\Application\Workflow\QuoteMarkingStore
+                service: App\Application\Service\Workflow\QuoteMarkingStore
             initial_marking:
                 - !php/enum App\Domain\Enum\QuoteStatus::DRAFT->value
             places:
@@ -29,7 +29,7 @@ framework:
             supports:
                 - App\Domain\Entity\Document\Invoice
             marking_store:
-                service: App\Application\Workflow\InvoiceMarkingStore
+                service: App\Application\Service\Workflow\InvoiceMarkingStore
             initial_marking:
                 - !php/enum App\Domain\Enum\InvoiceStatus::DRAFT->value
             places:

@@ -1,40 +1,78 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Guard;
 
-use App\Application\Exception\ResourceNotFoundException;
-use App\Application\UseCase\Invoice\Command\AttachInvoiceInstallmentPlanCommand;
-use App\Application\UseCase\Invoice\Command\AttachInvoiceRecurrenceCommand;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\UseCase\Invoice\Task\AttachInvoiceInstallmentPlanTask;
+use App\Application\UseCase\Invoice\Task\AttachInvoiceRecurrenceTask;
 use App\Domain\Entity\Document\Invoice;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use App\Domain\Enum\InvoiceStatus;
 
 class InvoiceGuard
 {
-    public static function assertFound(?Invoice $invoice, string $id): Invoice
+    /** @param class-string $task */
+    public static function guardAgainstScheduleConflicts(Invoice $invoice, string $task): Invoice
     {
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $id);
+        if (!in_array($task, [AttachInvoiceRecurrenceTask::class, AttachInvoiceInstallmentPlanTask::class], true)) {
+            throw new \InvalidArgumentException(sprintf('Action "%s" is not allowed.', $task));
+        }
+
+        if (
+            (AttachInvoiceRecurrenceTask::class === $task && null !== $invoice->installmentPlan)
+            || (AttachInvoiceInstallmentPlanTask::class === $task && null !== $invoice->recurrence)
+        ) {
+            throw new DomainRuleViolationException('Invoices cannot have both a recurrence and an installment plan.');
+        }
+
+        if (null !== $invoice->recurrenceSeedId || null !== $invoice->installmentSeedId) {
+            throw new DomainRuleViolationException('Generated invoices cannot attach new scheduling rules.');
         }
 
         return $invoice;
     }
 
-    /** @param class-string $action */
-    public static function guardAgainstScheduleConflicts(Invoice $invoice, string $action): Invoice
+    public static function assertDraft(Invoice $invoice): Invoice
     {
-        if (!in_array($action, [AttachInvoiceRecurrenceCommand::class, AttachInvoiceInstallmentPlanCommand::class], true)) {
-            throw new \InvalidArgumentException(sprintf('Action "%s" is not allowed.', $action));
+        if (InvoiceStatus::DRAFT !== $invoice->status) {
+            throw new DomainRuleViolationException('Only draft invoices can be updated.');
         }
 
-        if (
-            (AttachInvoiceRecurrenceCommand::class === $action && null !== $invoice->installmentPlan)
-            || (AttachInvoiceInstallmentPlanCommand::class === $action && null !== $invoice->recurrence)
-        ) {
-            throw new BadRequestHttpException('Invoices cannot have both a recurrence and an installment plan.');
+        return $invoice;
+    }
+
+    public static function assertHasRecurrence(Invoice $invoice): Invoice
+    {
+        if (null === $invoice->recurrence) {
+            throw new DomainRuleViolationException('Invoice does not have a recurrence configured.');
         }
 
-        if (null !== $invoice->recurrenceSeedId || null !== $invoice->installmentSeedId) {
-            throw new BadRequestHttpException('Generated invoices cannot attach new scheduling rules.');
+        return $invoice;
+    }
+
+    public static function assertHasInstallmentPlan(Invoice $invoice): Invoice
+    {
+        if (null === $invoice->installmentPlan) {
+            throw new DomainRuleViolationException('Invoice does not have an installment plan.');
+        }
+
+        return $invoice;
+    }
+
+    public static function assertCanAttachInstallmentPlan(Invoice $invoice, bool $replaceExisting): Invoice
+    {
+        if (null !== $invoice->installmentPlan && !$replaceExisting) {
+            throw new DomainRuleViolationException('Invoice already has an installment plan.');
+        }
+
+        return $invoice;
+    }
+
+    public static function assertCanAttachRecurrence(Invoice $invoice, bool $replaceExisting): Invoice
+    {
+        if (null !== $invoice->recurrence && !$replaceExisting) {
+            throw new DomainRuleViolationException('Invoice already has a recurrence configured.');
         }
 
         return $invoice;

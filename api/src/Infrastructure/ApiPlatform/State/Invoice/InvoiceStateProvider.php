@@ -11,8 +11,8 @@ use ApiPlatform\State\ProviderInterface;
 use App\Application\UseCase\Invoice\Handler\GetInvoiceHandler;
 use App\Application\UseCase\Invoice\Handler\ListInvoicesHandler;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
-use App\Application\UseCase\Invoice\Query\GetInvoiceQuery;
-use App\Application\UseCase\Invoice\Query\ListInvoicesQuery;
+use App\Application\UseCase\Invoice\Task\GetInvoiceTask;
+use App\Application\UseCase\Invoice\Task\ListInvoicesTask;
 
 /** @implements ProviderInterface<InvoiceOutput> */
 final readonly class InvoiceStateProvider implements ProviderInterface
@@ -27,13 +27,13 @@ final readonly class InvoiceStateProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput|array
     {
         if ($operation instanceof GetCollection) {
-            return $this->listInvoicesHandler->handle(new ListInvoicesQuery());
+            return $this->listInvoicesHandler->handle(new ListInvoicesTask());
         }
 
         if ($operation instanceof Get) {
             $invoiceId = (string) ($uriVariables['id'] ?? '');
 
-            return $this->getInvoiceHandler->handle(new GetInvoiceQuery($invoiceId));
+            return $this->getInvoiceHandler->handle(new GetInvoiceTask($invoiceId));
         }
 
         throw new \LogicException(sprintf('Unsupported operation %s for invoice provider.', $operation::class));

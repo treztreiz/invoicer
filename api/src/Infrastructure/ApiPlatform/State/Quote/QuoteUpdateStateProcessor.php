@@ -7,10 +7,10 @@ namespace App\Infrastructure\ApiPlatform\State\Quote;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Quote\Command\UpdateQuoteCommand;
 use App\Application\UseCase\Quote\Handler\UpdateQuoteHandler;
 use App\Application\UseCase\Quote\Input\QuoteInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
+use App\Application\UseCase\Quote\Task\UpdateQuoteTask;
 use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -37,6 +37,6 @@ final readonly class QuoteUpdateStateProcessor implements ProcessorInterface
 
         $input->userId = $user->domainUser->id->toRfc4122();
 
-        return $this->handler->handle(new UpdateQuoteCommand($quoteId, $input));
+        return $this->handler->handle(new UpdateQuoteTask($quoteId, $input));
     }
 }

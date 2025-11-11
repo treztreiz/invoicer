@@ -8,10 +8,10 @@ use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
-use App\Application\UseCase\Customer\Query\ListCustomersQuery;
+use App\Application\UseCase\Customer\Task\ListCustomersTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 
-/** @implements UseCaseHandlerInterface<ListCustomersQuery,CustomerOutput> */
+/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Customer\Task\ListCustomersTask,CustomerOutput> */
 final readonly class ListCustomersHandler implements UseCaseHandlerInterface
 {
     public function __construct(
@@ -23,7 +23,7 @@ final readonly class ListCustomersHandler implements UseCaseHandlerInterface
     /** @return array<int, CustomerOutput> */
     public function handle(object $data): array
     {
-        TypeGuard::assertClass(ListCustomersQuery::class, $data);
+        TypeGuard::assertClass(ListCustomersTask::class, $data);
 
         $customers = $this->customerRepository->listActive();
 

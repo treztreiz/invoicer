@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
-use App\Application\UseCase\Invoice\Command\DetachInvoiceInstallmentPlanCommand;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\DetachInvoiceInstallmentPlanTask;
+use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Quote as QuoteAlias;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -30,7 +33,7 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
 
         $handler = $this->createHandler($invoice);
 
-        $output = $handler->handle(new DetachInvoiceInstallmentPlanCommand(Uuid::v7()->toRfc4122()));
+        $output = $handler->handle(new DetachInvoiceInstallmentPlanTask(Uuid::v7()->toRfc4122()));
 
         static::assertNull($invoice->installmentPlan);
         static::assertNull($output->installmentPlan);
@@ -40,9 +43,9 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
     {
         $handler = $this->createHandler($this->createInvoice());
 
-        $this->expectException(BadRequestHttpException::class);
+        $this->expectException(DomainRuleViolationException::class);
 
-        $handler->handle(new DetachInvoiceInstallmentPlanCommand(Uuid::v7()->toRfc4122()));
+        $handler->handle(new DetachInvoiceInstallmentPlanTask(Uuid::v7()->toRfc4122()));
     }
 
     private function createHandler(Invoice $invoice): DetachInvoiceInstallmentPlanHandler
@@ -52,9 +55,9 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
 
         return new DetachInvoiceInstallmentPlanHandler(
             new InvoiceRepositoryStub($invoice),
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
-            $workflow,
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($workflow)
         );
     }
 
@@ -72,5 +75,38 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
             customerSnapshot: ['name' => 'Client'],
             companySnapshot: ['name' => 'My Company']
         );
+    }
+
+    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    {
+        $quoteRepository = new class implements QuoteRepositoryInterface {
+            public function save(QuoteAlias $quote): void
+            {
+            }
+
+            public function remove(QuoteAlias $quote): void
+            {
+            }
+
+            public function findOneById(Uuid $id): QuoteAlias
+            {
+                throw new \LogicException('Quote repository not expected in invoice handler tests.');
+            }
+
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+    }
+
+    private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
+    {
+        $quoteWorkflow = static::createStub(WorkflowInterface::class);
+        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+
+        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
     }
 }

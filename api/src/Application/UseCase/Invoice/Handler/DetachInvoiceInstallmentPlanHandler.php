@@ -7,42 +7,35 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Invoice\Command\DetachInvoiceInstallmentPlanCommand;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\DetachInvoiceInstallmentPlanTask;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<DetachInvoiceInstallmentPlanCommand, InvoiceOutput> */
+/** @implements UseCaseHandlerInterface<DetachInvoiceInstallmentPlanTask, InvoiceOutput> */
 final readonly class DetachInvoiceInstallmentPlanHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
+        private DocumentFetcher $documentFetcher,
         private InvoiceOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.invoice_flow')]
-        private WorkflowInterface $invoiceWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): InvoiceOutput
     {
-        $command = TypeGuard::assertClass(DetachInvoiceInstallmentPlanCommand::class, $data);
+        $task = TypeGuard::assertClass(DetachInvoiceInstallmentPlanTask::class, $data);
 
-        $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
-        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
-
-        if (null === $invoice->installmentPlan) {
-            throw new BadRequestHttpException('Invoice does not have an installment plan.');
-        }
+        $invoice = InvoiceGuard::assertHasInstallmentPlan(
+            $this->documentFetcher->invoice($task->invoiceId)
+        );
 
         $invoice->detachInstallmentPlan();
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
+        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
     }
 }

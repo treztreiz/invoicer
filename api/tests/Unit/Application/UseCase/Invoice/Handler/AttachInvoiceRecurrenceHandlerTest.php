@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
-use App\Application\UseCase\Invoice\Command\AttachInvoiceRecurrenceCommand;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\AttachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Invoice\Task\AttachInvoiceRecurrenceTask;
+use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -34,15 +37,15 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
         $workflow = $this->createWorkflowStub();
         $handler = new AttachInvoiceRecurrenceHandler(
             $repository,
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
-            $workflow,
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($workflow)
         );
 
         $input = $this->createInput();
 
-        $command = new AttachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122(), $input);
+        $command = new AttachInvoiceRecurrenceTask(Uuid::v7()->toRfc4122(), $input);
 
         $output = $handler->handle($command);
 
@@ -58,15 +61,15 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
 
         $handler = new AttachInvoiceRecurrenceHandler(
             new InvoiceRepositoryStub($invoice),
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
-            $this->createWorkflowStub(),
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($this->createWorkflowStub())
         );
 
-        $command = new AttachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122(), $this->createInput());
+        $command = new AttachInvoiceRecurrenceTask(Uuid::v7()->toRfc4122(), $this->createInput());
 
-        $this->expectException(BadRequestHttpException::class);
+        $this->expectException(DomainRuleViolationException::class);
 
         $handler->handle($command);
     }
@@ -78,15 +81,15 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
 
         $handler = new AttachInvoiceRecurrenceHandler(
             new InvoiceRepositoryStub($invoice),
+            $this->documentFetcherStub($invoice),
             new InvoiceOutputMapper(),
             new InvoiceRecurrenceMapper(),
-            $this->createWorkflowStub(),
-            actionsHelper: new WorkflowActionsHelper()
+            $this->workflowManager($this->createWorkflowStub())
         );
 
-        $command = new AttachInvoiceRecurrenceCommand(Uuid::v7()->toRfc4122(), $this->createInput());
+        $command = new AttachInvoiceRecurrenceTask(Uuid::v7()->toRfc4122(), $this->createInput());
 
-        $this->expectException(BadRequestHttpException::class);
+        $this->expectException(DomainRuleViolationException::class);
 
         $handler->handle($command);
     }
@@ -125,5 +128,38 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             customerSnapshot: ['name' => 'Client'],
             companySnapshot: ['name' => 'My Company']
         );
+    }
+
+    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    {
+        $quoteRepository = new class implements QuoteRepositoryInterface {
+            public function save(Quote $quote): void
+            {
+            }
+
+            public function remove(Quote $quote): void
+            {
+            }
+
+            public function findOneById(Uuid $id): Quote
+            {
+                throw new \LogicException('Quote repository not expected in invoice handler tests.');
+            }
+
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+    }
+
+    private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
+    {
+        $quoteWorkflow = static::createStub(WorkflowInterface::class);
+        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+
+        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
     }
 }

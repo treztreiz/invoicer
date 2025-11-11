@@ -8,7 +8,7 @@ use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use Symfony\Component\Uid\Uuid;
 
-final class QuoteRepositoryStub implements QuoteRepositoryInterface
+final readonly class QuoteRepositoryStub implements QuoteRepositoryInterface
 {
     public function __construct(private Quote $quote)
     {

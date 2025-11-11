@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document\Invoice;
 
+use App\Domain\DTO\InstallmentPayload;
+use App\Domain\DTO\InstallmentPlanPayload;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Document\Invoice;
-use App\Domain\DTO\InstallmentPlanPayload;
-use App\Domain\DTO\InstallmentPayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

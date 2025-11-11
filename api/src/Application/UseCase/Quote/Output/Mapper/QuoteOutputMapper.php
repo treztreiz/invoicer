@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Quote\Output\Mapper;
 
-use App\Application\UseCase\Quote\Output\QuoteLineOutput;
+use App\Application\UseCase\Document\Output\DocumentLineOutput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\Quote\Output\QuoteTotalsOutput;
 use App\Domain\Entity\Document\DocumentLine;
@@ -42,12 +42,12 @@ final class QuoteOutputMapper
         );
     }
 
-    /** @return list<QuoteLineOutput> */
+    /** @return list<DocumentLineOutput> */
     private function mapLines(Quote $quote): array
     {
         return array_values(
             array_map(
-                fn(DocumentLine $line) => new QuoteLineOutput(
+                fn (DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,

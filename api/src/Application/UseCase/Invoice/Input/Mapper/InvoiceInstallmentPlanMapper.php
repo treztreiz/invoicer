@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Input\Mapper;
 
+use App\Application\Guard\DateGuard;
+use App\Application\Service\InstallmentAllocator;
 use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentInput;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
-use App\Application\Guard\DateGuard;
 use App\Domain\DTO\InstallmentPayload;
 use App\Domain\DTO\InstallmentPlanPayload;
 use App\Domain\Entity\Document\Invoice;
@@ -16,7 +17,7 @@ use App\Domain\ValueObject\Money;
 
 final readonly class InvoiceInstallmentPlanMapper
 {
-    public function __construct(private MoneyMath $math)
+    public function __construct(private InstallmentAllocator $allocator)
     {
     }
 
@@ -28,35 +29,15 @@ final readonly class InvoiceInstallmentPlanMapper
 
         $installments = [];
         foreach ($input->installments as $index => $item) {
-            $installments[$index] = $item instanceof InvoiceInstallmentInput
-                ? $item
-                : $this->hydrateInstallmentInput($item);
+            $installments[$index] = $item instanceof InvoiceInstallmentInput ? $item : $this->hydrateInstallmentInput($item);
         }
 
         $percentages = array_map(
-            fn(InvoiceInstallmentInput $installment) => $this->math->decimal($installment->percentage, 2),
+            fn (InvoiceInstallmentInput $installment) => MoneyMath::decimal($installment->percentage),
             $installments
         );
 
-        $this->assertPercentagesTotal($percentages);
-
-        $installmentPayloads = [];
-        $netShares = $this->allocateByPercent($invoice->total->net->value, $percentages);
-        $taxShares = $this->allocateByPercent($invoice->total->tax->value, $percentages);
-        $grossShares = $this->allocateByPercent($invoice->total->gross->value, $percentages);
-
-        foreach ($installments as $index => $installmentInput) {
-            $installmentPayloads[] = new InstallmentPayload(
-                position: $index,
-                percentage: $percentages[$index],
-                amount: new AmountBreakdown(
-                    net: new Money($netShares[$index]),
-                    tax: new Money($taxShares[$index]),
-                    gross: new Money($grossShares[$index]),
-                ),
-                dueDate: DateGuard::parseOptional($installmentInput->dueDate, sprintf('installments[%d].dueDate', $index)),
-            );
-        }
+        $installmentPayloads = $this->generateInstallmentPayloads($invoice, $installments, $percentages);
 
         return new InstallmentPlanPayload($installmentPayloads);
     }
@@ -65,51 +46,31 @@ final readonly class InvoiceInstallmentPlanMapper
     private function hydrateInstallmentInput(array $data): InvoiceInstallmentInput
     {
         return new InvoiceInstallmentInput(
-            percentage: (float)($data['percentage'] ?? 0),
-            dueDate: isset($data['dueDate']) ? (string)$data['dueDate'] : null,
+            percentage: (float) ($data['percentage'] ?? 0),
+            dueDate: isset($data['dueDate']) ? (string) $data['dueDate'] : null,
         );
     }
 
-    /**
-     * @param numeric-string $amount
-     * @param array<numeric-string> $percentages
-     *
-     * @return array<numeric-string>
-     */
-    private function allocateByPercent(string $amount, array $percentages, int $scale = 2): array
+    private function generateInstallmentPayloads(Invoice $invoice, array $installments, array $percentages): array
     {
-        $shares = [];
-        $allocated = number_format(0, $scale, '.', '');
-        $lastIndex = array_key_last($percentages);
+        $netShares = $this->allocator->allocate($invoice->total->net->value, $percentages);
+        $taxShares = $this->allocator->allocate($invoice->total->tax->value, $percentages);
+        $grossShares = $this->allocator->allocate($invoice->total->gross->value, $percentages);
 
-        foreach ($percentages as $index => $percentage) {
-            if ($index === $lastIndex) {
-                $shares[$index] = $this->math->subtract($amount, $allocated, $scale);
-                break;
-            }
-
-            $share = $this->math->percentage($amount, $percentage, $scale);
-            $shares[$index] = $share;
-            $allocated = $this->math->add($allocated, $share, $scale);
+        $installmentPayloads = [];
+        foreach ($installments as $index => $installmentInput) {
+            $installmentPayloads[] = new InstallmentPayload(
+                position: $index,
+                percentage: $percentages[$index],
+                amount: new AmountBreakdown(
+                    net: new Money($netShares['shares'][$index]),
+                    tax: new Money($taxShares['shares'][$index]),
+                    gross: new Money($grossShares['shares'][$index]),
+                ),
+                dueDate: DateGuard::parseOptional($installmentInput->dueDate, sprintf('installments[%d].dueDate', $index)),
+            );
         }
 
-        if (!isset($shares[$lastIndex])) {
-            $shares[$lastIndex] = $this->math->subtract($amount, $allocated, $scale);
-        }
-
-        return $shares;
+        return $installmentPayloads;
     }
-
-    /**
-     * @param array<numeric-string> $percentages
-     */
-    private function assertPercentagesTotal(array $percentages): void
-    {
-        $total = array_reduce($percentages, fn(string $carry, string $value) => $this->math->add($carry, $value, 2), '0.00');
-
-        if (0 !== \bccomp($total, '100.00', 2)) {
-            throw new \InvalidArgumentException('Installment percentages must total 100.');
-        }
-    }
-
 }

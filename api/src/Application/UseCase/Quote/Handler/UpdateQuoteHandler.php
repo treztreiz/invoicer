@@ -5,50 +5,38 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Quote\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\QuoteGuard;
 use App\Application\Guard\TypeGuard;
+use App\Application\Service\Document\DocumentFetcher;
 use App\Application\Service\EntityFetcher;
-use App\Application\UseCase\Quote\Command\UpdateQuoteCommand;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Quote\Task\UpdateQuoteTask;
 use App\Domain\Contracts\QuoteRepositoryInterface;
-use App\Domain\Entity\Document\Quote;
-use App\Domain\Enum\QuoteStatus;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<UpdateQuoteCommand, QuoteOutput> */
+/** @implements UseCaseHandlerInterface<UpdateQuoteTask, QuoteOutput> */
 final readonly class UpdateQuoteHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private QuoteRepositoryInterface $quoteRepository,
+        private DocumentFetcher $documentFetcher,
         private QuotePayloadMapper $payloadMapper,
         private QuoteOutputMapper $outputMapper,
         private EntityFetcher $entityFetcher,
-        #[Autowire(service: 'state_machine.quote_flow')]
-        private WorkflowInterface $quoteWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): QuoteOutput
     {
-        $command = TypeGuard::assertClass(UpdateQuoteCommand::class, $data);
-        $quote = $this->quoteRepository->findOneById(Uuid::fromString($command->quoteId));
+        $task = TypeGuard::assertClass(UpdateQuoteTask::class, $data);
+        $quote = QuoteGuard::assertDraft(
+            $this->documentFetcher->quote($task->quoteId)
+        );
 
-        if (!$quote instanceof Quote) {
-            throw new ResourceNotFoundException('Quote', $command->quoteId);
-        }
-
-        if (QuoteStatus::DRAFT !== $quote->status) {
-            throw new BadRequestHttpException('Only draft quotes can be updated.');
-        }
-
-        $input = $command->input;
+        $input = $task->input;
         $customer = $this->entityFetcher->customer($input->customerId);
         $user = $this->entityFetcher->user($input->userId);
 
@@ -59,7 +47,7 @@ final readonly class UpdateQuoteHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $quote,
-            $this->actionsHelper->availableActions($quote, $this->quoteWorkflow)
+            $this->workflowManager->quoteActions($quote)
         );
     }
 }

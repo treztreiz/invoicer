@@ -6,9 +6,9 @@ namespace App\Infrastructure\ApiPlatform\State\Invoice;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Application\UseCase\Invoice\Command\DetachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
+use App\Application\UseCase\Invoice\Task\DetachInvoiceInstallmentPlanTask;
 
 /**
  * @implements ProcessorInterface<object, InvoiceOutput>
@@ -27,6 +27,6 @@ final readonly class InvoiceInstallmentPlanDeleteStateProcessor implements Proce
             throw new \InvalidArgumentException('Invoice id is required.');
         }
 
-        return $this->handler->handle(new DetachInvoiceInstallmentPlanCommand($invoiceId));
+        return $this->handler->handle(new DetachInvoiceInstallmentPlanTask($invoiceId));
     }
 }

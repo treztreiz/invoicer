@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Quote\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Guard\QuoteGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Quote\Command\QuoteActionCommand;
+use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\Workflow\WorkflowActionsHelper;
+use App\Application\UseCase\Quote\Task\QuoteActionTask;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Workflow\WorkflowInterface;
 
-/** @implements UseCaseHandlerInterface<QuoteActionCommand, QuoteOutput> */
+/** @implements UseCaseHandlerInterface<QuoteActionTask, QuoteOutput> */
 final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 {
     private const string ACTION_SEND = 'send';
@@ -27,27 +25,25 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 
     public function __construct(
         private QuoteRepositoryInterface $quoteRepository,
+        private DocumentFetcher $documentFetcher,
         private QuoteOutputMapper $outputMapper,
-        #[Autowire(service: 'state_machine.quote_flow')]
-        private WorkflowInterface $quoteWorkflow,
-        private WorkflowActionsHelper $actionsHelper,
+        private DocumentWorkflowManager $workflowManager,
     ) {
     }
 
     public function handle(object $data): QuoteOutput
     {
-        $command = TypeGuard::assertClass(QuoteActionCommand::class, $data);
+        $task = TypeGuard::assertClass(QuoteActionTask::class, $data);
 
-        $quote = $this->quoteRepository->findOneById(Uuid::fromString($command->quoteId));
+        $quote = QuoteGuard::assertFound(
+            $this->documentFetcher->quote($task->quoteId),
+            $task->quoteId
+        );
 
-        if (!$quote instanceof Quote) {
-            throw new ResourceNotFoundException('Quote', $command->quoteId);
-        }
+        $transition = $task->action;
 
-        $transition = $command->action;
-
-        if (!$this->quoteWorkflow->can($quote, $transition)) {
-            throw new BadRequestHttpException(sprintf('Quote cannot transition via "%s".', $transition));
+        if (!$this->workflowManager->canQuoteTransition($quote, $transition)) {
+            throw new DomainRuleViolationException(sprintf('Quote cannot transition via "%s".', $transition));
         }
 
         $this->applyTransition($quote, $transition);
@@ -55,7 +51,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $quote,
-            $this->actionsHelper->availableActions($quote, $this->quoteWorkflow)
+            $this->workflowManager->quoteActions($quote)
         );
     }
 
@@ -67,7 +63,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
             self::ACTION_SEND => $quote->send($now),
             self::ACTION_ACCEPT => $quote->markAccepted($now),
             self::ACTION_REJECT => $quote->markRejected($now),
-            default => throw new BadRequestHttpException(sprintf('Unknown action "%s".', $transition)),
+            default => throw new DomainRuleViolationException(sprintf('Unknown action "%s".', $transition)),
         };
     }
 }

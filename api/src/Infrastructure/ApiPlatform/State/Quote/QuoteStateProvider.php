@@ -11,8 +11,8 @@ use ApiPlatform\State\ProviderInterface;
 use App\Application\UseCase\Quote\Handler\GetQuoteHandler;
 use App\Application\UseCase\Quote\Handler\ListQuotesHandler;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\UseCase\Quote\Query\GetQuoteQuery;
-use App\Application\UseCase\Quote\Query\ListQuotesQuery;
+use App\Application\UseCase\Quote\Task\GetQuoteTask;
+use App\Application\UseCase\Quote\Task\ListQuotesTask;
 
 /** @implements ProviderInterface<QuoteOutput> */
 final readonly class QuoteStateProvider implements ProviderInterface
@@ -27,13 +27,13 @@ final readonly class QuoteStateProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): QuoteOutput|array
     {
         if ($operation instanceof GetCollection) {
-            return $this->listQuotesHandler->handle(new ListQuotesQuery());
+            return $this->listQuotesHandler->handle(new ListQuotesTask());
         }
 
         if ($operation instanceof Get) {
             $quoteId = (string) ($uriVariables['id'] ?? '');
 
-            return $this->getQuoteHandler->handle(new GetQuoteQuery($quoteId));
+            return $this->getQuoteHandler->handle(new GetQuoteTask($quoteId));
         }
 
         throw new \LogicException(sprintf('Unsupported operation %s for quote provider.', $operation::class));
