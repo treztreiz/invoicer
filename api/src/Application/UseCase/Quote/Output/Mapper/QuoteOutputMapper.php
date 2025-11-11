@@ -18,7 +18,7 @@ final class QuoteOutputMapper
     public function map(Quote $quote, array $availableActions = []): QuoteOutput
     {
         return new QuoteOutput(
-            id: $quote->id?->toRfc4122() ?? '',
+            quoteId: $quote->id?->toRfc4122() ?? '',
             title: $quote->title,
             subtitle: $quote->subtitle,
             status: $quote->status->value,
@@ -47,7 +47,7 @@ final class QuoteOutputMapper
     {
         return array_values(
             array_map(
-                fn (DocumentLine $line) => new DocumentLineOutput(
+                fn(DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,

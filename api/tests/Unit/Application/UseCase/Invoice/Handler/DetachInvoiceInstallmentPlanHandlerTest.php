@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
 use App\Application\Exception\DomainRuleViolationException;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Task\DetachInvoiceInstallmentPlanTask;
-use App\Domain\Contracts\QuoteRepositoryInterface;
+use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
-use App\Domain\Entity\Document\Quote as QuoteAlias;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -53,9 +52,11 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
         $workflow = static::createStub(WorkflowInterface::class);
         $workflow->method('getEnabledTransitions')->willReturn([]);
 
+        $invoiceRepository = new InvoiceRepositoryStub($invoice);
+
         return new DetachInvoiceInstallmentPlanHandler(
-            new InvoiceRepositoryStub($invoice),
-            $this->documentFetcherStub($invoice),
+            $invoiceRepository,
+            $this->entityFetcherStub($invoiceRepository),
             new InvoiceOutputMapper(),
             $this->workflowManager($workflow)
         );
@@ -77,36 +78,19 @@ final class DetachInvoiceInstallmentPlanHandlerTest extends TestCase
         );
     }
 
-    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    private function entityFetcherStub(InvoiceRepositoryInterface $invoiceRepository): EntityFetcher
     {
-        $quoteRepository = new class implements QuoteRepositoryInterface {
-            public function save(QuoteAlias $quote): void
-            {
-            }
+        $fetcher = new EntityFetcher();
+        $fetcher->setInvoiceRepository($invoiceRepository);
 
-            public function remove(QuoteAlias $quote): void
-            {
-            }
-
-            public function findOneById(Uuid $id): QuoteAlias
-            {
-                throw new \LogicException('Quote repository not expected in invoice handler tests.');
-            }
-
-            public function list(): array
-            {
-                return [];
-            }
-        };
-
-        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+        return $fetcher;
     }
 
     private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
     {
-        $quoteWorkflow = static::createStub(WorkflowInterface::class);
-        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+        $workflowManager = new DocumentWorkflowManager();
+        $workflowManager->setInvoiceWorkflow($invoiceWorkflow);
 
-        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
+        return $workflowManager;
     }
 }

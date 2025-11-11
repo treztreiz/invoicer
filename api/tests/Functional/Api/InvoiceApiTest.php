@@ -103,7 +103,7 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertSame('DRAFT', $data['status']);
 
         $this->entityManager->clear();
-        $invoice = $this->entityManager->getRepository(Invoice::class)->find($data['id']);
+        $invoice = $this->entityManager->getRepository(Invoice::class)->find($data['invoiceId']);
 
         static::assertInstanceOf(Invoice::class, $invoice);
         static::assertSame('DRAFT', $invoice->status->value);
@@ -284,7 +284,7 @@ final class InvoiceApiTest extends ApiTestCase
 
         $this->requestInvoiceAction($client, $token, $invoiceId, 'issue');
 
-        $response = $client->request('PUT', sprintf('/api/invoices/%s', $invoiceId), [
+        $client->request('PUT', sprintf('/api/invoices/%s', $invoiceId), [
             'headers' => ['Authorization' => 'Bearer '.$token],
             'json' => $this->invoicePayload($customer, ['title' => 'Should fail']),
         ]);
@@ -580,6 +580,13 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertNull($invoice->installmentPlan);
     }
 
+    /**
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws TransportExceptionInterface
+     */
     public function test_attach_installment_plan_rejected_when_recurrence_exists(): void
     {
         $customer = $this->persistCustomer('Alice', 'Buyer');
@@ -603,6 +610,13 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertStringContainsString('both a recurrence and an installment plan', $data['detail'] ?? '');
     }
 
+    /**
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     */
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_recurrence(): void
     {
         $customer = $this->persistCustomer('Alice', 'Buyer');
@@ -625,6 +639,13 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
     }
 
+    /**
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     */
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_installment(): void
     {
         $customer = $this->persistCustomer('Alice', 'Buyer');
@@ -647,6 +668,13 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $data['detail'] ?? '');
     }
 
+    /**
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     */
     private function createInvoiceFixture(Customer $customer): void
     {
         $client = static::createClient();
@@ -655,6 +683,13 @@ final class InvoiceApiTest extends ApiTestCase
         $this->createInvoiceAndReturnId($client, $token, $customer);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     */
     private function createInvoiceAndReturnId(Client $client, string $token, Customer $customer): string
     {
         $response = $client->request('POST', '/api/invoices', [
@@ -665,9 +700,12 @@ final class InvoiceApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
         $data = $response->toArray(false);
 
-        return $data['id'];
+        return $data['invoiceId'];
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     private function requestInvoiceAction(Client $client, string $token, string $invoiceId, string $action): ResponseInterface
     {
         return $client->request('POST', sprintf('/api/invoices/%s/actions', $invoiceId), [

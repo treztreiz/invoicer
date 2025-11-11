@@ -24,7 +24,7 @@ final class InvoiceOutputMapper
     public function map(Invoice $invoice, array $availableActions = []): InvoiceOutput
     {
         return new InvoiceOutput(
-            id: $invoice->id?->toRfc4122() ?? '',
+            invoiceId: $invoice->id?->toRfc4122() ?? '',
             title: $invoice->title,
             subtitle: $invoice->subtitle,
             status: $invoice->status->value,
@@ -57,7 +57,7 @@ final class InvoiceOutputMapper
     {
         return array_values(
             array_map(
-                fn (DocumentLine $line) => new DocumentLineOutput(
+                fn(DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,
@@ -95,7 +95,7 @@ final class InvoiceOutputMapper
         }
 
         $installments = array_map(
-            fn (Installment $installment) => new InvoiceInstallmentOutput(
+            fn(Installment $installment) => new InvoiceInstallmentOutput(
                 position: $installment->position,
                 percentage: $installment->percentage,
                 amount: new InvoiceTotalsOutput(
@@ -109,7 +109,7 @@ final class InvoiceOutputMapper
         );
 
         return new InvoiceInstallmentPlanOutput(
-            id: $plan->id?->toRfc4122() ?? '',
+            installmentPlanId: $plan->id?->toRfc4122() ?? '',
             installments: $installments,
         );
     }

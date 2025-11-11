@@ -7,7 +7,7 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
@@ -19,7 +19,7 @@ final readonly class DetachInvoiceInstallmentPlanHandler implements UseCaseHandl
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
-        private DocumentFetcher $documentFetcher,
+        private EntityFetcher $entityFetcher,
         private InvoiceOutputMapper $outputMapper,
         private DocumentWorkflowManager $workflowManager,
     ) {
@@ -29,9 +29,7 @@ final readonly class DetachInvoiceInstallmentPlanHandler implements UseCaseHandl
     {
         $task = TypeGuard::assertClass(DetachInvoiceInstallmentPlanTask::class, $data);
 
-        $invoice = InvoiceGuard::assertHasInstallmentPlan(
-            $this->documentFetcher->invoice($task->invoiceId)
-        );
+        $invoice = InvoiceGuard::assertHasInstallmentPlan($this->entityFetcher->invoice($task->invoiceId));
 
         $invoice->detachInstallmentPlan();
         $this->invoiceRepository->save($invoice);

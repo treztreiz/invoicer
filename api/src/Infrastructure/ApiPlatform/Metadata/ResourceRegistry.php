@@ -27,12 +27,8 @@ use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanDeleteSta
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceDeleteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceStateProvider;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceUpdateStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteStateProvider;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteUpdateStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,11 +76,11 @@ final class ResourceRegistry
                     shortName: 'Customer',
                     operations: [
                         new GetCollection(name: 'api_customers_get_collection'),
-                        new Get(uriTemplate: '/{id}', name: 'api_customers_get'),
+                        new Get(uriTemplate: '/{customerId}', name: 'api_customers_get'),
                         new Post(name: 'api_customers_post'),
-                        new Put(uriTemplate: '/{id}', read: false, name: 'api_customers_put'),
+                        new Put(uriTemplate: '/{customerId}', read: false, name: 'api_customers_put'),
                         new Post(
-                            uriTemplate: '/{id}/archive',
+                            uriTemplate: '/{customerId}/archive',
                             status: Response::HTTP_OK,
                             input: false,
                             read: false,
@@ -93,7 +89,7 @@ final class ResourceRegistry
                             processor: CustomerStatusStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{id}/restore',
+                            uriTemplate: '/{customerId}/restore',
                             status: Response::HTTP_OK,
                             input: false,
                             read: false,
@@ -109,27 +105,17 @@ final class ResourceRegistry
                 new ApiResource(
                     shortName: 'Quote',
                     operations: [
-                        new GetCollection(
-                            name: 'api_quotes_get_collection',
-                            provider: QuoteStateProvider::class,
-                        ),
-                        new Get(
-                            uriTemplate: '/{id}',
-                            name: 'api_quotes_get',
-                            provider: QuoteStateProvider::class,
-                        ),
-                        new Post(
-                            name: 'api_quotes_post',
-                            processor: QuoteStateProcessor::class,
-                        ),
+                        new GetCollection(name: 'api_quotes_get_collection'),
+                        new Get(uriTemplate: '/{quoteId}', name: 'api_quotes_get'),
+                        new Post(name: 'api_quotes_post'),
                         new Put(
-                            uriTemplate: '/{id}',
-                            name: 'api_quotes_put',
+                            uriTemplate: '/{quoteId}',
                             read: false,
+                            name: 'api_quotes_put',
                             processor: QuoteUpdateStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{id}/actions',
+                            uriTemplate: '/{quoteId}/actions',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['quote:action']],
                             input: ['class' => QuoteActionInput::class],
@@ -145,27 +131,17 @@ final class ResourceRegistry
                 new ApiResource(
                     shortName: 'Invoice',
                     operations: [
-                        new GetCollection(
-                            name: 'api_invoices_get_collection',
-                            provider: InvoiceStateProvider::class,
-                        ),
-                        new Get(
-                            uriTemplate: '/{id}',
-                            name: 'api_invoices_get',
-                            provider: InvoiceStateProvider::class,
-                        ),
-                        new Post(
-                            name: 'api_invoices_post',
-                            processor: InvoiceStateProcessor::class,
-                        ),
+                        new GetCollection(name: 'api_invoices_get_collection'),
+                        new Get(uriTemplate: '/{invoiceId}', name: 'api_invoices_get'),
+                        new Post(name: 'api_invoices_post'),
                         new Put(
-                            uriTemplate: '/{id}',
-                            name: 'api_invoices_put',
+                            uriTemplate: '/{invoiceId}',
                             read: false,
+                            name: 'api_invoices_put',
                             processor: InvoiceUpdateStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{id}/actions',
+                            uriTemplate: '/{invoiceId}/actions',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['invoice:action']],
                             input: ['class' => InvoiceActionInput::class],
@@ -174,7 +150,7 @@ final class ResourceRegistry
                             processor: InvoiceActionStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{id}/recurrence',
+                            uriTemplate: '/{invoiceId}/recurrence',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['invoice:recurrence']],
                             input: ['class' => InvoiceRecurrenceInput::class],
@@ -183,7 +159,7 @@ final class ResourceRegistry
                             processor: InvoiceRecurrenceStateProcessor::class,
                         ),
                         new Put(
-                            uriTemplate: '/{id}/recurrence',
+                            uriTemplate: '/{invoiceId}/recurrence',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['invoice:recurrence']],
                             input: ['class' => InvoiceRecurrenceInput::class],
@@ -192,7 +168,7 @@ final class ResourceRegistry
                             processor: InvoiceRecurrenceStateProcessor::class,
                         ),
                         new Delete(
-                            uriTemplate: '/{id}/recurrence',
+                            uriTemplate: '/{invoiceId}/recurrence',
                             status: Response::HTTP_OK,
                             input: false,
                             read: false,
@@ -201,7 +177,7 @@ final class ResourceRegistry
                             processor: InvoiceRecurrenceDeleteStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{id}/installment-plan',
+                            uriTemplate: '/{invoiceId}/installment-plan',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['invoice:installment']],
                             input: ['class' => InvoiceInstallmentPlanInput::class],
@@ -210,7 +186,7 @@ final class ResourceRegistry
                             processor: InvoiceInstallmentPlanStateProcessor::class,
                         ),
                         new Put(
-                            uriTemplate: '/{id}/installment-plan',
+                            uriTemplate: '/{invoiceId}/installment-plan',
                             status: Response::HTTP_OK,
                             denormalizationContext: ['groups' => ['invoice:installment']],
                             input: ['class' => InvoiceInstallmentPlanInput::class],
@@ -219,7 +195,7 @@ final class ResourceRegistry
                             processor: InvoiceInstallmentPlanStateProcessor::class,
                         ),
                         new Delete(
-                            uriTemplate: '/{id}/installment-plan',
+                            uriTemplate: '/{invoiceId}/installment-plan',
                             status: Response::HTTP_OK,
                             input: false,
                             read: false,
@@ -245,7 +221,7 @@ final class ResourceRegistry
             $resourceList = \is_array($resource) ? array_values($resource) : [$resource];
 
             $this->resources[$resourceClass] = array_map(
-                static fn (ApiResource $resource) => $resource->withExtraProperties([
+                static fn(ApiResource $resource) => $resource->withExtraProperties([
                     'api.autoconfigure' => true,
                     ...$resource->getExtraProperties(),
                 ]),

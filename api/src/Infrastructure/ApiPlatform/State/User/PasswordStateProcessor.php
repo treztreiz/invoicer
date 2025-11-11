@@ -29,7 +29,7 @@ final readonly class PasswordStateProcessor implements ProcessorInterface
         $passwordInput = TypeGuard::assertClass(PasswordInput::class, $data);
         $user = SecurityGuard::assertAuth($this->security->getUser());
 
-        $passwordInput->id = $user->domainUser->id->toRfc4122();
+        $passwordInput->userId = $user->domainUser->id->toRfc4122();
         $this->handler->handle($passwordInput);
 
         return new Response(status: Response::HTTP_NO_CONTENT);

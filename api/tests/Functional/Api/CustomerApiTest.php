@@ -132,13 +132,13 @@ final class CustomerApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
         $data = $response->toArray(false);
 
-        static::assertArrayHasKey('id', $data);
+        static::assertArrayHasKey('customerId', $data);
         static::assertSame('Charlie', $data['firstName']);
         static::assertSame('Xavier', $data['lastName']);
 
         $this->entityManager->clear();
         $repository = $this->entityManager->getRepository(Customer::class);
-        $customer = $repository->find($data['id']);
+        $customer = $repository->find($data['customerId']);
 
         static::assertNotNull($customer);
         static::assertSame('charlie.xavier@example.com', $customer->contact->email);
@@ -279,7 +279,7 @@ final class CustomerApiTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $customers = $listResponse->toArray(false);
 
-        $matching = array_filter($customers['member'], static fn (array $row) => $row['id'] === $customer->id?->toRfc4122());
+        $matching = array_filter($customers['member'], static fn(array $row) => $row['customerId'] === $customer->id?->toRfc4122());
         static::assertNotEmpty($matching);
     }
 

@@ -24,13 +24,13 @@ final readonly class CustomerStatusStateProcessor implements ProcessorInterface
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): CustomerOutput
     {
-        $id = (string) ($uriVariables['id'] ?? '');
+        $customerId = (string)($uriVariables['customerId'] ?? '');
 
-        if ('' === $id) {
+        if ('' === $customerId) {
             throw new \InvalidArgumentException('Customer id is required.');
         }
 
-        $task = new CustomerStatusTask($id);
+        $task = new CustomerStatusTask($customerId);
 
         return match ($operation->getName()) {
             'api_customers_archive' => $this->archiveCustomerHandler->handle($task),

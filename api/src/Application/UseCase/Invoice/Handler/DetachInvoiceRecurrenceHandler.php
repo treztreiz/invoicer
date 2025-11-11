@@ -7,7 +7,7 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
@@ -19,7 +19,7 @@ final readonly class DetachInvoiceRecurrenceHandler implements UseCaseHandlerInt
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
-        private DocumentFetcher $documentFetcher,
+        private EntityFetcher $entityFetcher,
         private InvoiceOutputMapper $outputMapper,
         private DocumentWorkflowManager $workflowManager,
     ) {
@@ -29,9 +29,7 @@ final readonly class DetachInvoiceRecurrenceHandler implements UseCaseHandlerInt
     {
         $task = TypeGuard::assertClass(DetachInvoiceRecurrenceTask::class, $data);
 
-        $invoice = InvoiceGuard::assertHasRecurrence(
-            $this->documentFetcher->invoice($task->invoiceId)
-        );
+        $invoice = InvoiceGuard::assertHasRecurrence($this->entityFetcher->invoice($task->invoiceId));
 
         $invoice->detachRecurrence();
         $this->invoiceRepository->save($invoice);

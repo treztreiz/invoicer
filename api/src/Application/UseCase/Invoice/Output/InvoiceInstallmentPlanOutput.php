@@ -13,7 +13,7 @@ final readonly class InvoiceInstallmentPlanOutput
      */
     public function __construct(
         #[Groups(['invoice:read'])]
-        public string $id,
+        public string $installmentPlanId,
 
         #[Groups(['invoice:read'])]
         public array $installments,

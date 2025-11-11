@@ -29,7 +29,7 @@ final readonly class UserStateProcessor implements ProcessorInterface
         $userInput = TypeGuard::assertClass(UserInput::class, $data);
         $user = SecurityGuard::assertAuth($this->security->getUser());
 
-        $userInput->id = $user->domainUser->id->toRfc4122();
+        $userInput->userId = $user->domainUser->id->toRfc4122();
 
         return $this->handler->handle($userInput);
     }

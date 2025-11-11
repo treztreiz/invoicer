@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Input\Mapper;
 
 use App\Application\Guard\DateGuard;
-use App\Application\Service\InstallmentAllocator;
+use App\Application\Service\Document\InstallmentAllocator;
 use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentInput;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
@@ -51,21 +51,26 @@ final readonly class InvoiceInstallmentPlanMapper
         );
     }
 
+    /**
+     * @param array<int, InvoiceInstallmentInput> $installments
+     * @param array<numeric-string>               $percentages
+     *
+     * @return list<InstallmentPayload>
+     */
     private function generateInstallmentPayloads(Invoice $invoice, array $installments, array $percentages): array
     {
-        $netShares = $this->allocator->allocate($invoice->total->net->value, $percentages);
-        $taxShares = $this->allocator->allocate($invoice->total->tax->value, $percentages);
-        $grossShares = $this->allocator->allocate($invoice->total->gross->value, $percentages);
+        $shares = $this->allocator->allocate($invoice->total, $percentages);
 
         $installmentPayloads = [];
+
         foreach ($installments as $index => $installmentInput) {
             $installmentPayloads[] = new InstallmentPayload(
                 position: $index,
-                percentage: $percentages[$index],
+                percentage: $shares[$index]['percentage'],
                 amount: new AmountBreakdown(
-                    net: new Money($netShares['shares'][$index]),
-                    tax: new Money($taxShares['shares'][$index]),
-                    gross: new Money($grossShares['shares'][$index]),
+                    net: new Money($shares[$index]['net']),
+                    tax: new Money($shares[$index]['tax']),
+                    gross: new Money($shares[$index]['gross']),
                 ),
                 dueDate: DateGuard::parseOptional($installmentInput->dueDate, sprintf('installments[%d].dueDate', $index)),
             );

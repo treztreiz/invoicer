@@ -15,7 +15,7 @@ final class UserOutputMapper
     public function map(User $user): UserOutput
     {
         return new UserOutput(
-            id: $user->id->toRfc4122(),
+            customerId: $user->id->toRfc4122(),
             firstName: $user->name->firstName,
             lastName: $user->name->lastName,
             email: $user->contact->email ?? $user->userIdentifier,

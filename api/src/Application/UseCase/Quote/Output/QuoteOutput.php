@@ -11,13 +11,13 @@ final readonly class QuoteOutput
 {
     /**
      * @param list<DocumentLineOutput> $lines
-     * @param array<string, mixed>     $customerSnapshot
-     * @param array<string, mixed>     $companySnapshot
-     * @param list<string>             $availableActions
+     * @param array<string, mixed> $customerSnapshot
+     * @param array<string, mixed> $companySnapshot
+     * @param list<string> $availableActions
      */
     public function __construct(
         #[Groups(['quote:read'])]
-        public string $id,
+        public string $quoteId,
 
         #[Groups(['quote:read'])]
         public string $title,

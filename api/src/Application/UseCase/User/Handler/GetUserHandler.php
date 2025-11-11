@@ -27,8 +27,8 @@ final readonly class GetUserHandler implements UseCaseHandlerInterface
     {
         $task = TypeGuard::assertClass(GetUserTask::class, $data);
 
-        $id = Uuid::fromString($task->userId);
-        $user = $this->userRepository->findOneById($id);
+        $userId = Uuid::fromString($task->userId);
+        $user = $this->userRepository->findOneById($userId);
 
         if (!$user instanceof User) {
             throw new UserNotFoundException($task->userId);

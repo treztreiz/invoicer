@@ -31,7 +31,7 @@ final readonly class QuoteStateProvider implements ProviderInterface
         }
 
         if ($operation instanceof Get) {
-            $quoteId = (string) ($uriVariables['id'] ?? '');
+            $quoteId = (string)($uriVariables['quoteId'] ?? '');
 
             return $this->getQuoteHandler->handle(new GetQuoteTask($quoteId));
         }

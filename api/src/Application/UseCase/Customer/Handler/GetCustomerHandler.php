@@ -30,7 +30,7 @@ final readonly class GetCustomerHandler implements UseCaseHandlerInterface
         $customer = $this->customerRepository->findOneById($customerId);
 
         if (null === $customer) {
-            throw new ResourceNotFoundException('Customer', $task->id);
+            throw new ResourceNotFoundException('Customer', $task->customerId);
         }
 
         return $this->outputMapper->map($customer);

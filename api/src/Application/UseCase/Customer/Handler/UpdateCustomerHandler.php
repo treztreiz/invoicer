@@ -28,15 +28,15 @@ final readonly class UpdateCustomerHandler implements UseCaseHandlerInterface
     {
         $customerInput = TypeGuard::assertClass(CustomerInput::class, $data);
 
-        if ('' === $customerInput->id) {
+        if ('' === $customerInput->customerId) {
             throw new \InvalidArgumentException('Customer id is required for update operations.');
         }
 
-        $customerId = Uuid::fromString($customerInput->id);
+        $customerId = Uuid::fromString($customerInput->customerId);
         $customer = $this->customerRepository->findOneById($customerId);
 
         if (null === $customer) {
-            throw new ResourceNotFoundException('Customer', $customerInput->id);
+            throw new ResourceNotFoundException('Customer', $customerInput->customerId);
         }
 
         $payload = $this->mapper->map($customerInput);

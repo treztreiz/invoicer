@@ -18,6 +18,7 @@ final readonly class DocumentLinePayloadFactory
 
     /**
      * @param list<DocumentLineInput|array<string, mixed>> $lines
+     * @param numeric-string                               $vatRate
      */
     public function build(array $lines, string $vatRate): DocumentLinePayloadCollection
     {

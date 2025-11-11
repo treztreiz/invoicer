@@ -12,7 +12,7 @@ use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Task\ListInvoicesTask;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 
-/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Invoice\Task\ListInvoicesTask, InvoiceOutput> */
+/** @implements UseCaseHandlerInterface<ListInvoicesTask, InvoiceOutput> */
 final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
 {
     public function __construct(
@@ -32,7 +32,7 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
         $invoices = $this->invoiceRepository->list();
 
         return array_map(
-            fn ($invoice) => $this->outputMapper->map(
+            fn($invoice) => $this->outputMapper->map(
                 $invoice,
                 $this->workflowManager->invoiceActions($invoice)
             ),

@@ -102,7 +102,7 @@ final class QuoteApiTest extends ApiTestCase
         static::assertSame(['send'], $data['availableActions']);
 
         $this->entityManager->clear();
-        $quote = $this->entityManager->getRepository(Quote::class)->find($data['id']);
+        $quote = $this->entityManager->getRepository(Quote::class)->find($data['quoteId']);
 
         static::assertInstanceOf(Quote::class, $quote);
         static::assertSame(QuoteStatus::DRAFT, $quote->status);
@@ -340,7 +340,7 @@ final class QuoteApiTest extends ApiTestCase
         self::assertResponseStatusCodeSame(201);
         $data = $response->toArray(false);
 
-        return $data['id'];
+        return $data['quoteId'];
     }
 
     /**

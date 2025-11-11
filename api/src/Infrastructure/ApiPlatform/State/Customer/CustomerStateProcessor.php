@@ -29,8 +29,8 @@ final readonly class CustomerStateProcessor implements ProcessorInterface
     {
         $customerInput = TypeGuard::assertClass(CustomerInput::class, $data);
 
-        if (isset($uriVariables['id'])) {
-            $customerInput->id = (string) $uriVariables['id'];
+        if (isset($uriVariables['customerId'])) {
+            $customerInput->customerId = (string)$uriVariables['customerId'];
         }
 
         return match ($operation::class) {

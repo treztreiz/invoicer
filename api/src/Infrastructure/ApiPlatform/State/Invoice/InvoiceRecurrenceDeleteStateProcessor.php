@@ -21,7 +21,7 @@ final readonly class InvoiceRecurrenceDeleteStateProcessor implements ProcessorI
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput
     {
-        $invoiceId = (string) ($uriVariables['id'] ?? '');
+        $invoiceId = (string)($uriVariables['invoiceId'] ?? '');
 
         if ('' === $invoiceId) {
             throw new \InvalidArgumentException('Invoice id is required.');

@@ -29,7 +29,7 @@ final readonly class QuoteUpdateStateProcessor implements ProcessorInterface
     {
         $input = TypeGuard::assertClass(QuoteInput::class, $data);
         $user = SecurityGuard::assertAuth($this->security->getUser());
-        $quoteId = (string) ($uriVariables['id'] ?? '');
+        $quoteId = (string)($uriVariables['quoteId'] ?? '');
 
         if ('' === $quoteId) {
             throw new \InvalidArgumentException('Quote id is required.');

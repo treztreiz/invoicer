@@ -30,17 +30,30 @@ final readonly class UpdatePasswordHandler implements UseCaseHandlerInterface
     {
         $passwordInput = TypeGuard::assertClass(PasswordInput::class, $data);
 
-        $id = Uuid::fromString($passwordInput->id);
-        $user = $this->userRepository->findOneById($id);
+        $userId = Uuid::fromString($passwordInput->userId);
+        $user = $this->userRepository->findOneById($userId);
 
         if (!$user instanceof User) {
-            throw new UserNotFoundException($passwordInput->id);
+            throw new UserNotFoundException($passwordInput->userId);
         }
 
         $securityUser = new SecurityUser($user);
 
         if (!$this->passwordHasher->isPasswordValid($securityUser, $passwordInput->currentPassword)) {
-            throw new ValidationException(new ConstraintViolationList([new ConstraintViolation(message: 'Current password is invalid.', messageTemplate: 'Current password is invalid.', parameters: [], root: null, propertyPath: 'currentPassword', invalidValue: null)]));
+            throw new ValidationException(
+                new ConstraintViolationList(
+                    [
+                        new ConstraintViolation(
+                            message: 'Current password is invalid.',
+                            messageTemplate: 'Current password is invalid.',
+                            parameters: [],
+                            root: null,
+                            propertyPath: 'currentPassword',
+                            invalidValue: null
+                        ),
+                    ]
+                )
+            );
         }
 
         $user->password = $this->passwordHasher->hashPassword($securityUser, $passwordInput->newPassword);

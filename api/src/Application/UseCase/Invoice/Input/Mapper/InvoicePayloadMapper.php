@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Input\Mapper;
 
+use App\Application\Guard\DateGuard;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
 use App\Application\Service\MoneyMath;
@@ -35,7 +36,7 @@ final readonly class InvoicePayloadMapper
             lines: $linesResult->lines,
             customerSnapshot: $this->snapshotFactory->customerSnapshot($customer),
             companySnapshot: $this->snapshotFactory->companySnapshot($user),
-            dueDate: new \DateTimeImmutable($input->dueDate),
+            dueDate: DateGuard::parse($input->dueDate, 'dueDate'),
         );
     }
 }

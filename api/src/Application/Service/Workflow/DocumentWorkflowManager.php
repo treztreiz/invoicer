@@ -9,15 +9,28 @@ use App\Domain\Entity\Document\Quote;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\WorkflowInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
-final readonly class DocumentWorkflowManager
+final class DocumentWorkflowManager
 {
-    public function __construct(
+    private ?WorkflowInterface $invoiceWorkflow = null;
+
+    private ?WorkflowInterface $quoteWorkflow = null;
+
+    #[Required]
+    public function setInvoiceWorkflow(
         #[Autowire(service: 'state_machine.invoice_flow')]
-        private WorkflowInterface $invoiceWorkflow,
+        WorkflowInterface $invoiceWorkflow,
+    ): void {
+        $this->invoiceWorkflow = $invoiceWorkflow;
+    }
+
+    #[Required]
+    public function setQuoteWorkflow(
         #[Autowire(service: 'state_machine.quote_flow')]
-        private WorkflowInterface $quoteWorkflow,
-    ) {
+        WorkflowInterface $quoteWorkflow,
+    ): void {
+        $this->quoteWorkflow = $quoteWorkflow;
     }
 
     /** @return list<string> */

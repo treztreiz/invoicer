@@ -29,11 +29,11 @@ final readonly class UpdateUserHandler implements UseCaseHandlerInterface
     {
         $userInput = TypeGuard::assertClass(UserInput::class, $data);
 
-        $id = Uuid::fromString($userInput->id);
-        $user = $this->userRepository->findOneById($id);
+        $userId = Uuid::fromString($userInput->userId);
+        $user = $this->userRepository->findOneById($userId);
 
         if (!$user instanceof User) {
-            throw new UserNotFoundException($userInput->id);
+            throw new UserNotFoundException($userInput->userId);
         }
 
         $payload = $this->mapper->map($userInput);

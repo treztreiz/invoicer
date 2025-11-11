@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Quote\Handler;
 
 use App\Application\Exception\DomainRuleViolationException;
-use App\Application\Service\Document\DocumentFetcher;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
@@ -17,12 +16,11 @@ use App\Application\UseCase\Quote\Input\QuoteInput;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Task\UpdateQuoteTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
-use App\Domain\Contracts\InvoiceRepositoryInterface;
+use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\DTO\QuotePayload;
 use App\Domain\Entity\Customer\Customer;
-use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Entity\User\User;
 use App\Domain\Enum\RateUnit;
@@ -50,12 +48,13 @@ final class UpdateQuoteHandlerTest extends TestCase
 
         $lineFactory = new DocumentLineFactory();
         $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
+        $quoteRepository = new QuoteRepositoryStub($quote);
+
         $handler = new UpdateQuoteHandler(
-            quoteRepository: new QuoteRepositoryStub($quote),
-            documentFetcher: $this->documentFetcherStub($quote),
+            quoteRepository: $quoteRepository,
             payloadMapper: new QuotePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
             outputMapper: new QuoteOutputMapper(),
-            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
+            entityFetcher: $this->entityFetcherForQuote($quoteRepository),
             workflowManager: $this->workflowManager($this->stubWorkflow())
         );
 
@@ -77,12 +76,13 @@ final class UpdateQuoteHandlerTest extends TestCase
 
         $lineFactory = new DocumentLineFactory();
         $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
+        $quoteRepository = new QuoteRepositoryStub($quote);
+
         $handler = new UpdateQuoteHandler(
-            quoteRepository: new QuoteRepositoryStub($quote),
-            documentFetcher: $this->documentFetcherStub($quote),
+            quoteRepository: $quoteRepository,
             payloadMapper: new QuotePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
             outputMapper: new QuoteOutputMapper(),
-            entityFetcher: new EntityFetcher($this->stubCustomerRepository(), $this->stubUserRepository()),
+            entityFetcher: $this->entityFetcherForQuote($quoteRepository),
             workflowManager: $this->workflowManager($this->stubWorkflow())
         );
 
@@ -91,22 +91,6 @@ final class UpdateQuoteHandlerTest extends TestCase
         $this->expectException(DomainRuleViolationException::class);
 
         $handler->handle(new UpdateQuoteTask(Uuid::v7()->toRfc4122(), $input));
-    }
-
-    private function stubCustomerRepository(): CustomerRepositoryInterface
-    {
-        $stub = static::createStub(CustomerRepositoryInterface::class);
-        $stub->method('findOneById')->willReturn($this->createCustomer());
-
-        return $stub;
-    }
-
-    private function stubUserRepository(): UserRepositoryInterface
-    {
-        $stub = static::createStub(UserRepositoryInterface::class);
-        $stub->method('findOneById')->willReturn($this->createUser());
-
-        return $stub;
     }
 
     private function stubWorkflow(): WorkflowInterface
@@ -205,36 +189,27 @@ final class UpdateQuoteHandlerTest extends TestCase
         );
     }
 
-    private function documentFetcherStub(Quote $quote): DocumentFetcher
+    private function entityFetcherForQuote(QuoteRepositoryInterface $quoteRepository): EntityFetcher
     {
-        $invoiceRepository = new class implements InvoiceRepositoryInterface {
-            public function save(Invoice $invoice): void
-            {
-            }
+        $userRepositoryStub = static::createStub(UserRepositoryInterface::class);
+        $userRepositoryStub->method('findOneById')->willReturn($this->createUser());
 
-            public function remove(Invoice $invoice): void
-            {
-            }
+        $customerRepositoryStub = static::createStub(CustomerRepositoryInterface::class);
+        $customerRepositoryStub->method('findOneById')->willReturn($this->createCustomer());
 
-            public function findOneById(Uuid $id): Invoice
-            {
-                throw new \LogicException('Invoice repository not expected in quote handler tests.');
-            }
+        $fetcher = new EntityFetcher();
+        $fetcher->setUserRepository($userRepositoryStub);
+        $fetcher->setCustomerRepository($customerRepositoryStub);
+        $fetcher->setQuoteRepository($quoteRepository);
 
-            public function list(): array
-            {
-                return [];
-            }
-        };
-
-        return new DocumentFetcher($invoiceRepository, new QuoteRepositoryStub($quote));
+        return $fetcher;
     }
 
     private function workflowManager(WorkflowInterface $quoteWorkflow): DocumentWorkflowManager
     {
-        $invoiceWorkflow = static::createStub(WorkflowInterface::class);
-        $invoiceWorkflow->method('getEnabledTransitions')->willReturn([]);
+        $workflowManager = new DocumentWorkflowManager();
+        $workflowManager->setQuoteWorkflow($quoteWorkflow);
 
-        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
+        return $workflowManager;
     }
 }

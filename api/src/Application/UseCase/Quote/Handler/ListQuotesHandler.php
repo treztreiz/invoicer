@@ -12,7 +12,7 @@ use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\Quote\Task\ListQuotesTask;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 
-/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Quote\Task\ListQuotesTask, QuoteOutput> */
+/** @implements UseCaseHandlerInterface<ListQuotesTask, QuoteOutput> */
 final readonly class ListQuotesHandler implements UseCaseHandlerInterface
 {
     public function __construct(
@@ -32,7 +32,7 @@ final readonly class ListQuotesHandler implements UseCaseHandlerInterface
         $quotes = $this->quoteRepository->list();
 
         return array_map(
-            fn ($quote) => $this->outputMapper->map(
+            fn($quote) => $this->outputMapper->map(
                 $quote,
                 $this->workflowManager->quoteActions($quote)
             ),

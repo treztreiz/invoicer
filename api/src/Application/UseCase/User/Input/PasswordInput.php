@@ -18,7 +18,7 @@ final class PasswordInput
      * Filled internally to identify the authenticated user.
      * Not exposed via serialization groups.
      */
-    public string $id = '';
+    public string $userId = '';
 
     public function __construct(
         #[Groups(['user:password:write'])]
