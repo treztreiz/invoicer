@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
 use App\Application\Service\EntityFetcher;
 use App\Application\UseCase\Invoice\Command\UpdateInvoiceCommand;
@@ -14,7 +14,6 @@ use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\InvoiceStatus;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -39,10 +38,7 @@ final readonly class UpdateInvoiceHandler implements UseCaseHandlerInterface
     {
         $command = TypeGuard::assertClass(UpdateInvoiceCommand::class, $data);
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
-
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $command->invoiceId);
-        }
+        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
 
         if (InvoiceStatus::DRAFT !== $invoice->status) {
             throw new BadRequestHttpException('Only draft invoices can be updated.');

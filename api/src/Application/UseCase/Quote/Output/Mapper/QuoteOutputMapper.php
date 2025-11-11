@@ -24,29 +24,40 @@ final class QuoteOutputMapper
             status: $quote->status->value,
             currency: $quote->currency,
             vatRate: $quote->vatRate->value,
-            total: new QuoteTotalsOutput(
-                net: $quote->total->net->value,
-                tax: $quote->total->tax->value,
-                gross: $quote->total->gross->value,
-            ),
-            lines: array_values(
-                array_map(
-                    fn (DocumentLine $line) => new QuoteLineOutput(
-                        description: $line->description,
-                        quantity: $line->quantity->value,
-                        rateUnit: $line->rateUnit->value,
-                        rate: $line->rate->value,
-                        net: $line->amount->net->value,
-                        tax: $line->amount->tax->value,
-                        gross: $line->amount->gross->value,
-                    ),
-                    $quote->lines->toArray()
-                )
-            ),
+            total: $this->mapTotal($quote),
+            lines: $this->mapLines($quote),
             customerSnapshot: $quote->customerSnapshot,
             companySnapshot: $quote->companySnapshot,
             createdAt: $quote->createdAt,
             availableActions: $availableActions,
+        );
+    }
+
+    private function mapTotal(Quote $quote): QuoteTotalsOutput
+    {
+        return new QuoteTotalsOutput(
+            net: $quote->total->net->value,
+            tax: $quote->total->tax->value,
+            gross: $quote->total->gross->value,
+        );
+    }
+
+    /** @return list<QuoteLineOutput> */
+    private function mapLines(Quote $quote): array
+    {
+        return array_values(
+            array_map(
+                fn(DocumentLine $line) => new QuoteLineOutput(
+                    description: $line->description,
+                    quantity: $line->quantity->value,
+                    rateUnit: $line->rateUnit->value,
+                    rate: $line->rate->value,
+                    net: $line->amount->net->value,
+                    tax: $line->amount->tax->value,
+                    gross: $line->amount->gross->value,
+                ),
+                $quote->lines->toArray()
+            )
         );
     }
 }

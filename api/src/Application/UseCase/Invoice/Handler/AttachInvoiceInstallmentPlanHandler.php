@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Command\AttachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceInstallmentPlanMapper;
@@ -13,7 +13,7 @@ use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -37,36 +37,20 @@ final readonly class AttachInvoiceInstallmentPlanHandler implements UseCaseHandl
         $command = TypeGuard::assertClass(AttachInvoiceInstallmentPlanCommand::class, $data);
 
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
+        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
+        $invoice = InvoiceGuard::guardAgainstScheduleConflicts($invoice, $command::class);
 
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $command->invoiceId);
+        if (null !== $invoice->installmentPlan) {
+            $command->replaceExisting
+                ? $invoice->detachInstallmentPlan()
+                : throw new BadRequestHttpException('Invoice already has an installment plan.');
         }
 
-        $this->guardAgainstScheduleConflicts($invoice);
-
-        if (null !== $invoice->installmentPlan && !$command->replaceExisting) {
-            throw new BadRequestHttpException('Invoice already has an installment plan.');
-        }
-
-        if ($command->replaceExisting && null !== $invoice->installmentPlan) {
-            $invoice->detachInstallmentPlan();
-        }
-
-        $invoice->attachInstallmentPlan($this->planMapper->map($command->input, $invoice));
+        $payload = $this->planMapper->map($command->input, $invoice);
+        $invoice->attachInstallmentPlan(InstallmentPlan::fromPayload($payload));
 
         $this->invoiceRepository->save($invoice);
 
         return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
-    }
-
-    private function guardAgainstScheduleConflicts(Invoice $invoice): void
-    {
-        if (null !== $invoice->recurrence) {
-            throw new BadRequestHttpException('Invoices cannot have both an installment plan and a recurrence.');
-        }
-
-        if (null !== $invoice->recurrenceSeedId || null !== $invoice->installmentSeedId) {
-            throw new BadRequestHttpException('Generated invoices cannot attach new scheduling rules.');
-        }
     }
 }

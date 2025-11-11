@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Command\DetachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
@@ -35,10 +34,7 @@ final readonly class DetachInvoiceInstallmentPlanHandler implements UseCaseHandl
         $command = TypeGuard::assertClass(DetachInvoiceInstallmentPlanCommand::class, $data);
 
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
-
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $command->invoiceId);
-        }
+        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
 
         if (null === $invoice->installmentPlan) {
             throw new BadRequestHttpException('Invoice does not have an installment plan.');

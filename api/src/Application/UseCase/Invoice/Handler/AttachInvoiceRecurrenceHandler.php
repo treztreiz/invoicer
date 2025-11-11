@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Command\AttachInvoiceRecurrenceCommand;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
@@ -13,9 +13,8 @@ use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Workflow\WorkflowActionsHelper;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
 
@@ -37,28 +36,14 @@ final readonly class AttachInvoiceRecurrenceHandler implements UseCaseHandlerInt
         $command = TypeGuard::assertClass(AttachInvoiceRecurrenceCommand::class, $data);
 
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
+        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
+        $invoice = InvoiceGuard::guardAgainstScheduleConflicts($invoice, $command::class);
 
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $command->invoiceId);
-        }
-
-        $this->guardAgainstScheduleConflicts($invoice);
-
-        $invoice->attachRecurrence($this->recurrenceMapper->map($command->input));
+        $payload = $this->recurrenceMapper->map($command->input);
+        $invoice->attachRecurrence(InvoiceRecurrence::fromPayload($payload));
 
         $this->invoiceRepository->save($invoice);
 
         return $this->outputMapper->map($invoice, $this->actionsHelper->availableActions($invoice, $this->invoiceWorkflow));
-    }
-
-    private function guardAgainstScheduleConflicts(Invoice $invoice): void
-    {
-        if (null !== $invoice->installmentPlan) {
-            throw new BadRequestHttpException('Invoices cannot have both a recurrence and an installment plan.');
-        }
-
-        if (null !== $invoice->recurrenceSeedId || null !== $invoice->installmentSeedId) {
-            throw new BadRequestHttpException('Generated invoices cannot attach new scheduling rules.');
-        }
     }
 }

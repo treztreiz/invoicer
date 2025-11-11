@@ -600,7 +600,7 @@ final class InvoiceApiTest extends ApiTestCase
 
         self::assertResponseStatusCodeSame(400);
         $data = $response->toArray(false);
-        static::assertStringContainsString('both an installment plan and a recurrence', $data['detail'] ?? '');
+        static::assertStringContainsString('both a recurrence and an installment plan', $data['detail'] ?? '');
     }
 
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_recurrence(): void

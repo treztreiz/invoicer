@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
+use App\Application\Guard\InvoiceGuard;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Command\InvoiceActionCommand;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
@@ -39,10 +39,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
         $command = TypeGuard::assertClass(InvoiceActionCommand::class, $data);
 
         $invoice = $this->invoiceRepository->findOneById(Uuid::fromString($command->invoiceId));
-
-        if (!$invoice instanceof Invoice) {
-            throw new ResourceNotFoundException('Invoice', $command->invoiceId);
-        }
+        $invoice = InvoiceGuard::assertFound($invoice, $command->invoiceId);
 
         if (!$this->invoiceWorkflow->can($invoice, $command->action)) {
             throw new BadRequestHttpException(sprintf('Invoice cannot transition via "%s".', $command->action));

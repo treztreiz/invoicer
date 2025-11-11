@@ -30,25 +30,8 @@ final class InvoiceOutputMapper
             status: $invoice->status->value,
             currency: $invoice->currency,
             vatRate: $invoice->vatRate->value,
-            total: new InvoiceTotalsOutput(
-                net: $invoice->total->net->value,
-                tax: $invoice->total->tax->value,
-                gross: $invoice->total->gross->value,
-            ),
-            lines: array_values(
-                array_map(
-                    fn (DocumentLine $line) => new InvoiceLineOutput(
-                        description: $line->description,
-                        quantity: $line->quantity->value,
-                        rateUnit: $line->rateUnit->value,
-                        rate: $line->rate->value,
-                        net: $line->amount->net->value,
-                        tax: $line->amount->tax->value,
-                        gross: $line->amount->gross->value,
-                    ),
-                    $invoice->lines->toArray()
-                )
-            ),
+            total: $this->mapTotal($invoice),
+            lines: $this->mapLines($invoice),
             customerSnapshot: $invoice->customerSnapshot,
             companySnapshot: $invoice->companySnapshot,
             issuedAt: $invoice->issuedAt?->format(\DateTimeInterface::ATOM),
@@ -57,6 +40,34 @@ final class InvoiceOutputMapper
             recurrence: $this->mapRecurrence($invoice->recurrence),
             installmentPlan: $this->mapInstallmentPlan($invoice->installmentPlan),
             availableActions: $availableActions,
+        );
+    }
+
+    private function mapTotal(Invoice $invoice): InvoiceTotalsOutput
+    {
+        return new InvoiceTotalsOutput(
+            net: $invoice->total->net->value,
+            tax: $invoice->total->tax->value,
+            gross: $invoice->total->gross->value,
+        );
+    }
+
+    /** @return list<InvoiceLineOutput> */
+    private function mapLines(Invoice $invoice): array
+    {
+        return array_values(
+            array_map(
+                fn(DocumentLine $line) => new InvoiceLineOutput(
+                    description: $line->description,
+                    quantity: $line->quantity->value,
+                    rateUnit: $line->rateUnit->value,
+                    rate: $line->rate->value,
+                    net: $line->amount->net->value,
+                    tax: $line->amount->tax->value,
+                    gross: $line->amount->gross->value,
+                ),
+                $invoice->lines->toArray()
+            )
         );
     }
 
@@ -84,7 +95,7 @@ final class InvoiceOutputMapper
         }
 
         $installments = array_map(
-            fn (Installment $installment) => new InvoiceInstallmentOutput(
+            fn(Installment $installment) => new InvoiceInstallmentOutput(
                 position: $installment->position,
                 percentage: $installment->percentage,
                 amount: new InvoiceTotalsOutput(

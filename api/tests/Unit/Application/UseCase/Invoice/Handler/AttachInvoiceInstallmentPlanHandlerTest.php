@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Invoice\Command\AttachInvoiceInstallmentPlanCommand;
 use App\Application\UseCase\Invoice\Handler\AttachInvoiceInstallmentPlanHandler;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
@@ -90,7 +91,7 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
         return new AttachInvoiceInstallmentPlanHandler(
             new InvoiceRepositoryStub($invoice),
             new InvoiceOutputMapper(),
-            new InvoiceInstallmentPlanMapper(),
+            new InvoiceInstallmentPlanMapper(new MoneyMath()),
             $this->createWorkflowStub(),
             actionsHelper: new WorkflowActionsHelper()
         );
