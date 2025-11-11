@@ -6,8 +6,16 @@ namespace App\Tests\Factory\Document;
 
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use App\Tests\Factory\ValueObject\VatRateFactory;
+use Zenstruck\Foundry\Factory;
+use Zenstruck\Foundry\ObjectFactory;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
+/**
+ * @template T of object
+ * @extends ObjectFactory<T>
+ *
+ * @phpstan-import-type Parameters from Factory
+ */
 abstract class DocumentFactory extends PersistentObjectFactory
 {
     protected function defaults(): array|callable

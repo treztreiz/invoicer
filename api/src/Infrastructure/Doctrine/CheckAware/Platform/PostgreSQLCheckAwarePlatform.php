@@ -37,7 +37,10 @@ final class PostgreSQLCheckAwarePlatform extends PostgreSQL120Platform implement
 
     public function getCreateTableSQL(Table $table, $createFlags = self::CREATE_INDEXES): array
     {
-        $sql = parent::getCreateTableSQL($table, $createFlags);
+        $sql = parent::getCreateTableSQL(
+            $table,
+            self::CREATE_INDEXES | self::CREATE_FOREIGNKEYS
+        );
 
         $this->appendChecksSQL($sql, $table);
 

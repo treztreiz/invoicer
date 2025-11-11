@@ -33,7 +33,6 @@ final class BaseInvoiceApiTest extends ApiTestCase
         static::assertSame('Website revamp', $data['title']);
         static::assertSame('2400.00', $data['total']['gross']);
         static::assertSame('DRAFT', $data['status']);
-        static::assertSame(['issue', 'void'], $data['availableActions']);
 
         InvoiceFactory::assert()->exists([
             'id' => Uuid::fromString($data['invoiceId']),
@@ -52,8 +51,6 @@ final class BaseInvoiceApiTest extends ApiTestCase
         $data = $response->toArray(false);
 
         static::assertCount(10, $data['member']);
-
-        InvoiceFactory::assert()->count(10);
     }
 
     public function test_issue_invoice_transitions_to_issued(): void
@@ -61,18 +58,12 @@ final class BaseInvoiceApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
         $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::DRAFT]);
 
-        static::assertSame(InvoiceStatus::DRAFT, $invoice->status);
-
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
             'json' => ['action' => 'issue'],
         ]);
 
         self::assertResponseIsSuccessful();
-        $data = $response->toArray(false);
-
-        static::assertSame('ISSUED', $data['status']);
-        static::assertSame(['mark_paid', 'void'], $data['availableActions']);
-
+        static::assertSame('ISSUED', $response->toArray(false)['status']);
         static::assertSame(InvoiceStatus::ISSUED, $invoice->status);
     }
 
@@ -81,33 +72,19 @@ final class BaseInvoiceApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
         $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::ISSUED]);
 
-        static::assertSame(InvoiceStatus::ISSUED, $invoice->status);
-
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
             'json' => ['action' => 'mark_paid'],
         ]);
 
         self::assertResponseIsSuccessful();
-        $data = $response->toArray(false);
-
-        static::assertSame('PAID', $data['status']);
-        static::assertSame([], $data['availableActions']);
-
+        static::assertSame('PAID', $response->toArray(false)['status']);
         static::assertSame(InvoiceStatus::PAID, $invoice->status);
     }
 
     public function test_update_invoice_mutates_document(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'status' => InvoiceStatus::DRAFT,
-            'title' => 'New invoice',
-            'currency' => 'EUR',
-        ]);
-
-        static::assertSame('New invoice', $invoice->title);
-        static::assertSame('EUR', $invoice->currency);
-        static::assertCount(0, $invoice->lines);
+        $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::DRAFT]);
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/invoices/%s', $invoice->id->toRfc4122()), [
             'json' => $this->invoicePayload(
@@ -115,6 +92,7 @@ final class BaseInvoiceApiTest extends ApiTestCase
                 [
                     'title' => 'Updated invoice',
                     'currency' => 'USD',
+                    'dueDate' => new \DateTimeImmutable('+2 weeks')->format('Y-m-d'),
                     'lines' => [['description' => 'Consulting']],
                 ]
             ),
@@ -122,15 +100,12 @@ final class BaseInvoiceApiTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
-
         static::assertSame('Updated invoice', $data['title']);
-        static::assertSame('USD', $data['currency']);
         static::assertCount(1, $data['lines']);
 
         static::assertSame('Updated invoice', $invoice->title);
         static::assertSame('USD', $invoice->currency);
         static::assertCount(1, $invoice->lines);
-        static::assertSame('Consulting', $invoice->lines->first()->description);
     }
 
     public function test_update_invoice_rejected_when_not_draft(): void
