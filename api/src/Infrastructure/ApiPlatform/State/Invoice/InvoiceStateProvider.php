@@ -31,7 +31,7 @@ final readonly class InvoiceStateProvider implements ProviderInterface
         }
 
         if ($operation instanceof Get) {
-            $invoiceId = (string)($uriVariables['invoiceId'] ?? '');
+            $invoiceId = (string) ($uriVariables['invoiceId'] ?? '');
 
             return $this->getInvoiceHandler->handle(new GetInvoiceTask($invoiceId));
         }

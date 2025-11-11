@@ -221,7 +221,7 @@ final class ResourceRegistry
             $resourceList = \is_array($resource) ? array_values($resource) : [$resource];
 
             $this->resources[$resourceClass] = array_map(
-                static fn(ApiResource $resource) => $resource->withExtraProperties([
+                static fn (ApiResource $resource) => $resource->withExtraProperties([
                     'api.autoconfigure' => true,
                     ...$resource->getExtraProperties(),
                 ]),

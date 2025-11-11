@@ -31,7 +31,7 @@ final readonly class CustomerStateProvider implements ProviderInterface
         }
 
         if ($operation instanceof Get) {
-            $task = new GetCustomerTask((string)($uriVariables['customerId'] ?? ''));
+            $task = new GetCustomerTask((string) ($uriVariables['customerId'] ?? ''));
 
             return $this->getCustomerHandler->handle($task);
         }

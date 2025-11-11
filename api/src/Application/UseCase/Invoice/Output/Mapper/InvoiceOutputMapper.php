@@ -57,7 +57,7 @@ final class InvoiceOutputMapper
     {
         return array_values(
             array_map(
-                fn(DocumentLine $line) => new DocumentLineOutput(
+                fn (DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,
@@ -95,7 +95,7 @@ final class InvoiceOutputMapper
         }
 
         $installments = array_map(
-            fn(Installment $installment) => new InvoiceInstallmentOutput(
+            fn (Installment $installment) => new InvoiceInstallmentOutput(
                 position: $installment->position,
                 percentage: $installment->percentage,
                 amount: new InvoiceTotalsOutput(

@@ -32,7 +32,7 @@ final readonly class ListQuotesHandler implements UseCaseHandlerInterface
         $quotes = $this->quoteRepository->list();
 
         return array_map(
-            fn($quote) => $this->outputMapper->map(
+            fn ($quote) => $this->outputMapper->map(
                 $quote,
                 $this->workflowManager->quoteActions($quote)
             ),

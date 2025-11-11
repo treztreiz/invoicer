@@ -32,7 +32,7 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
         $invoices = $this->invoiceRepository->list();
 
         return array_map(
-            fn($invoice) => $this->outputMapper->map(
+            fn ($invoice) => $this->outputMapper->map(
                 $invoice,
                 $this->workflowManager->invoiceActions($invoice)
             ),

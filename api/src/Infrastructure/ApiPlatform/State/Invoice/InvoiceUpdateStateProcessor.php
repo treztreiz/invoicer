@@ -29,7 +29,7 @@ final readonly class InvoiceUpdateStateProcessor implements ProcessorInterface
     {
         $input = TypeGuard::assertClass(InvoiceInput::class, $data);
         $user = SecurityGuard::assertAuth($this->security->getUser());
-        $invoiceId = (string)($uriVariables['invoiceId'] ?? '');
+        $invoiceId = (string) ($uriVariables['invoiceId'] ?? '');
 
         if ('' === $invoiceId) {
             throw new \InvalidArgumentException('Invoice id is required.');

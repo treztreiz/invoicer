@@ -47,7 +47,7 @@ final class QuoteOutputMapper
     {
         return array_values(
             array_map(
-                fn(DocumentLine $line) => new DocumentLineOutput(
+                fn (DocumentLine $line) => new DocumentLineOutput(
                     description: $line->description,
                     quantity: $line->quantity->value,
                     rateUnit: $line->rateUnit->value,

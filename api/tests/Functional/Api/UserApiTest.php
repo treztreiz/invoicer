@@ -47,15 +47,15 @@ final class UserApiTest extends ApiTestCase
             contact: new Contact('john.doe@example.com', '+33102030405'),
             company: new Company(
                 legalName: 'Acme Corp',
+                logo: CompanyLogo::empty(),
                 contact: new Contact('contact@acme.test', '+33987654321'),
                 address: new Address('1 rue de Paris', null, '75000', 'Paris', null, 'FR'),
                 defaultCurrency: 'EUR',
                 defaultHourlyRate: new Money('100'),
                 defaultDailyRate: new Money('800'),
                 defaultVatRate: new VatRate('20'),
-                legalMention: 'SIRET 123 456 789 00010'
+                legalMention: 'SIRET 123 456 789 00010',
             ),
-            logo: CompanyLogo::empty(),
             userIdentifier: 'john.doe@example.com',
             roles: ['ROLE_USER'],
             password: 'temp',

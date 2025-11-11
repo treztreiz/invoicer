@@ -11,9 +11,9 @@ final readonly class InvoiceOutput
 {
     /**
      * @param list<DocumentLineOutput> $lines
-     * @param array<string, mixed> $customerSnapshot
-     * @param array<string, mixed> $companySnapshot
-     * @param list<string> $availableActions
+     * @param array<string, mixed>     $customerSnapshot
+     * @param array<string, mixed>     $companySnapshot
+     * @param list<string>             $availableActions
      */
     public function __construct(
         #[Groups(['invoice:read'])]

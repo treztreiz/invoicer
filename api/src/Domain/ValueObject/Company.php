@@ -17,6 +17,9 @@ final class Company
             set => DomainGuard::nonEmpty($value, 'Legal name');
         },
 
+        #[ORM\Embedded]
+        private(set) readonly CompanyLogo $logo,
+
         #[ORM\Embedded(columnPrefix: false)]
         private(set) readonly Contact $contact,
 

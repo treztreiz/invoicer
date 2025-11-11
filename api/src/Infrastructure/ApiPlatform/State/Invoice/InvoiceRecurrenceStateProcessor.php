@@ -25,7 +25,7 @@ final readonly class InvoiceRecurrenceStateProcessor implements ProcessorInterfa
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput
     {
         $input = TypeGuard::assertClass(InvoiceRecurrenceInput::class, $data);
-        $invoiceId = (string)($uriVariables['invoiceId'] ?? '');
+        $invoiceId = (string) ($uriVariables['invoiceId'] ?? '');
 
         if ('' === $invoiceId) {
             throw new \InvalidArgumentException('Invoice id is required.');

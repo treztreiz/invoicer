@@ -24,7 +24,7 @@ final readonly class CustomerStatusStateProcessor implements ProcessorInterface
 
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): CustomerOutput
     {
-        $customerId = (string)($uriVariables['customerId'] ?? '');
+        $customerId = (string) ($uriVariables['customerId'] ?? '');
 
         if ('' === $customerId) {
             throw new \InvalidArgumentException('Customer id is required.');

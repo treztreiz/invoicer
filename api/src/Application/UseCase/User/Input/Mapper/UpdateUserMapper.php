@@ -10,6 +10,7 @@ use App\Application\UseCase\User\Input\UserInput;
 use App\Domain\DTO\UserUpdateProfilePayload;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;
+use App\Domain\ValueObject\CompanyLogo;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
@@ -17,21 +18,22 @@ use App\Domain\ValueObject\VatRate;
 
 final class UpdateUserMapper
 {
-    public function map(UserInput $input): UserUpdateProfilePayload
+    public function map(UserInput $input, CompanyLogo $logo): UserUpdateProfilePayload
     {
         return new UserUpdateProfilePayload(
             name: new Name($input->firstName, $input->lastName),
             contact: new Contact($input->email, $input->phone),
-            company: $this->mapCompany($input->company),
+            company: $this->mapCompany($input->company, $logo),
             locale: $input->locale,
             userIdentifier: $input->email,
         );
     }
 
-    private function mapCompany(CompanyInput $companyInput): Company
+    private function mapCompany(CompanyInput $companyInput, CompanyLogo $logo): Company
     {
         return new Company(
             legalName: $companyInput->legalName,
+            logo: $logo,
             contact: new Contact($companyInput->email, $companyInput->phone),
             address: $this->mapAddress($companyInput->address),
             defaultCurrency: $companyInput->defaultCurrency,

@@ -25,7 +25,7 @@ final readonly class InvoiceActionStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput
     {
         $input = TypeGuard::assertClass(InvoiceActionInput::class, $data);
-        $invoiceId = (string)($uriVariables['invoiceId'] ?? '');
+        $invoiceId = (string) ($uriVariables['invoiceId'] ?? '');
 
         if ('' === $invoiceId) {
             throw new \InvalidArgumentException('Invoice id is required.');

@@ -36,7 +36,7 @@ final readonly class UpdateUserHandler implements UseCaseHandlerInterface
             throw new UserNotFoundException($userInput->userId);
         }
 
-        $payload = $this->mapper->map($userInput);
+        $payload = $this->mapper->map($userInput, $user->company->logo);
         $user->updateProfile($payload);
 
         $this->userRepository->save($user);
