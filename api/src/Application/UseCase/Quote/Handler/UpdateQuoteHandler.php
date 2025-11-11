@@ -7,7 +7,6 @@ namespace App\Application\UseCase\Quote\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\QuoteGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
 use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
@@ -21,7 +20,6 @@ final readonly class UpdateQuoteHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private QuoteRepositoryInterface $quoteRepository,
-        private DocumentFetcher $documentFetcher,
         private QuotePayloadMapper $payloadMapper,
         private QuoteOutputMapper $outputMapper,
         private EntityFetcher $entityFetcher,
@@ -33,7 +31,7 @@ final readonly class UpdateQuoteHandler implements UseCaseHandlerInterface
     {
         $task = TypeGuard::assertClass(UpdateQuoteTask::class, $data);
         $quote = QuoteGuard::assertDraft(
-            $this->documentFetcher->quote($task->quoteId)
+            $this->entityFetcher->quote($task->quoteId)
         );
 
         $input = $task->input;

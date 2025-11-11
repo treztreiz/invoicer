@@ -6,9 +6,8 @@ namespace App\Application\UseCase\Quote\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Exception\DomainRuleViolationException;
-use App\Application\Guard\QuoteGuard;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
@@ -25,7 +24,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 
     public function __construct(
         private QuoteRepositoryInterface $quoteRepository,
-        private DocumentFetcher $documentFetcher,
+        private EntityFetcher $entityFetcher,
         private QuoteOutputMapper $outputMapper,
         private DocumentWorkflowManager $workflowManager,
     ) {
@@ -35,10 +34,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
     {
         $task = TypeGuard::assertClass(QuoteActionTask::class, $data);
 
-        $quote = QuoteGuard::assertFound(
-            $this->documentFetcher->quote($task->quoteId),
-            $task->quoteId
-        );
+        $quote = $this->entityFetcher->quote($task->quoteId);
 
         $transition = $task->action;
 

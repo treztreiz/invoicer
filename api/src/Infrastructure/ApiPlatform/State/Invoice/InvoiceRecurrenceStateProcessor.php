@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\ApiPlatform\State\Invoice;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProcessorInterface;
 use App\Application\Guard\TypeGuard;
 use App\Application\UseCase\Invoice\Handler\AttachInvoiceRecurrenceHandler;
@@ -30,13 +31,11 @@ final readonly class InvoiceRecurrenceStateProcessor implements ProcessorInterfa
             throw new \InvalidArgumentException('Invoice id is required.');
         }
 
-        $replaceExisting = 'PUT' === strtoupper($operation->getMethod() ?? '');
-
         return $this->handler->handle(
             new AttachInvoiceRecurrenceTask(
                 invoiceId: $invoiceId,
                 input: $input,
-                replaceExisting: $replaceExisting,
+                replaceExisting: $operation instanceof Put,
             )
         );
     }

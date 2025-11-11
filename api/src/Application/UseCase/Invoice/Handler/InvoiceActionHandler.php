@@ -7,7 +7,7 @@ namespace App\Application\UseCase\Invoice\Handler;
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
@@ -24,7 +24,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
 
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
-        private DocumentFetcher $documentFetcher,
+        private EntityFetcher $entityFetcher,
         private InvoiceOutputMapper $outputMapper,
         private DocumentWorkflowManager $workflowManager,
     ) {
@@ -34,7 +34,7 @@ final readonly class InvoiceActionHandler implements UseCaseHandlerInterface
     {
         $task = TypeGuard::assertClass(InvoiceActionTask::class, $data);
 
-        $invoice = $this->documentFetcher->invoice($task->invoiceId);
+        $invoice = $this->entityFetcher->invoice($task->invoiceId);
 
         if (!$this->workflowManager->canInvoiceTransition($invoice, $task->action)) {
             throw new DomainRuleViolationException(sprintf('Invoice cannot transition via "%s".', $task->action));

@@ -6,7 +6,7 @@ namespace App\Application\UseCase\Invoice\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
 use App\Application\Guard\TypeGuard;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
@@ -16,7 +16,7 @@ use App\Application\UseCase\Invoice\Task\GetInvoiceTask;
 final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
 {
     public function __construct(
-        private DocumentFetcher $documentFetcher,
+        private EntityFetcher $entityFetcher,
         private InvoiceOutputMapper $outputMapper,
         private DocumentWorkflowManager $workflowManager,
     ) {
@@ -26,7 +26,7 @@ final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
     {
         $task = TypeGuard::assertClass(GetInvoiceTask::class, $data);
 
-        $invoice = $this->documentFetcher->invoice($task->invoiceId);
+        $invoice = $this->entityFetcher->invoice($task->invoiceId);
 
         return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
     }

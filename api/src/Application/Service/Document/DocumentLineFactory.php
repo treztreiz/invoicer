@@ -14,12 +14,18 @@ use App\Domain\ValueObject\Quantity;
 
 final readonly class DocumentLineFactory
 {
-    /** @param array<string, mixed>|DocumentLineInput $input */
+    /**
+     * @param array<string, mixed>|DocumentLineInput $input
+     * @param numeric-string                         $vatRate
+     */
     public function create(array|DocumentLineInput $input, string $vatRate, int $position): DocumentLinePayload
     {
         return $this->buildPayload($this->normalizeInput($input), $vatRate, $position);
     }
 
+    /**
+     * @param numeric-string $vatRate
+     */
     private function buildPayload(DocumentLineInput $line, string $vatRate, int $position): DocumentLinePayload
     {
         $quantity = new Quantity(MoneyMath::decimal($line->quantity, 3));

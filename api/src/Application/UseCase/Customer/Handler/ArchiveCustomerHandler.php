@@ -31,7 +31,7 @@ final readonly class ArchiveCustomerHandler implements UseCaseHandlerInterface
         $customer = $this->customerRepository->findOneById($customerId);
 
         if (!$customer instanceof Customer) {
-            throw new ResourceNotFoundException('Customer', $task->id);
+            throw new ResourceNotFoundException('Customer', $task->customerId);
         }
 
         $customer->archive();

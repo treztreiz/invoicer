@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
 use App\Application\Exception\DomainRuleViolationException;
-use App\Application\Service\Document\DocumentFetcher;
+use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Invoice\Handler\DetachInvoiceRecurrenceHandler;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Task\DetachInvoiceRecurrenceTask;
-use App\Domain\Contracts\QuoteRepositoryInterface;
+use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
-use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\ValueObject\AmountBreakdown;
@@ -33,9 +32,11 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
         $invoice = $this->createInvoice();
         $invoice->attachRecurrence($this->createRecurrence());
 
+        $invoiceRepository = new InvoiceRepositoryStub($invoice);
+
         $handler = new DetachInvoiceRecurrenceHandler(
-            new InvoiceRepositoryStub($invoice),
-            $this->documentFetcherStub($invoice),
+            $invoiceRepository,
+            $this->entityFetcherStub($invoiceRepository),
             new InvoiceOutputMapper(),
             $this->workflowManager($this->createWorkflowStub())
         );
@@ -50,9 +51,11 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
     {
         $invoice = $this->createInvoice();
 
+        $invoiceRepository = new InvoiceRepositoryStub($invoice);
+
         $handler = new DetachInvoiceRecurrenceHandler(
-            new InvoiceRepositoryStub($invoice),
-            $this->documentFetcherStub($invoice),
+            $invoiceRepository,
+            $this->entityFetcherStub($invoiceRepository),
             new InvoiceOutputMapper(),
             $this->workflowManager($this->createWorkflowStub())
         );
@@ -96,36 +99,19 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
         );
     }
 
-    private function documentFetcherStub(Invoice $invoice): DocumentFetcher
+    private function entityFetcherStub(InvoiceRepositoryInterface $invoiceRepository): EntityFetcher
     {
-        $quoteRepository = new class implements QuoteRepositoryInterface {
-            public function save(Quote $quote): void
-            {
-            }
+        $fetcher = new EntityFetcher();
+        $fetcher->setInvoiceRepository($invoiceRepository);
 
-            public function remove(Quote $quote): void
-            {
-            }
-
-            public function findOneById(Uuid $id): Quote
-            {
-                throw new \LogicException('Quote repository not expected in invoice handler tests.');
-            }
-
-            public function list(): array
-            {
-                return [];
-            }
-        };
-
-        return new DocumentFetcher(new InvoiceRepositoryStub($invoice), $quoteRepository);
+        return $fetcher;
     }
 
     private function workflowManager(WorkflowInterface $invoiceWorkflow): DocumentWorkflowManager
     {
-        $quoteWorkflow = static::createStub(WorkflowInterface::class);
-        $quoteWorkflow->method('getEnabledTransitions')->willReturn([]);
+        $workflowManager = new DocumentWorkflowManager();
+        $workflowManager->setInvoiceWorkflow($invoiceWorkflow);
 
-        return new DocumentWorkflowManager($invoiceWorkflow, $quoteWorkflow);
+        return $workflowManager;
     }
 }
