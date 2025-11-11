@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Factory\Customer;
 
 use App\Domain\Entity\Customer\Customer;
@@ -23,9 +25,9 @@ final class CustomerFactory extends PersistentObjectFactory
     protected function defaults(): array
     {
         return [
-            'address' => AddressFactory::new(),
-            'contact' => ContactFactory::new(),
             'name' => NameFactory::new(),
+            'contact' => ContactFactory::new(),
+            'address' => AddressFactory::new(),
         ];
     }
 }

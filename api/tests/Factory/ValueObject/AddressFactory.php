@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Factory\ValueObject;
 
 use App\Domain\ValueObject\Address;
@@ -20,12 +22,12 @@ final class AddressFactory extends ObjectFactory
     protected function defaults(): array
     {
         return [
-            'city' => self::faker()->city(),
-            'countryCode' => self::faker()->countryCode(),
-            'postalCode' => self::faker()->postcode(),
-            'region' => self::faker()->word(),
             'streetLine1' => self::faker()->streetAddress(),
             'streetLine2' => self::faker()->streetAddress(),
+            'postalCode' => self::faker()->postcode(),
+            'city' => self::faker()->city(),
+            'region' => self::faker()->word(),
+            'countryCode' => self::faker()->countryCode(),
         ];
     }
 }

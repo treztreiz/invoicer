@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory\ValueObject;
 
-use App\Domain\ValueObject\Contact;
+use App\Domain\ValueObject\CompanyLogo;
 use Zenstruck\Foundry\ObjectFactory;
 
 /**
- * @extends ObjectFactory<Contact>
+ * @extends ObjectFactory<CompanyLogo>
  */
-final class ContactFactory extends ObjectFactory
+final class CompanyLogoFactory extends ObjectFactory
 {
     #[\Override]
     public static function class(): string
     {
-        return Contact::class;
+        return CompanyLogo::class;
     }
 
     #[\Override]

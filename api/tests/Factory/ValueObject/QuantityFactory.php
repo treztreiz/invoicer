@@ -4,26 +4,25 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory\ValueObject;
 
-use App\Domain\ValueObject\Name;
+use App\Domain\ValueObject\Quantity;
 use Zenstruck\Foundry\ObjectFactory;
 
 /**
- * @extends ObjectFactory<Name>
+ * @extends ObjectFactory<Quantity>
  */
-final class NameFactory extends ObjectFactory
+final class QuantityFactory extends ObjectFactory
 {
     #[\Override]
     public static function class(): string
     {
-        return Name::class;
+        return Quantity::class;
     }
 
     #[\Override]
     protected function defaults(): array
     {
         return [
-            'firstName' => self::faker()->firstName(),
-            'lastName' => self::faker()->lastName(),
+            'value' => (string) self::faker()->numberBetween(1, 100),
         ];
     }
 }
