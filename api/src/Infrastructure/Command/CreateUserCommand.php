@@ -55,6 +55,7 @@ final readonly class CreateUserCommand
             new Contact($userIdentifier, null),
             new Company(
                 legalName: 'Demo Company',
+                logo: CompanyLogo::empty(),
                 contact: new Contact($userIdentifier, null),
                 address: new Address('Main St', null, '00000', 'City', null, 'FR'),
                 defaultCurrency: 'EUR',
@@ -62,7 +63,6 @@ final readonly class CreateUserCommand
                 defaultDailyRate: new Money('0'),
                 defaultVatRate: new VatRate('0'),
             ),
-            logo: CompanyLogo::empty(),
             userIdentifier: $userIdentifier,
             roles: ['ROLE_USER'],
             password: 'test',

@@ -32,7 +32,8 @@ final class InvoiceRecurrenceApiTest extends ApiTestCase
 
         self::assertResponseIsSuccessful();
         static::assertSame('MONTHLY', $response->toArray(false)['recurrence']['frequency']);
-        static::assertSame(RecurrenceFrequency::MONTHLY, $invoice->recurrence?->frequency);
+        static::assertNotNull($invoice->recurrence);
+        static::assertSame(RecurrenceFrequency::MONTHLY, $invoice->recurrence->frequency);
     }
 
     public function test_update_invoice_recurrence(): void

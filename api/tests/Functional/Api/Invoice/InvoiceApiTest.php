@@ -13,7 +13,7 @@ use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use Symfony\Component\Uid\Uuid;
 
-final class BaseInvoiceApiTest extends ApiTestCase
+final class InvoiceApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;
 

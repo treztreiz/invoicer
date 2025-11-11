@@ -110,8 +110,17 @@ trait ApiClientHelperTrait
         ];
     }
 
+    /**
+     * @return \SplObjectStorage<Client, array{token: string, user: User}>
+     */
     private function authenticatedClientsStorage(): \SplObjectStorage
     {
-        return $this->authenticatedClients ??= new \SplObjectStorage();
+        if (null === $this->authenticatedClients) {
+            /** @var \SplObjectStorage<Client, array{token: string, user: User}> $storage */
+            $storage = new \SplObjectStorage();
+            $this->authenticatedClients = $storage;
+        }
+
+        return $this->authenticatedClients;
     }
 }

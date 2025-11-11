@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Factory\Document;
 
+use App\Domain\Entity\Document\Document;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use App\Tests\Factory\ValueObject\VatRateFactory;
-use Zenstruck\Foundry\Factory;
-use Zenstruck\Foundry\ObjectFactory;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * @template T of object
- * @extends ObjectFactory<T>
+ * @template T of Document
  *
- * @phpstan-import-type Parameters from Factory
+ * @extends PersistentObjectFactory<T>
  */
 abstract class DocumentFactory extends PersistentObjectFactory
 {
