@@ -6,6 +6,10 @@ namespace App\Application\Guard;
 
 final class DateGuard
 {
+    private function __construct()
+    {
+    }
+
     public static function parse(string $value, string $field, string $format = 'Y-m-d'): \DateTimeImmutable
     {
         $parsed = \DateTimeImmutable::createFromFormat($format, $value);

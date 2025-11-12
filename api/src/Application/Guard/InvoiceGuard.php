@@ -11,6 +11,10 @@ use App\Domain\Enum\InvoiceStatus;
 
 class InvoiceGuard
 {
+    private function __construct()
+    {
+    }
+
     public static function assertDraft(Invoice $invoice): Invoice
     {
         if (InvoiceStatus::DRAFT !== $invoice->status) {

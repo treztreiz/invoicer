@@ -10,6 +10,10 @@ use App\Domain\Enum\QuoteStatus;
 
 final class QuoteGuard
 {
+    private function __construct()
+    {
+    }
+
     public static function assertDraft(Quote $quote): Quote
     {
         if (QuoteStatus::DRAFT !== $quote->status) {
