@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Domain\Entity\Numbering;
 
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,9 +14,10 @@ use PHPUnit\Framework\TestCase;
  */
 final class NumberSequenceTest extends TestCase
 {
-    public function test_reserve_next_returns_current_and_increments(): void
+    #[DataProvider('documentTypesProvider')]
+    public function test_reserve_next_returns_current_and_increments(DocumentType $documentType): void
     {
-        $sequence = new NumberSequence(DocumentType::INVOICE, 2026);
+        $sequence = new NumberSequence($documentType, 2026);
 
         static::assertSame(1, $sequence->reserveNext());
         static::assertSame(2, $sequence->nextValue);
@@ -24,9 +26,18 @@ final class NumberSequenceTest extends TestCase
         static::assertSame(3, $sequence->nextValue);
     }
 
-    public function test_negative_year_is_rejected(): void
+    #[DataProvider('documentTypesProvider')]
+    public function test_negative_year_is_rejected(DocumentType $documentType): void
     {
         static::expectException(\InvalidArgumentException::class);
-        new NumberSequence(DocumentType::QUOTE, -1);
+        new NumberSequence($documentType, -1);
+    }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function documentTypesProvider(): iterable
+    {
+        yield 'Quote' => [DocumentType::QUOTE];
+        yield 'Invoice' => [DocumentType::INVOICE];
     }
 }

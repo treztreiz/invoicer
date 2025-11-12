@@ -83,6 +83,13 @@ final class CheckAwareTableDiffTest extends TestCase
         static::assertSame($expectedEmpty, $diff->isEmpty());
     }
 
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static function newSpec(string $name): CheckSpecInterface
+    {
+        return new SoftXorCheckSpec($name, ['recurrence_id', 'installment_plan_id']);
+    }
+
     /**
      * @return iterable<string, array{list<CheckSpecInterface>, list<CheckSpecInterface>, list<CheckSpecInterface>, bool}>
      */
@@ -93,10 +100,5 @@ final class CheckAwareTableDiffTest extends TestCase
         yield 'only modified' => [[], [self::newSpec('M1')], [], false];
         yield 'only dropped' => [[], [], [self::newSpec('D1')], false];
         yield 'mixed' => [[self::newSpec('A1')], [self::newSpec('M1')], [self::newSpec('D1')], false];
-    }
-
-    private static function newSpec(string $name): CheckSpecInterface
-    {
-        return new SoftXorCheckSpec($name, ['recurrence_id', 'installment_plan_id']);
     }
 }

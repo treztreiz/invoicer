@@ -14,7 +14,7 @@ final class CustomerOutputMapper
     public function map(Customer $customer): CustomerOutput
     {
         return new CustomerOutput(
-            id: $customer->id?->toRfc4122() ?? '',
+            customerId: $customer->id?->toRfc4122() ?? '',
             firstName: $customer->name->firstName,
             lastName: $customer->name->lastName,
             email: $customer->contact->email ?? '',

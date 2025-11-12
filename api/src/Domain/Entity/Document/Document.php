@@ -76,7 +76,7 @@ abstract class Document
         $this->reference = DomainGuard::nonEmpty($reference, 'Reference');
     }
 
-    protected function addLine(DocumentLinePayload $payload): DocumentLine
+    public function addLine(DocumentLinePayload $payload): DocumentLine
     {
         $line = DocumentLine::fromPayload($this, $payload);
 
@@ -95,5 +95,19 @@ abstract class Document
     protected function removeLine(DocumentLine $line): void
     {
         $this->lines->removeElement($line);
+    }
+
+    /**
+     * @param list<DocumentLinePayload> $linePayloads
+     */
+    protected function replaceLines(array $linePayloads): void
+    {
+        foreach ($this->lines as $line) {
+            $this->removeLine($line);
+        }
+
+        foreach ($linePayloads as $linePayload) {
+            $this->addLine($linePayload);
+        }
     }
 }

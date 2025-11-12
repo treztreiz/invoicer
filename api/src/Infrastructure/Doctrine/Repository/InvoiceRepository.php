@@ -38,9 +38,30 @@ final class InvoiceRepository extends ServiceEntityRepository implements Invoice
     public function findOneById(Uuid $id): ?Invoice
     {
         return $this->createQueryBuilder('invoice')
+            ->leftJoin('invoice.recurrence', 'recurrence')
+            ->addSelect('recurrence')
+            ->leftJoin('invoice.installmentPlan', 'installmentPlan')
+            ->addSelect('installmentPlan')
+            ->leftJoin('installmentPlan.installments', 'installments')
+            ->addSelect('installments')
             ->andWhere('invoice.id = :id')
             ->setParameter('id', $id, UuidType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function list(): array
+    {
+        return $this->createQueryBuilder('invoice')
+            ->orderBy('invoice.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function refresh(Invoice $invoice): Invoice
+    {
+        $this->getEntityManager()->refresh($invoice);
+
+        return $invoice;
     }
 }

@@ -11,7 +11,7 @@ final class UserOutput
     /** @param array<int, string> $roles */
     public function __construct(
         #[Groups(['user:read'])]
-        public string $id,
+        public string $userId,
         #[Groups(['user:read'])]
         public string $firstName,
         #[Groups(['user:read'])]

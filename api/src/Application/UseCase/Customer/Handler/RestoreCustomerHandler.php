@@ -5,34 +5,28 @@ declare(strict_types=1);
 namespace App\Application\UseCase\Customer\Handler;
 
 use App\Application\Contract\UseCaseHandlerInterface;
-use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Guard\TypeGuard;
-use App\Application\UseCase\Customer\Action\CustomerStatusAction;
+use App\Application\Service\EntityFetcher;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
 use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\Task\CustomerStatusTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
-use App\Domain\Entity\Customer\Customer;
-use Symfony\Component\Uid\Uuid;
 
-/** @implements UseCaseHandlerInterface<CustomerStatusAction, CustomerOutput> */
+/** @implements UseCaseHandlerInterface<CustomerStatusTask, CustomerOutput> */
 final readonly class RestoreCustomerHandler implements UseCaseHandlerInterface
 {
     public function __construct(
         private CustomerRepositoryInterface $customerRepository,
+        private EntityFetcher $entityFetcher,
         private CustomerOutputMapper $outputMapper,
     ) {
     }
 
     public function handle(object $data): CustomerOutput
     {
-        $action = TypeGuard::assertClass(CustomerStatusAction::class, $data);
+        $task = TypeGuard::assertClass(CustomerStatusTask::class, $data);
 
-        $customerId = Uuid::fromString($action->id);
-        $customer = $this->customerRepository->findOneById($customerId);
-
-        if (!$customer instanceof Customer) {
-            throw new ResourceNotFoundException('Customer', $action->id);
-        }
+        $customer = $this->entityFetcher->customer($task->customerId);
 
         $customer->unarchive();
         $this->customerRepository->save($customer);

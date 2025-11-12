@@ -14,7 +14,7 @@ abstract class ConfigurableKernelTestCase extends KernelTestCase
     {
         $options['debug'] = false;
 
-        /** @var TestKernel $kernel */
+        /** @var ConfigurableKernel $kernel */
         $kernel = parent::createKernel($options);
 
         // Clear the cache to ensure container recompilation
@@ -23,23 +23,23 @@ abstract class ConfigurableKernelTestCase extends KernelTestCase
 
     protected static function getKernelClass(): string
     {
-        return TestKernel::class;
+        return ConfigurableKernel::class;
     }
 
-    protected static function createKernel(array $options = []): TestKernel
+    protected static function createKernel(array $options = []): ConfigurableKernel
     {
         $options['debug'] = $options['debug'] ?? $_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? false;
 
-        /** @var TestKernel $kernel */
+        /** @var ConfigurableKernel $kernel */
         $kernel = parent::createKernel($options);
         static::applyKernelConfiguration($kernel);
 
         return $kernel;
     }
 
-    abstract protected static function setKernelConfiguration(TestKernel $kernel): iterable;
+    abstract protected static function setKernelConfiguration(ConfigurableKernel $kernel): iterable;
 
-    protected static function applyKernelConfiguration(TestKernel $kernel): void
+    protected static function applyKernelConfiguration(ConfigurableKernel $kernel): void
     {
         $options = iterator_to_array(static::setKernelConfiguration($kernel));
         if (empty($options)) {

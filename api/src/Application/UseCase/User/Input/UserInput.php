@@ -13,7 +13,7 @@ final class UserInput
      * Filled internally to identify the authenticated user.
      * Not exposed via serialization groups.
      */
-    public string $id = '';
+    public string $userId = '';
 
     public function __construct(
         #[Groups(['user:write'])]

@@ -8,10 +8,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Application\UseCase\User\Handler\GetUserHandler;
 use App\Application\UseCase\User\Output\UserOutput;
-use App\Application\UseCase\User\Query\GetUserQuery;
-use App\Infrastructure\Security\SecurityUser;
+use App\Application\UseCase\User\Task\GetUserTask;
+use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 /** @implements ProviderInterface<UserOutput> */
 final readonly class UserStateProvider implements ProviderInterface
@@ -24,15 +23,11 @@ final readonly class UserStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): UserOutput
     {
-        $user = $this->security->getUser();
+        $user = SecurityGuard::assertAuth($this->security->getUser());
 
-        if (!$user instanceof SecurityUser) {
-            throw new AuthenticationCredentialsNotFoundException('User is not authenticated.');
-        }
+        $task = new GetUserTask($user->domainUser->id->toRfc4122());
 
-        $query = new GetUserQuery($user->domainUser->id->toRfc4122());
-
-        $output = $this->handler->handle($query);
+        $output = $this->handler->handle($task);
 
         return $output;
     }

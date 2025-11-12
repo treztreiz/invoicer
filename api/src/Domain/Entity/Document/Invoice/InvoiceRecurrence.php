@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document\Invoice;
 
+use App\Domain\DTO\InvoiceRecurrencePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\RecurrenceEndStrategy;
@@ -48,5 +49,18 @@ class InvoiceRecurrence
         #[ORM\Column(type: Types::SMALLINT, nullable: true)]
         private(set) readonly ?int $occurrenceCount = null,
     ) {
+    }
+
+    public static function fromPayload(InvoiceRecurrencePayload $payload): self
+    {
+        return new self(
+            frequency: $payload->frequency,
+            interval: $payload->interval,
+            anchorDate: $payload->anchorDate,
+            endStrategy: $payload->endStrategy,
+            nextRunAt: null,
+            endDate: $payload->endDate,
+            occurrenceCount: $payload->occurrenceCount,
+        );
     }
 }

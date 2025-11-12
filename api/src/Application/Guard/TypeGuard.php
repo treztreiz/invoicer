@@ -6,6 +6,10 @@ namespace App\Application\Guard;
 
 class TypeGuard
 {
+    private function __construct()
+    {
+    }
+
     /**
      * @template T of object
      *

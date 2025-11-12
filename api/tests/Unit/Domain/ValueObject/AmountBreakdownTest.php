@@ -37,4 +37,13 @@ final class AmountBreakdownTest extends TestCase
             new Money('119.99'),
         );
     }
+
+    public function test_from_values_factory_builds_breakdown(): void
+    {
+        $breakdown = AmountBreakdown::fromValues('50.00', '10.00', '60.00');
+
+        static::assertSame('50.00', $breakdown->net->value);
+        static::assertSame('10.00', $breakdown->tax->value);
+        static::assertSame('60.00', $breakdown->gross->value);
+    }
 }

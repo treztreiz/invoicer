@@ -1,0 +1,54 @@
+framework:
+    workflows:
+        quote_flow:
+            type: state_machine
+            supports:
+                - App\Domain\Entity\Document\Quote
+            marking_store:
+                service: App\Application\Service\Workflow\QuoteMarkingStore
+            initial_marking:
+                - !php/enum App\Domain\Enum\QuoteStatus::DRAFT->value
+            places:
+                - !php/enum App\Domain\Enum\QuoteStatus::DRAFT->value
+                - !php/enum App\Domain\Enum\QuoteStatus::SENT->value
+                - !php/enum App\Domain\Enum\QuoteStatus::ACCEPTED->value
+                - !php/enum App\Domain\Enum\QuoteStatus::REJECTED->value
+            transitions:
+                send:
+                    from: !php/enum App\Domain\Enum\QuoteStatus::DRAFT->value
+                    to: !php/enum App\Domain\Enum\QuoteStatus::SENT->value
+                accept:
+                    from: !php/enum App\Domain\Enum\QuoteStatus::SENT->value
+                    to: !php/enum App\Domain\Enum\QuoteStatus::ACCEPTED->value
+                reject:
+                    from: !php/enum App\Domain\Enum\QuoteStatus::SENT->value
+                    to: !php/enum App\Domain\Enum\QuoteStatus::REJECTED->value
+
+        invoice_flow:
+            type: state_machine
+            supports:
+                - App\Domain\Entity\Document\Invoice
+            marking_store:
+                service: App\Application\Service\Workflow\InvoiceMarkingStore
+            initial_marking:
+                - !php/enum App\Domain\Enum\InvoiceStatus::DRAFT->value
+            places:
+                - !php/enum App\Domain\Enum\InvoiceStatus::DRAFT->value
+                - !php/enum App\Domain\Enum\InvoiceStatus::ISSUED->value
+                - !php/enum App\Domain\Enum\InvoiceStatus::OVERDUE->value
+                - !php/enum App\Domain\Enum\InvoiceStatus::PAID->value
+                - !php/enum App\Domain\Enum\InvoiceStatus::VOIDED->value
+            transitions:
+                issue:
+                    from: !php/enum App\Domain\Enum\InvoiceStatus::DRAFT->value
+                    to: !php/enum App\Domain\Enum\InvoiceStatus::ISSUED->value
+                mark_paid:
+                    from:
+                        - !php/enum App\Domain\Enum\InvoiceStatus::ISSUED->value
+                        - !php/enum App\Domain\Enum\InvoiceStatus::OVERDUE->value
+                    to: !php/enum App\Domain\Enum\InvoiceStatus::PAID->value
+                void:
+                    from:
+                        - !php/enum App\Domain\Enum\InvoiceStatus::DRAFT->value
+                        - !php/enum App\Domain\Enum\InvoiceStatus::ISSUED->value
+                    to: !php/enum App\Domain\Enum\InvoiceStatus::VOIDED->value

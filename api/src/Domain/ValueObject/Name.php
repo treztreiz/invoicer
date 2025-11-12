@@ -22,21 +22,4 @@ final class Name
         },
     ) {
     }
-
-    // RICH METHODS ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public function fullName(): string
-    {
-        return sprintf('%s %s', $this->lastName, $this->firstName);
-    }
-
-    public function first(): string
-    {
-        return $this->firstName;
-    }
-
-    public function last(): string
-    {
-        return $this->lastName;
-    }
 }

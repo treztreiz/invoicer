@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Contract;
 
 /**
- * @doc Handles a use-case input/query/action and returns an output or list of outputs.
+ * @doc Handles a use-case input/task and returns an output or list of outputs.
  *
  * @template T1 of object
  * @template T2 of object|null

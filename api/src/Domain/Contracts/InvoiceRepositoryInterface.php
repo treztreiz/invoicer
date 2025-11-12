@@ -14,4 +14,9 @@ interface InvoiceRepositoryInterface
     public function remove(Invoice $invoice): void;
 
     public function findOneById(Uuid $id): ?Invoice;
+
+    /**
+     * @return list<Invoice>
+     */
+    public function list(): array;
 }

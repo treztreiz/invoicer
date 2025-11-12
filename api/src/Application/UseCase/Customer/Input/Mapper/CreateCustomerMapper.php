@@ -6,16 +6,16 @@ namespace App\Application\UseCase\Customer\Input\Mapper;
 
 use App\Application\UseCase\Customer\Input\CustomerAddressInput;
 use App\Application\UseCase\Customer\Input\CustomerInput;
-use App\Domain\Entity\Customer\Customer;
+use App\Domain\DTO\CustomerPayload;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Name;
 
 final class CreateCustomerMapper
 {
-    public function map(CustomerInput $input): Customer
+    public function map(CustomerInput $input): CustomerPayload
     {
-        return new Customer(
+        return new CustomerPayload(
             name: new Name($input->firstName, $input->lastName),
             contact: new Contact($input->email, $input->phone),
             address: $this->mapAddress($input->address),

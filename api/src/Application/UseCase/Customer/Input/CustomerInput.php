@@ -12,7 +12,7 @@ final class CustomerInput
     /**
      * Filled internally for update operations (PUT), not exposed over the wire.
      */
-    public string $id = '';
+    public string $customerId = '';
 
     public function __construct(
         #[Groups(['customer:write'])]

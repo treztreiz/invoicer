@@ -10,7 +10,7 @@ final class CustomerOutput
 {
     public function __construct(
         #[Groups(['customer:read'])]
-        public string $id,
+        public string $customerId,
 
         #[Groups(['customer:read'])]
         public string $firstName,

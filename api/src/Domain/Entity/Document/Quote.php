@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\DTO\QuotePayload;
 use App\Domain\Enum\QuoteStatus;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
@@ -32,6 +33,42 @@ class Quote extends Document
     private(set) ?Uuid $convertedInvoiceId = null;
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function fromPayload(QuotePayload $payload): self
+    {
+        $quote = new self(
+            title: $payload->title,
+            currency: $payload->currency,
+            vatRate: $payload->vatRate,
+            total: $payload->total,
+            customerSnapshot: $payload->customerSnapshot,
+            companySnapshot: $payload->companySnapshot,
+            subtitle: $payload->subtitle,
+        );
+
+        foreach ($payload->lines as $linePayload) {
+            $quote->addLine($linePayload);
+        }
+
+        return $quote;
+    }
+
+    public function applyPayload(QuotePayload $payload): void
+    {
+        if (QuoteStatus::DRAFT !== $this->status) {
+            throw new \LogicException('Only draft quotes can be updated.');
+        }
+
+        $this->title = $payload->title;
+        $this->subtitle = $payload->subtitle;
+        $this->currency = $payload->currency;
+        $this->vatRate = $payload->vatRate;
+        $this->total = $payload->total;
+        $this->customerSnapshot = $payload->customerSnapshot;
+        $this->companySnapshot = $payload->companySnapshot;
+
+        $this->replaceLines($payload->lines);
+    }
 
     public function send(\DateTimeImmutable $sentAt): self
     {
