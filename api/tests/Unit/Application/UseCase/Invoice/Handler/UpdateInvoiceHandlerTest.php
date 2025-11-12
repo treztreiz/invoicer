@@ -13,71 +13,30 @@ use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Task\UpdateInvoiceTask;
-use App\Domain\DTO\DocumentLinePayload;
-use App\Domain\DTO\InvoicePayload;
 use App\Domain\Entity\Document\Invoice;
-use App\Domain\Enum\RateUnit;
-use App\Domain\ValueObject\AmountBreakdown;
-use App\Domain\ValueObject\Money;
-use App\Domain\ValueObject\Quantity;
-use App\Domain\ValueObject\VatRate;
-use App\Tests\Unit\Application\UseCase\Common\InvoiceRepositoryStub;
+use App\Tests\Factory\Customer\CustomerFactory;
+use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\User\UserFactory;
+use App\Tests\Unit\Application\UseCase\Stub\CustomerRepositoryStub;
+use App\Tests\Unit\Application\UseCase\Stub\EntityFetcherStub;
+use App\Tests\Unit\Application\UseCase\Stub\InvoiceRepositoryStub;
+use App\Tests\Unit\Application\UseCase\Stub\UserRepositoryStub;
+use App\Tests\Unit\Application\UseCase\Stub\WorkflowManagerStub;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
- * @testType solitary-unit
+ * @testType sociable-unit
  */
 final class UpdateInvoiceHandlerTest extends TestCase
 {
-    public function test_handle_updates_invoice(): void
-    {
-        $invoice = $this->createInvoice();
+    use Factories;
 
-        $lineFactory = new DocumentLineFactory();
-        $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
-        $invoiceRepository = new InvoiceRepositoryStub($invoice);
-        $handler = new UpdateInvoiceHandler(
-            invoiceRepository: $invoiceRepository,
-            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
-            outputMapper: new InvoiceOutputMapper(),
-            entityFetcher: $this->entityFetcherForInvoice($invoiceRepository),
-            workflowManager: $this->workflowManagerStub()
-        );
+    private UpdateInvoiceTask $task;
 
-        $input = $this->invoiceInput();
-        $command = new UpdateInvoiceTask(Uuid::v7()->toRfc4122(), $input);
-
-        $output = $handler->handle($command);
-
-        static::assertSame('Updated invoice', $output->title);
-        static::assertSame('USD', $output->currency);
-        static::assertSame('Updated subtitle', $output->subtitle);
-        static::assertCount(1, $output->lines);
-    }
-
-    public function test_handle_rejects_non_draft(): void
-    {
-        $invoice = $this->createInvoice();
-        $invoice->issue(new \DateTimeImmutable('2025-01-01T00:00:00Z'), new \DateTimeImmutable('2025-01-10'));
-
-        $lineFactory = new DocumentLineFactory();
-        $linePayloadFactory = new DocumentLinePayloadFactory($lineFactory);
-        $invoiceRepository = new InvoiceRepositoryStub($invoice);
-        $handler = new UpdateInvoiceHandler(
-            invoiceRepository: $invoiceRepository,
-            payloadMapper: new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory),
-            outputMapper: new InvoiceOutputMapper(),
-            entityFetcher: $this->entityFetcherForInvoice($invoiceRepository),
-            workflowManager: $this->workflowManagerStub()
-        );
-
-        $this->expectException(DomainRuleViolationException::class);
-
-        $handler->handle(new UpdateInvoiceTask(Uuid::v7()->toRfc4122(), $this->invoiceInput()));
-    }
-
-    private function invoiceInput(): InvoiceInput
+    protected function setUp(): void
     {
         $input = new InvoiceInput(
             title: 'Updated invoice',
@@ -98,40 +57,72 @@ final class UpdateInvoiceHandlerTest extends TestCase
 
         $input->userId = Uuid::v7()->toRfc4122();
 
-        return $input;
+        $this->task = new UpdateInvoiceTask(
+            invoiceId: Uuid::v7()->toRfc4122(),
+            input: $input
+        );
     }
 
-    private function createInvoice(): Invoice
+    public function test_handle_updates_invoice(): void
     {
-        return Invoice::fromPayload(
-            new InvoicePayload(
-                title: 'Initial invoice',
-                subtitle: 'Initial subtitle',
-                currency: 'EUR',
-                vatRate: new VatRate('20.00'),
-                total: new AmountBreakdown(
-                    net: new Money('100.00'),
-                    tax: new Money('20.00'),
-                    gross: new Money('120.00'),
-                ),
-                lines: [
-                    new DocumentLinePayload(
-                        description: 'Development',
-                        quantity: new Quantity('1.000'),
-                        rateUnit: RateUnit::HOURLY,
-                        rate: new Money('100.00'),
-                        amount: new AmountBreakdown(
-                            net: new Money('100.00'),
-                            tax: new Money('20.00'),
-                            gross: new Money('120.00'),
-                        ),
-                        position: 0,
-                    ),
-                ],
-                customerSnapshot: ['name' => 'Customer'],
-                companySnapshot: ['name' => 'Company'],
-                dueDate: new \DateTimeImmutable('2025-01-10'),
-            )
+        $invoice = InvoiceFactory::build()->draft()->create();
+
+        $output = $this->createHandler($invoice)->handle($this->task);
+
+        static::assertSame('Updated invoice', $output->title);
+        static::assertSame('USD', $output->currency);
+        static::assertSame('Updated subtitle', $output->subtitle);
+        static::assertCount(1, $output->lines);
+    }
+
+    #[DataProvider('nonDraftInvoicesProvider')]
+    public function test_handle_rejects_non_draft(Invoice $invoice): void
+    {
+        $this->expectException(DomainRuleViolationException::class);
+
+        $this->createHandler($invoice)->handle($this->task);
+    }
+
+    public static function nonDraftInvoicesProvider(): iterable
+    {
+        yield 'Issued invoice' => [
+            InvoiceFactory::build()->issued()->create(),
+        ];
+
+        yield 'Overdue invoice' => [
+            InvoiceFactory::build()->overdue()->create(),
+        ];
+
+        yield 'Paid invoice' => [
+            InvoiceFactory::build()->paid()->create(),
+        ];
+
+        yield 'Voided invoice' => [
+            InvoiceFactory::build()->voided()->create(),
+        ];
+    }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private function createHandler(Invoice $invoice): UpdateInvoiceHandler
+    {
+        $invoiceRepository = new InvoiceRepositoryStub($invoice);
+        $userRepository = new UserRepositoryStub(UserFactory::build()->create());
+        $customerRepository = new CustomerRepositoryStub(CustomerFactory::build()->create());
+
+        $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
+        $payloadMapper = new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
+
+        return new UpdateInvoiceHandler(
+            invoiceRepository: $invoiceRepository,
+            payloadMapper: $payloadMapper,
+            outputMapper: new InvoiceOutputMapper(),
+            entityFetcher: EntityFetcherStub::create(
+                userRepository: $userRepository,
+                customerRepository: $customerRepository,
+                invoiceRepository: $invoiceRepository
+            ),
+            workflowManager: WorkflowManagerStub::create()
         );
     }
 }

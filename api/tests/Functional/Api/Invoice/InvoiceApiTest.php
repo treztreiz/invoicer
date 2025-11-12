@@ -56,7 +56,7 @@ final class InvoiceApiTest extends ApiTestCase
     public function test_issue_invoice_transitions_to_issued(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::DRAFT]);
+        $invoice = InvoiceFactory::new()->draft()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
             'json' => ['action' => 'issue'],
@@ -70,7 +70,7 @@ final class InvoiceApiTest extends ApiTestCase
     public function test_mark_paid_transitions_to_paid(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::ISSUED]);
+        $invoice = InvoiceFactory::new()->issued()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
             'json' => ['action' => 'mark_paid'],
@@ -84,7 +84,7 @@ final class InvoiceApiTest extends ApiTestCase
     public function test_update_invoice_mutates_document(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::DRAFT]);
+        $invoice = InvoiceFactory::new()->draft()->create();
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/invoices/%s', $invoice->id->toRfc4122()), [
             'json' => $this->invoicePayload(
@@ -92,7 +92,6 @@ final class InvoiceApiTest extends ApiTestCase
                 [
                     'title' => 'Updated invoice',
                     'currency' => 'USD',
-                    'dueDate' => new \DateTimeImmutable('+2 weeks')->format('Y-m-d'),
                     'lines' => [['description' => 'Consulting']],
                 ]
             ),
@@ -111,7 +110,7 @@ final class InvoiceApiTest extends ApiTestCase
     public function test_update_invoice_rejected_when_not_draft(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne(['status' => InvoiceStatus::ISSUED]);
+        $invoice = InvoiceFactory::new()->issued()->create();
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/invoices/%s', $invoice->id->toRfc4122()), [
             'json' => $this->invoicePayload(CustomerFactory::createOne()->id->toRfc4122()),

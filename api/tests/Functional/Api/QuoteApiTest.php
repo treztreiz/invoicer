@@ -65,7 +65,7 @@ final class QuoteApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $quote = QuoteFactory::createOne(['status' => QuoteStatus::DRAFT]);
+        $quote = QuoteFactory::new()->draft()->create();
         static::assertSame(QuoteStatus::DRAFT, $quote->status);
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/actions', $quote->id->toRfc4122()), [
@@ -86,7 +86,7 @@ final class QuoteApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $quote = QuoteFactory::createOne(['status' => QuoteStatus::SENT]);
+        $quote = QuoteFactory::new()->sent()->create();
         static::assertSame(QuoteStatus::SENT, $quote->status);
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/actions', $quote->id->toRfc4122()), [
@@ -154,7 +154,7 @@ final class QuoteApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $quote = QuoteFactory::createOne(['status' => QuoteStatus::SENT]);
+        $quote = QuoteFactory::new()->sent()->create();
 
         $this->apiRequest($client, 'PUT', sprintf('/api/quotes/%s', $quote->id->toRfc4122()), [
             'json' => $this->createQuotePayload(CustomerFactory::createOne()->id->toRfc4122()),

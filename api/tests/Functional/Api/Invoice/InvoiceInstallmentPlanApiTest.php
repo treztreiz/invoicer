@@ -9,7 +9,6 @@ namespace App\Tests\Functional\Api\Invoice;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Tests\Factory\Document\Invoice\InstallmentFactory;
 use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
-use App\Tests\Factory\Document\Invoice\InvoiceRecurrenceFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 
@@ -40,11 +39,7 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
     public function test_update_installment_plan(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'installmentPlan' => InstallmentPlanFactory::new([
-                'installments' => InstallmentFactory::createMany(3),
-            ]),
-        ]);
+        $invoice = InvoiceFactory::new()->withInstallmentPlan(3)->create();
 
         static::assertCount(3, $invoice->installmentPlan->installments);
 
@@ -71,11 +66,11 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
     public function test_delete_installment_plan(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'installmentPlan' => InstallmentPlanFactory::new(),
-        ]);
+        $invoice = InvoiceFactory::new()->withInstallmentPlan(3)->create();
 
         static::assertNotNull($invoice->installmentPlan);
+        InstallmentPlanFactory::assert()->count(1);
+        InstallmentFactory::assert()->count(3);
 
         $response = $this->apiRequest($client, 'DELETE', sprintf('/api/invoices/%s/installment-plan', $invoice->id->toRfc4122()));
 
@@ -83,14 +78,14 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
         static::assertNull($response->toArray(false)['installmentPlan']);
 
         static::assertNull($invoice->installmentPlan);
+        InstallmentPlanFactory::assert()->empty();
+        InstallmentFactory::assert()->empty();
     }
 
     public function test_attach_installment_plan_rejected_when_recurrence_exists(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'recurrence' => InvoiceRecurrenceFactory::new(),
-        ]);
+        $invoice = InvoiceFactory::new()->withRecurrence()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan', $invoice->id->toRfc4122()), [
             'json' => $this->installmentPayload(),
@@ -103,8 +98,7 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_recurrence(): void
     {
         $client = $this->createAuthenticatedClient();
-        $seed = InvoiceFactory::createOne();
-        $invoice = InvoiceFactory::createOne(['recurrenceSeedId' => $seed->id]);
+        $invoice = InvoiceFactory::new()->generatedFromRecurrence()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan', $invoice->id->toRfc4122()), [
             'json' => $this->installmentPayload(),
@@ -117,8 +111,7 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_installment(): void
     {
         $client = $this->createAuthenticatedClient();
-        $seed = InvoiceFactory::createOne();
-        $invoice = InvoiceFactory::createOne(['installmentSeedId' => $seed->id]);
+        $invoice = InvoiceFactory::new()->generatedFromInstallment()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan', $invoice->id->toRfc4122()), [
             'json' => $this->installmentPayload(),

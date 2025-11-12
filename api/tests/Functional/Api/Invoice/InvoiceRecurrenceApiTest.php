@@ -8,7 +8,6 @@ namespace App\Tests\Functional\Api\Invoice;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Domain\Enum\RecurrenceFrequency;
-use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
 use App\Tests\Factory\Document\Invoice\InvoiceRecurrenceFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
@@ -57,9 +56,7 @@ final class InvoiceRecurrenceApiTest extends ApiTestCase
     public function test_delete_invoice_recurrence(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'recurrence' => InvoiceRecurrenceFactory::new(),
-        ]);
+        $invoice = InvoiceFactory::new()->withRecurrence()->create();
 
         static::assertNotNull($invoice->recurrence);
 
@@ -73,9 +70,7 @@ final class InvoiceRecurrenceApiTest extends ApiTestCase
     public function test_attach_recurrence_rejected_when_installment_plan_exists(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::createOne([
-            'installmentPlan' => InstallmentPlanFactory::new(),
-        ]);
+        $invoice = InvoiceFactory::new()->withInstallmentPlan()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/recurrence', $invoice->id->toRfc4122()), [
             'json' => $this->recurrencePayload(),
@@ -88,8 +83,7 @@ final class InvoiceRecurrenceApiTest extends ApiTestCase
     public function test_attach_recurrence_rejected_when_invoice_generated_from_recurrence(): void
     {
         $client = $this->createAuthenticatedClient();
-        $seed = InvoiceFactory::createOne();
-        $invoice = InvoiceFactory::createOne(['recurrenceSeedId' => $seed->id]);
+        $invoice = InvoiceFactory::new()->generatedFromRecurrence()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/recurrence', $invoice->id->toRfc4122()), [
             'json' => $this->recurrencePayload(),
@@ -102,8 +96,7 @@ final class InvoiceRecurrenceApiTest extends ApiTestCase
     public function test_attach_recurrence_rejected_when_invoice_generated_from_installment(): void
     {
         $client = $this->createAuthenticatedClient();
-        $seed = InvoiceFactory::createOne();
-        $invoice = InvoiceFactory::createOne(['installmentSeedId' => $seed->id]);
+        $invoice = InvoiceFactory::new()->generatedFromInstallment()->create();
 
         $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/recurrence', $invoice->id->toRfc4122()), [
             'json' => $this->recurrencePayload(),

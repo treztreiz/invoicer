@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Factory\Document\Invoice;
 
 use App\Domain\Entity\Document\Invoice\Installment;
+use App\Tests\Factory\Common\BuildableFactoryTrait;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /** @extends PersistentObjectFactory<Installment> */
 class InstallmentFactory extends PersistentObjectFactory
 {
+    use BuildableFactoryTrait;
+
     public static function class(): string
     {
         return Installment::class;

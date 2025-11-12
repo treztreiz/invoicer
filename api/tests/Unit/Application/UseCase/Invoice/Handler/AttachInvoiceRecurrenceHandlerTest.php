@@ -14,9 +14,9 @@ use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Tests\Factory\Document\InvoiceFactory;
-use App\Tests\Unit\Application\UseCase\Common\EntityFetcherStub;
-use App\Tests\Unit\Application\UseCase\Common\InvoiceRepositoryStub;
-use App\Tests\Unit\Application\UseCase\Common\WorkflowManagerStub;
+use App\Tests\Unit\Application\UseCase\Stub\EntityFetcherStub;
+use App\Tests\Unit\Application\UseCase\Stub\InvoiceRepositoryStub;
+use App\Tests\Unit\Application\UseCase\Stub\WorkflowManagerStub;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
@@ -76,6 +76,17 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
         $this->createHandler($invoice)->handle($this->task);
     }
 
+    public static function generatedFromSeedProvider(): iterable
+    {
+        yield 'Generated from recurrence' => [
+            InvoiceFactory::build()->generatedFromRecurrence()->create(),
+        ];
+
+        yield 'Generated from installment' => [
+            InvoiceFactory::build()->generatedFromInstallment()->create(),
+        ];
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private function createHandler(Invoice $invoice): AttachInvoiceRecurrenceHandler
@@ -89,16 +100,5 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             recurrenceMapper: new InvoiceRecurrenceMapper(),
             workflowManager: WorkflowManagerStub::create()
         );
-    }
-
-    public static function generatedFromSeedProvider(): iterable
-    {
-        yield 'Generated from recurrence' => [
-            InvoiceFactory::build()->generatedFromRecurrence()->create(),
-        ];
-
-        yield 'Generated from installment' => [
-            InvoiceFactory::build()->generatedFromInstallment()->create(),
-        ];
     }
 }

@@ -15,9 +15,9 @@ use App\Domain\Entity\Document\Invoice;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use App\Tests\Factory\ValueObject\MoneyFactory;
-use App\Tests\Unit\Application\UseCase\Common\EntityFetcherStub;
-use App\Tests\Unit\Application\UseCase\Common\InvoiceRepositoryStub;
-use App\Tests\Unit\Application\UseCase\Common\WorkflowManagerStub;
+use App\Tests\Unit\Application\UseCase\Stub\EntityFetcherStub;
+use App\Tests\Unit\Application\UseCase\Stub\InvoiceRepositoryStub;
+use App\Tests\Unit\Application\UseCase\Stub\WorkflowManagerStub;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
@@ -69,7 +69,7 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
 
     public function test_handle_rejects_when_recurrence_exists(): void
     {
-        $invoice = InvoiceFactory::build()->withRecurrence()->create();;
+        $invoice = InvoiceFactory::build()->withRecurrence()->create();
 
         $this->expectException(DomainRuleViolationException::class);
 
