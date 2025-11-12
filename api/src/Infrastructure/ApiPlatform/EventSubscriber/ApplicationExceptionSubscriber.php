@@ -6,7 +6,6 @@ namespace App\Infrastructure\ApiPlatform\EventSubscriber;
 
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\Exception\UserNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -33,7 +32,7 @@ final class ApplicationExceptionSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if ($throwable instanceof ResourceNotFoundException || $throwable instanceof UserNotFoundException) {
+        if ($throwable instanceof ResourceNotFoundException) {
             $event->setThrowable(new NotFoundHttpException($throwable->getMessage(), $throwable));
         }
     }

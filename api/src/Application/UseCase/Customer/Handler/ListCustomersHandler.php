@@ -11,7 +11,7 @@ use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
 use App\Application\UseCase\Customer\Task\ListCustomersTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 
-/** @implements UseCaseHandlerInterface<\App\Application\UseCase\Customer\Task\ListCustomersTask,CustomerOutput> */
+/** @implements UseCaseHandlerInterface<ListCustomersTask,CustomerOutput> */
 final readonly class ListCustomersHandler implements UseCaseHandlerInterface
 {
     public function __construct(

@@ -33,4 +33,9 @@ final class CustomerFactory extends PersistentObjectFactory
             'address' => AddressFactory::new(),
         ];
     }
+
+    public function archived(): self
+    {
+        return $this->with(['isArchived' => true]);
+    }
 }
