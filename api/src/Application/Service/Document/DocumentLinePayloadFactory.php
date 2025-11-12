@@ -8,7 +8,6 @@ use App\Application\Service\MoneyMath;
 use App\Application\UseCase\Document\Input\DocumentLineInput;
 use App\Domain\DTO\DocumentLinePayloadCollection;
 use App\Domain\ValueObject\AmountBreakdown;
-use App\Domain\ValueObject\Money;
 
 final readonly class DocumentLinePayloadFactory
 {
@@ -34,11 +33,7 @@ final readonly class DocumentLinePayloadFactory
             $totalTax = MoneyMath::add($totalTax, $linePayload->amount->tax->value);
         }
 
-        $total = new AmountBreakdown(
-            net: new Money($totalNet),
-            tax: new Money($totalTax),
-            gross: new Money(MoneyMath::add($totalNet, $totalTax)),
-        );
+        $total = AmountBreakdown::fromValues($totalNet, $totalTax, MoneyMath::add($totalNet, $totalTax));
 
         return new DocumentLinePayloadCollection($linePayloads, $total);
     }

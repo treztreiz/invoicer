@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
+use App\Domain\DTO\QuotePayload;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\QuoteStatus;
 use App\Domain\ValueObject\AmountBreakdown;
@@ -21,10 +22,8 @@ final class QuoteTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->quote = $this->createQuote();
+        $this->quote = static::createQuote();
     }
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function test_send_moves_to_sent(): void
     {
@@ -89,19 +88,23 @@ final class QuoteTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createQuote(): Quote
+    public static function createQuote(): Quote
     {
-        return new Quote(
-            title: 'Sample quote',
-            currency: 'EUR',
-            vatRate: new VatRate('20'),
-            total: new AmountBreakdown(
-                net: new Money('100'),
-                tax: new Money('20'),
-                gross: new Money('120'),
-            ),
-            customerSnapshot: ['name' => 'Client'],
-            companySnapshot: ['name' => 'My Company']
+        return Quote::fromPayload(
+            new QuotePayload(
+                title: 'Sample quote',
+                subtitle: null,
+                currency: 'EUR',
+                vatRate: new VatRate('20'),
+                total: new AmountBreakdown(
+                    net: new Money('100'),
+                    tax: new Money('20'),
+                    gross: new Money('120'),
+                ),
+                lines: [],
+                customerSnapshot: ['name' => 'Client'],
+                companySnapshot: ['name' => 'My Company']
+            )
         );
     }
 }

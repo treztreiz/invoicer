@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
+use App\Domain\DTO\InvoicePayload;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
-use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
-use App\Domain\Enum\RecurrenceEndStrategy;
-use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -25,10 +23,8 @@ final class InvoiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->invoice = $this->createInvoice();
+        $this->invoice = static::createInvoice();
     }
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function test_issue_sets_status_and_dates(): void
     {
@@ -97,12 +93,12 @@ final class InvoiceTest extends TestCase
         $this->invoice->attachInstallmentPlan(new InstallmentPlan());
 
         static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence($this->createRecurrence());
+        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
     }
 
     public function test_detach_recurrence_resets_reference(): void
     {
-        $this->invoice->attachRecurrence($this->createRecurrence());
+        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
 
         $this->invoice->detachRecurrence();
 
@@ -123,7 +119,7 @@ final class InvoiceTest extends TestCase
         $this->invoice->markGeneratedFromRecurrence(Uuid::v7());
 
         static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence($this->createRecurrence());
+        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
     }
 
     public function test_generated_from_installment_cannot_attach_recurrence(): void
@@ -131,7 +127,7 @@ final class InvoiceTest extends TestCase
         $this->invoice->markGeneratedFromInstallment(Uuid::v7());
 
         static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence($this->createRecurrence());
+        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
     }
 
     public function test_generated_invoice_cannot_attach_installment_plan(): void
@@ -144,29 +140,24 @@ final class InvoiceTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createInvoice(): Invoice
+    public static function createInvoice(): Invoice
     {
-        return new Invoice(
-            title: 'Sample invoice',
-            currency: 'EUR',
-            vatRate: new VatRate('20'),
-            total: new AmountBreakdown(
-                net: new Money('100'),
-                tax: new Money('20'),
-                gross: new Money('120'),
-            ),
-            customerSnapshot: ['name' => 'Client'],
-            companySnapshot: ['name' => 'My Company']
-        );
-    }
-
-    private function createRecurrence(): InvoiceRecurrence
-    {
-        return new InvoiceRecurrence(
-            frequency: RecurrenceFrequency::MONTHLY,
-            interval: 1,
-            anchorDate: new \DateTimeImmutable('2025-01-01'),
-            endStrategy: RecurrenceEndStrategy::NEVER,
+        return Invoice::fromPayload(
+            new InvoicePayload(
+                title: 'Sample invoice',
+                subtitle: null,
+                currency: 'EUR',
+                vatRate: new VatRate('20'),
+                total: new AmountBreakdown(
+                    net: new Money('100'),
+                    tax: new Money('20'),
+                    gross: new Money('120'),
+                ),
+                lines: [],
+                customerSnapshot: ['name' => 'Client'],
+                companySnapshot: ['name' => 'My Company'],
+                dueDate: null
+            )
         );
     }
 }

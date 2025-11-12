@@ -23,7 +23,7 @@ final readonly class InvoicePayload
         public array $lines,
         public array $customerSnapshot,
         public array $companySnapshot,
-        public \DateTimeImmutable $dueDate,
+        public ?\DateTimeImmutable $dueDate,
     ) {
     }
 }

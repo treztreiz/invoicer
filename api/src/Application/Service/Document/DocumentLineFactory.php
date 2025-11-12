@@ -40,11 +40,7 @@ final readonly class DocumentLineFactory
             quantity: $quantity,
             rateUnit: RateUnit::from($line->rateUnit),
             rate: $rate,
-            amount: new AmountBreakdown(
-                net: new Money($net),
-                tax: new Money($tax),
-                gross: new Money($gross),
-            ),
+            amount: AmountBreakdown::fromValues($net, $tax, $gross),
             position: $position,
         );
     }

@@ -25,4 +25,18 @@ final readonly class AmountBreakdown
             throw new \InvalidArgumentException('Gross amount must equal net plus tax.');
         }
     }
+
+    /**
+     * @param numeric-string $net
+     * @param numeric-string $tax
+     * @param numeric-string $gross
+     */
+    public static function fromValues(string $net, string $tax, string $gross): self
+    {
+        return new self(
+            net: new Money($net),
+            tax: new Money($tax),
+            gross: new Money($gross),
+        );
+    }
 }

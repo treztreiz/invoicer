@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
+use App\Domain\Entity\Document\Document;
 use App\Domain\Entity\Document\DocumentLine;
-use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\RateUnit;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
-use App\Domain\ValueObject\VatRate;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,19 +18,11 @@ use PHPUnit\Framework\TestCase;
  */
 final class DocumentLineTest extends TestCase
 {
-    private Quote $quote;
-
-    protected function setUp(): void
-    {
-        $this->quote = $this->createQuote();
-    }
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public function test_construct_stores_values(): void
+    #[DataProvider('documentsProvider')]
+    public function test_construct_stores_values(Document $document): void
     {
         $line = new DocumentLine(
-            document: $this->quote,
+            document: $document,
             description: 'Development work',
             quantity: new Quantity('10'),
             rateUnit: RateUnit::HOURLY,
@@ -43,16 +35,17 @@ final class DocumentLineTest extends TestCase
             position: 1
         );
 
-        static::assertSame($this->quote, $line->document);
+        static::assertSame($document, $line->document);
         static::assertSame(1, $line->position);
     }
 
-    public function test_blank_description_is_rejected(): void
+    #[DataProvider('documentsProvider')]
+    public function test_blank_description_is_rejected(Document $document): void
     {
         static::expectException(\InvalidArgumentException::class);
 
         new DocumentLine(
-            document: $this->quote,
+            document: $document,
             description: '   ',
             quantity: new Quantity('1'),
             rateUnit: RateUnit::HOURLY,
@@ -66,12 +59,13 @@ final class DocumentLineTest extends TestCase
         );
     }
 
-    public function test_negative_position_is_rejected(): void
+    #[DataProvider('documentsProvider')]
+    public function test_negative_position_is_rejected(Document $document): void
     {
         static::expectException(\InvalidArgumentException::class);
 
         new DocumentLine(
-            document: $this->quote,
+            document: $document,
             description: 'Item',
             quantity: new Quantity('1'),
             rateUnit: RateUnit::DAILY,
@@ -87,19 +81,9 @@ final class DocumentLineTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createQuote(): Quote
+    public static function documentsProvider(): iterable
     {
-        return new Quote(
-            title: 'Quote',
-            currency: 'EUR',
-            vatRate: new VatRate('20'),
-            total: new AmountBreakdown(
-                net: new Money('100'),
-                tax: new Money('20'),
-                gross: new Money('120'),
-            ),
-            customerSnapshot: ['name' => 'Customer'],
-            companySnapshot: ['name' => 'Company']
-        );
+        yield 'Quote' => [QuoteTest::createQuote()];
+        yield 'Invoice' => [InvoiceTest::createInvoice()];
     }
 }

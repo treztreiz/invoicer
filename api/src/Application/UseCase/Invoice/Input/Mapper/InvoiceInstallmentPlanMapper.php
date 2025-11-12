@@ -13,7 +13,6 @@ use App\Domain\DTO\InstallmentPayload;
 use App\Domain\DTO\InstallmentPlanPayload;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\ValueObject\AmountBreakdown;
-use App\Domain\ValueObject\Money;
 
 final readonly class InvoiceInstallmentPlanMapper
 {
@@ -64,14 +63,11 @@ final readonly class InvoiceInstallmentPlanMapper
         $installmentPayloads = [];
 
         foreach ($installments as $index => $installmentInput) {
+            $share = $shares[$index];
             $installmentPayloads[] = new InstallmentPayload(
                 position: $index,
-                percentage: $shares[$index]['percentage'],
-                amount: new AmountBreakdown(
-                    net: new Money($shares[$index]['net']),
-                    tax: new Money($shares[$index]['tax']),
-                    gross: new Money($shares[$index]['gross']),
-                ),
+                percentage: $share['percentage'],
+                amount: AmountBreakdown::fromValues($share['net'], $share['tax'], $share['gross']),
                 dueDate: DateGuard::parseOptional($installmentInput->dueDate, sprintf('installments[%d].dueDate', $index)),
             );
         }

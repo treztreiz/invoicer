@@ -22,14 +22,4 @@ final class Contact
         },
     ) {
     }
-
-    public function email(): ?string
-    {
-        return $this->email;
-    }
-
-    public function phone(): ?string
-    {
-        return $this->phone;
-    }
 }
