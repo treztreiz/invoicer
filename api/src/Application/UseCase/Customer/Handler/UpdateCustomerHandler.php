@@ -35,7 +35,7 @@ final readonly class UpdateCustomerHandler implements UseCaseHandlerInterface
         $customer = $this->entityFetcher->customer($customerInput->customerId);
 
         $payload = $this->mapper->map($customerInput);
-        $customer->apply($payload);
+        $customer->applyPayload($payload);
 
         $this->customerRepository->save($customer);
 

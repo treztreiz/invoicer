@@ -69,7 +69,8 @@ final readonly class CreateUserCommand
             locale: 'fr_FR',
         );
 
-        $user->password = $this->passwordHasher->hashPassword(new SecurityUser($user), $password);
+        $password = $this->passwordHasher->hashPassword(new SecurityUser($user), $password);
+        $user->updatePassword($password);
         $this->userRepository->save($user);
 
         $io->success(sprintf('User "%s" created.', $userIdentifier));

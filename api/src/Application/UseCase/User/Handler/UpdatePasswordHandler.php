@@ -34,7 +34,8 @@ final readonly class UpdatePasswordHandler implements UseCaseHandlerInterface
             throw new ValidationException(new ConstraintViolationList([new ConstraintViolation(message: 'Current password is invalid.', messageTemplate: 'Current password is invalid.', parameters: [], root: null, propertyPath: 'currentPassword', invalidValue: null)]));
         }
 
-        $user->password = $this->passwordHasher->hash($user, $passwordInput->newPassword);
+        $password = $this->passwordHasher->hash($user, $passwordInput->newPassword);
+        $user->updatePassword($password);
         $this->userRepository->save($user);
 
         return null;

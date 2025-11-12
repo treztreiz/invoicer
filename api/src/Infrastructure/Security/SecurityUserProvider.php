@@ -62,7 +62,7 @@ final readonly class SecurityUserProvider implements UserProviderInterface, Pass
         }
 
         $domainUser = $user->domainUser;
-        $domainUser->password = $newHashedPassword;
+        $domainUser->updatePassword($newHashedPassword);
         $this->userRepository->save($domainUser);
     }
 }

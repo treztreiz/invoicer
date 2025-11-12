@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Entity\Document;
 
 use App\Domain\DTO\DocumentLinePayload;
+use App\Domain\DTO\DocumentPayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
@@ -16,6 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/** @phpstan-consistent-constructor */
 #[ORM\Entity]
 #[ORM\Table(name: 'document')]
 #[ORM\InheritanceType('JOINED')]
@@ -71,6 +73,38 @@ abstract class Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    protected static function fromDocumentPayload(DocumentPayload $payload): static
+    {
+        $document = new static(
+            title: $payload->title,
+            currency: $payload->currency,
+            vatRate: $payload->vatRate,
+            total: $payload->total,
+            customerSnapshot: $payload->customerSnapshot,
+            companySnapshot: $payload->companySnapshot,
+            subtitle: $payload->subtitle,
+        );
+
+        foreach ($payload->lines as $linePayload) {
+            $document->addLine($linePayload);
+        }
+
+        return $document;
+    }
+
+    protected function applyDocumentPayload(DocumentPayload $payload): void
+    {
+        $this->title = $payload->title;
+        $this->subtitle = $payload->subtitle;
+        $this->currency = $payload->currency;
+        $this->vatRate = $payload->vatRate;
+        $this->total = $payload->total;
+        $this->customerSnapshot = $payload->customerSnapshot;
+        $this->companySnapshot = $payload->companySnapshot;
+
+        $this->replaceLines($payload->lines);
+    }
+
     protected function assignReference(string $reference): void
     {
         $this->reference = DomainGuard::nonEmpty($reference, 'Reference');
@@ -80,16 +114,11 @@ abstract class Document
     {
         $line = DocumentLine::fromPayload($this, $payload);
 
-        $this->registerLine($line);
-
-        return $line;
-    }
-
-    protected function registerLine(DocumentLine $line): void
-    {
         if (!$this->lines->contains($line)) {
             $this->lines->add($line);
         }
+
+        return $line;
     }
 
     protected function removeLine(DocumentLine $line): void

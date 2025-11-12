@@ -9,10 +9,10 @@ use App\Domain\ValueObject\AmountBreakdown;
 final readonly class InstallmentPayload
 {
     public function __construct(
-        public int $position,
-        public string $percentage,
-        public AmountBreakdown $amount,
-        public ?\DateTimeImmutable $dueDate,
+        private(set) int $position,
+        private(set) string $percentage,
+        private(set) AmountBreakdown $amount,
+        private(set) ?\DateTimeImmutable $dueDate,
     ) {
     }
 }

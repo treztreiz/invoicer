@@ -9,7 +9,7 @@ final readonly class InstallmentPlanPayload
     /**
      * @param list<InstallmentPayload> $installments
      */
-    public function __construct(public array $installments)
+    public function __construct(private(set) array $installments)
     {
     }
 }

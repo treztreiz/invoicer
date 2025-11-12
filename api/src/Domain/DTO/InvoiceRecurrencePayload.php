@@ -10,12 +10,12 @@ use App\Domain\Enum\RecurrenceFrequency;
 final readonly class InvoiceRecurrencePayload
 {
     public function __construct(
-        public RecurrenceFrequency $frequency,
-        public int $interval,
-        public \DateTimeImmutable $anchorDate,
-        public RecurrenceEndStrategy $endStrategy,
-        public ?\DateTimeImmutable $endDate,
-        public ?int $occurrenceCount,
+        private(set) RecurrenceFrequency $frequency,
+        private(set) int $interval,
+        private(set) \DateTimeImmutable $anchorDate,
+        private(set) RecurrenceEndStrategy $endStrategy,
+        private(set) ?\DateTimeImmutable $endDate,
+        private(set) ?int $occurrenceCount,
     ) {
     }
 }

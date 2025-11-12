@@ -51,19 +51,15 @@ class DocumentLine
 
     public static function fromPayload(Document $document, DocumentLinePayload $payload): self
     {
-        $ctor = new \ReflectionMethod(self::class, '__construct');
-        $params = \array_slice($ctor->getParameters(), 1); // skip `$document`
-        $arguments = [$document];
-
-        foreach ($params as $parameter) {
-            $name = $parameter->getName();
-
-            $arguments[] = property_exists($payload, $name)
-                ? $payload->$name
-                : throw new \InvalidArgumentException(sprintf('Payload missing `%s`.', $name));
-        }
-
-        return new self(...$arguments);
+        return new self(
+            document: $document,
+            description: $payload->description,
+            quantity: $payload->quantity,
+            rateUnit: $payload->rateUnit,
+            rate: $payload->rate,
+            amount: $payload->amount,
+            position: $payload->position,
+        );
     }
 
     public function reassign(Document $document, int $position): void
