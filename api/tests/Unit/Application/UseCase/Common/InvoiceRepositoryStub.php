@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
+namespace App\Tests\Unit\Application\UseCase\Common;
 
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;

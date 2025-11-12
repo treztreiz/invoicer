@@ -33,6 +33,7 @@ use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
+use App\Tests\Unit\Application\UseCase\Common\QuoteRepositoryStub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Workflow\WorkflowInterface;
