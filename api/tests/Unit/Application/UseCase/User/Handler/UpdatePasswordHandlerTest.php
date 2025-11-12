@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\User\Handler;
 
 use ApiPlatform\Validator\Exception\ValidationException;
+use App\Application\Contract\UserPasswordHasherInterface;
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\Service\UserPasswordHasherInterface;
 use App\Application\UseCase\User\Handler\UpdatePasswordHandler;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Domain\Entity\User\User;
 use App\Tests\Factory\User\UserFactory;
-use App\Tests\Unit\Application\UseCase\Stub\EntityFetcherStub;
-use App\Tests\Unit\Application\UseCase\Stub\UserRepositoryStub;
+use App\Tests\Unit\Application\Stub\EntityFetcherStub;
+use App\Tests\Unit\Application\Stub\UserRepositoryStub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
 use Zenstruck\Foundry\Test\Factories;

@@ -9,6 +9,7 @@ use App\Tests\Factory\Common\BuildableFactoryTrait;
 use App\Tests\Factory\ValueObject\CompanyFactory;
 use App\Tests\Factory\ValueObject\ContactFactory;
 use App\Tests\Factory\ValueObject\NameFactory;
+use Symfony\Component\Uid\Uuid;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
@@ -39,5 +40,10 @@ class UserFactory extends PersistentObjectFactory
             'password' => self::HASHED_PASSWORD,
             'locale' => self::faker()->languageCode(),
         ];
+    }
+
+    public function withId(?Uuid $id = null): self
+    {
+        return $this->with(['id' => $id ?: Uuid::v7()]);
     }
 }

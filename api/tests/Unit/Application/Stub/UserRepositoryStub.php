@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Application\UseCase\Stub;
+namespace App\Tests\Unit\Application\Stub;
 
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\User\User;

@@ -6,9 +6,9 @@ namespace App\Application\UseCase\User\Handler;
 
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Application\Contract\UseCaseHandlerInterface;
+use App\Application\Contract\UserPasswordHasherInterface;
 use App\Application\Guard\TypeGuard;
 use App\Application\Service\EntityFetcher;
-use App\Application\Service\UserPasswordHasherInterface;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Domain\Contracts\UserRepositoryInterface;
 use Symfony\Component\Validator\ConstraintViolation;
