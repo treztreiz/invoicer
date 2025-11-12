@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Quote\Handler;
 
 use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
@@ -13,6 +14,8 @@ use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
 use App\Application\UseCase\Quote\Input\QuoteInput;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Task\UpdateQuoteTask;
+use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\QuoteFactory;
@@ -82,28 +85,40 @@ final class UpdateQuoteHandlerTest extends TestCase
         $this->createHandler($quote)->handle($this->task);
     }
 
-    public static function nonDraftQuotesProvider(): iterable
+    public function test_handle_throws_when_customer_not_found(): void
     {
-        yield 'Sent quote' => [
-            QuoteFactory::build()->sent()->create(),
-        ];
+        $quote = QuoteFactory::build()->draft()->create();
 
-        yield 'Accepted quote' => [
-            QuoteFactory::build()->accepted()->create(),
-        ];
+        $customerRepository = static::createStub(CustomerRepositoryInterface::class);
+        $customerRepository->method('findOneById')->willReturn(null);
 
-        yield 'Rejected quote' => [
-            QuoteFactory::build()->rejected()->create(),
-        ];
+        $this->expectException(ResourceNotFoundException::class);
+
+        $this->createHandler($quote, customerRepository: $customerRepository)->handle($this->task);
+    }
+
+    public function test_handle_throws_when_user_not_found(): void
+    {
+        $quote = QuoteFactory::build()->draft()->create();
+
+        $userRepository = static::createStub(UserRepositoryInterface::class);
+        $userRepository->method('findOneById')->willReturn(null);
+
+        $this->expectException(ResourceNotFoundException::class);
+
+        $this->createHandler($quote, userRepository: $userRepository)->handle($this->task);
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(Quote $quote): UpdateQuoteHandler
-    {
+    private function createHandler(
+        Quote $quote,
+        ?UserRepositoryInterface $userRepository = null,
+        ?CustomerRepositoryInterface $customerRepository = null,
+    ): UpdateQuoteHandler {
         $quoteRepository = new QuoteRepositoryStub($quote);
-        $userRepository = new UserRepositoryStub(UserFactory::build()->create());
-        $customerRepository = new CustomerRepositoryStub(CustomerFactory::build()->create());
+        $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
+        $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
 
         $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
         $payloadMapper = new QuotePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
@@ -119,5 +134,20 @@ final class UpdateQuoteHandlerTest extends TestCase
             ),
             workflowManager: WorkflowManagerStub::create()
         );
+    }
+
+    public static function nonDraftQuotesProvider(): iterable
+    {
+        yield 'Sent quote' => [
+            QuoteFactory::build()->sent()->create(),
+        ];
+
+        yield 'Accepted quote' => [
+            QuoteFactory::build()->accepted()->create(),
+        ];
+
+        yield 'Rejected quote' => [
+            QuoteFactory::build()->rejected()->create(),
+        ];
     }
 }

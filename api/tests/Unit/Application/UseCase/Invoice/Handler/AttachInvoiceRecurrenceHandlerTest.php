@@ -76,17 +76,6 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
         $this->createHandler($invoice)->handle($this->task);
     }
 
-    public static function generatedFromSeedProvider(): iterable
-    {
-        yield 'Generated from recurrence' => [
-            InvoiceFactory::build()->generatedFromRecurrence()->create(),
-        ];
-
-        yield 'Generated from installment' => [
-            InvoiceFactory::build()->generatedFromInstallment()->create(),
-        ];
-    }
-
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private function createHandler(Invoice $invoice): AttachInvoiceRecurrenceHandler
@@ -100,5 +89,16 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
             recurrenceMapper: new InvoiceRecurrenceMapper(),
             workflowManager: WorkflowManagerStub::create()
         );
+    }
+
+    public static function generatedFromSeedProvider(): iterable
+    {
+        yield 'Generated from recurrence' => [
+            InvoiceFactory::build()->generatedFromRecurrence()->create(),
+        ];
+
+        yield 'Generated from installment' => [
+            InvoiceFactory::build()->generatedFromInstallment()->create(),
+        ];
     }
 }

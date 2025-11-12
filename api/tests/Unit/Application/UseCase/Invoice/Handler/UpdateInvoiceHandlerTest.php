@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
 use App\Application\Exception\DomainRuleViolationException;
+use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
@@ -13,6 +14,8 @@ use App\Application\UseCase\Invoice\Input\InvoiceInput;
 use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
 use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\UseCase\Invoice\Task\UpdateInvoiceTask;
+use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
@@ -83,6 +86,57 @@ final class UpdateInvoiceHandlerTest extends TestCase
         $this->createHandler($invoice)->handle($this->task);
     }
 
+    public function test_handle_throws_when_customer_not_found(): void
+    {
+        $invoice = InvoiceFactory::build()->draft()->create();
+
+        $customerRepository = static::createStub(CustomerRepositoryInterface::class);
+        $customerRepository->method('findOneById')->willReturn(null);
+
+        $this->expectException(ResourceNotFoundException::class);
+
+        $this->createHandler($invoice, customerRepository: $customerRepository)->handle($this->task);
+    }
+
+    public function test_handle_throws_when_user_not_found(): void
+    {
+        $invoice = InvoiceFactory::build()->draft()->create();
+
+        $userRepository = static::createStub(UserRepositoryInterface::class);
+        $userRepository->method('findOneById')->willReturn(null);
+
+        $this->expectException(ResourceNotFoundException::class);
+
+        $this->createHandler($invoice, userRepository: $userRepository)->handle($this->task);
+    }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private function createHandler(
+        Invoice $invoice,
+        ?UserRepositoryInterface $userRepository = null,
+        ?CustomerRepositoryInterface $customerRepository = null,
+    ): UpdateInvoiceHandler {
+        $invoiceRepository = new InvoiceRepositoryStub($invoice);
+        $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
+        $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
+
+        $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
+        $payloadMapper = new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
+
+        return new UpdateInvoiceHandler(
+            invoiceRepository: $invoiceRepository,
+            payloadMapper: $payloadMapper,
+            outputMapper: new InvoiceOutputMapper(),
+            entityFetcher: EntityFetcherStub::create(
+                userRepository: $userRepository,
+                customerRepository: $customerRepository,
+                invoiceRepository: $invoiceRepository
+            ),
+            workflowManager: WorkflowManagerStub::create()
+        );
+    }
+
     public static function nonDraftInvoicesProvider(): iterable
     {
         yield 'Issued invoice' => [
@@ -100,29 +154,5 @@ final class UpdateInvoiceHandlerTest extends TestCase
         yield 'Voided invoice' => [
             InvoiceFactory::build()->voided()->create(),
         ];
-    }
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private function createHandler(Invoice $invoice): UpdateInvoiceHandler
-    {
-        $invoiceRepository = new InvoiceRepositoryStub($invoice);
-        $userRepository = new UserRepositoryStub(UserFactory::build()->create());
-        $customerRepository = new CustomerRepositoryStub(CustomerFactory::build()->create());
-
-        $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
-        $payloadMapper = new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
-
-        return new UpdateInvoiceHandler(
-            invoiceRepository: $invoiceRepository,
-            payloadMapper: $payloadMapper,
-            outputMapper: new InvoiceOutputMapper(),
-            entityFetcher: EntityFetcherStub::create(
-                userRepository: $userRepository,
-                customerRepository: $customerRepository,
-                invoiceRepository: $invoiceRepository
-            ),
-            workflowManager: WorkflowManagerStub::create()
-        );
     }
 }

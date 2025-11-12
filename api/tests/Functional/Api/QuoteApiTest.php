@@ -102,12 +102,6 @@ final class QuoteApiTest extends ApiTestCase
         static::assertSame($status, $quote->status);
     }
 
-    public static function quoteTransitionProvider(): iterable
-    {
-        yield 'accept' => ['accept', QuoteStatus::ACCEPTED];
-        yield 'reject' => ['reject', QuoteStatus::REJECTED];
-    }
-
     public function test_update_quote_mutates_document(): void
     {
         $client = $this->createAuthenticatedClient();
@@ -195,5 +189,11 @@ final class QuoteApiTest extends ApiTestCase
         }
 
         return array_replace($payload, $override);
+    }
+
+    public static function quoteTransitionProvider(): iterable
+    {
+        yield 'accept' => ['accept', QuoteStatus::ACCEPTED];
+        yield 'reject' => ['reject', QuoteStatus::REJECTED];
     }
 }
