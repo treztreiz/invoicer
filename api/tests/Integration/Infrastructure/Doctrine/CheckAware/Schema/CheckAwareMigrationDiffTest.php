@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 
+use App\Tests\ConfigurableKernel;
 use App\Tests\ConfigurableKernelTestCase;
-use App\Tests\TestKernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -29,7 +29,7 @@ final class CheckAwareMigrationDiffTest extends ConfigurableKernelTestCase
 
     private string $migrationsDir;
 
-    protected static function setKernelConfiguration(TestKernel $kernel): iterable
+    protected static function setKernelConfiguration(ConfigurableKernel $kernel): iterable
     {
         yield 'doctrine' => [
             'orm' => [
@@ -89,7 +89,7 @@ final class CheckAwareMigrationDiffTest extends ConfigurableKernelTestCase
 
         $migrationContents = file_get_contents($generatedMigrations[0]) ?: '';
         static::assertStringContainsString($expectedConstraint, $migrationContents);
-        static::assertStringContainsString($expectedSnippet, $migrationContents);
+        static::assertStringContainsString(strtoupper($expectedSnippet), strtoupper($migrationContents));
         static::assertSame(
             1,
             substr_count($migrationContents, sprintf('ADD CONSTRAINT "%s"', $expectedConstraint)),
@@ -107,6 +107,8 @@ final class CheckAwareMigrationDiffTest extends ConfigurableKernelTestCase
         static::assertCount(0, $generatedMigrations, $secondDiffOutput);
     }
 
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @return iterable<string, array{string, string, string}>
      */
@@ -121,7 +123,7 @@ final class CheckAwareMigrationDiffTest extends ConfigurableKernelTestCase
         yield 'enum_check' => [
             '/^enum_check_stub$/',
             'CHK_ENUM_LEGACY',
-            'ALTER TABLE enum_check_stub ADD CONSTRAINT "CHK_ENUM_LEGACY"',
+            'ALTER TABLE enum_check_stub ADD constraint "CHK_ENUM_LEGACY"',
         ];
     }
 

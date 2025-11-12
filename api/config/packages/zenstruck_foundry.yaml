@@ -6,7 +6,7 @@ when@dev: &dev
             default_namespace: 'App\Tests\Factory'
             add_hints: false
         make_story:
-            default_namespace: 'App\Tests\Story'
+            default_namespace: 'App\Tests\Factory\Story'
         persistence:
             # Flush only once per call of `PersistentObjectFactory::create()`
             flush_once: true

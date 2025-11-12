@@ -7,8 +7,8 @@ namespace App\Tests\Integration\Infrastructure\Doctrine\CheckAware\Schema;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use App\Infrastructure\Doctrine\CheckAware\Schema\Service\CheckRegistry;
 use App\Infrastructure\Doctrine\CheckAware\Spec\SoftXorCheckSpec;
+use App\Tests\ConfigurableKernel;
 use App\Tests\ConfigurableKernelTestCase;
-use App\Tests\TestKernel;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,7 +25,7 @@ final class SoftXorCheckRoundTripTest extends ConfigurableKernelTestCase
 
     private EntityManagerInterface $entityManager;
 
-    protected static function setKernelConfiguration(TestKernel $kernel): iterable
+    protected static function setKernelConfiguration(ConfigurableKernel $kernel): iterable
     {
         yield 'doctrine' => [
             'orm' => [

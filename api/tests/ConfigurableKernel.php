@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 
-class TestKernel extends BaseKernel
+class ConfigurableKernel extends BaseKernel
 {
     use MicroKernelTrait {
         MicroKernelTrait::configureContainer as private traitConfigureContainer;

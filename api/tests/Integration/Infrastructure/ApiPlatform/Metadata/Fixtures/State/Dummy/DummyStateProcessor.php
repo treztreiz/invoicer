@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Fixtures\ApiPlatform\State\Dummy;
+namespace App\Tests\Integration\Infrastructure\ApiPlatform\Metadata\Fixtures\State\Dummy;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Tests\Fixtures\ApiPlatform\UseCase\Dummy\Command\DummyCommand;
-use App\Tests\Fixtures\ApiPlatform\UseCase\Dummy\Result\DummyResult;
+use App\Tests\Integration\Infrastructure\ApiPlatform\Metadata\Fixtures\UseCase\Dummy\Command\DummyCommand;
+use App\Tests\Integration\Infrastructure\ApiPlatform\Metadata\Fixtures\UseCase\Dummy\Result\DummyResult;
 
 /** @implements ProcessorInterface<DummyCommand, DummyResult> */
 final class DummyStateProcessor implements ProcessorInterface
