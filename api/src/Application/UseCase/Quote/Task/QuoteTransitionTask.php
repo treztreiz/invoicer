@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Quote\Task;
 
-final readonly class QuoteActionTask
+final readonly class QuoteTransitionTask
 {
     public function __construct(
         public string $quoteId,
-        public string $action,
+        public string $transition,
     ) {
     }
 }

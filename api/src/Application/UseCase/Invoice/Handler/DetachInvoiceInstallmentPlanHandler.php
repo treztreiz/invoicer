@@ -34,6 +34,6 @@ final readonly class DetachInvoiceInstallmentPlanHandler implements UseCaseHandl
         $invoice->detachInstallmentPlan();
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
+        return $this->outputMapper->map($invoice, $this->workflowManager->getInvoiceTransitions($invoice));
     }
 }

@@ -42,7 +42,7 @@ final readonly class CreateQuoteHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $quote,
-            $this->workflowManager->quoteActions($quote)
+            $this->workflowManager->getQuoteTransitions($quote)
         );
     }
 }

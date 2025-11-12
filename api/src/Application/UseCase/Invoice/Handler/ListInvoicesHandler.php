@@ -34,7 +34,7 @@ final readonly class ListInvoicesHandler implements UseCaseHandlerInterface
         return array_map(
             fn ($invoice) => $this->outputMapper->map(
                 $invoice,
-                $this->workflowManager->invoiceActions($invoice)
+                $this->workflowManager->getInvoiceTransitions($invoice)
             ),
             $invoices
         );

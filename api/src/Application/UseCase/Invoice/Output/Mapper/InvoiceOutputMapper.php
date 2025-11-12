@@ -19,9 +19,9 @@ use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 final class InvoiceOutputMapper
 {
     /**
-     * @param list<string> $availableActions
+     * @param list<string> $availableTransitions
      */
-    public function map(Invoice $invoice, array $availableActions = []): InvoiceOutput
+    public function map(Invoice $invoice, array $availableTransitions = []): InvoiceOutput
     {
         return new InvoiceOutput(
             invoiceId: $invoice->id?->toRfc4122() ?? '',
@@ -39,7 +39,7 @@ final class InvoiceOutputMapper
             paidAt: $invoice->paidAt?->format(\DateTimeInterface::ATOM),
             recurrence: $this->mapRecurrence($invoice->recurrence),
             installmentPlan: $this->mapInstallmentPlan($invoice->installmentPlan),
-            availableActions: $availableActions,
+            availableTransitions: $availableTransitions,
         );
     }
 

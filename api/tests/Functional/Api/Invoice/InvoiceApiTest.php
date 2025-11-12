@@ -58,8 +58,8 @@ final class InvoiceApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
         $invoice = InvoiceFactory::new()->draft()->create();
 
-        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
-            'json' => ['action' => 'issue'],
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/transition', $invoice->id->toRfc4122()), [
+            'json' => ['transition' => 'issue'],
         ]);
 
         self::assertResponseIsSuccessful();
@@ -72,8 +72,8 @@ final class InvoiceApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
         $invoice = InvoiceFactory::new()->issued()->create();
 
-        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/actions', $invoice->id->toRfc4122()), [
-            'json' => ['action' => 'mark_paid'],
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/transition', $invoice->id->toRfc4122()), [
+            'json' => ['transition' => 'mark_paid'],
         ]);
 
         self::assertResponseIsSuccessful();

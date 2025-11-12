@@ -13,9 +13,9 @@ use App\Domain\Entity\Document\Quote;
 final class QuoteOutputMapper
 {
     /**
-     * @param list<string> $availableActions
+     * @param list<string> $availableTransitions
      */
-    public function map(Quote $quote, array $availableActions = []): QuoteOutput
+    public function map(Quote $quote, array $availableTransitions = []): QuoteOutput
     {
         return new QuoteOutput(
             quoteId: $quote->id?->toRfc4122() ?? '',
@@ -29,7 +29,7 @@ final class QuoteOutputMapper
             customerSnapshot: $quote->customerSnapshot,
             companySnapshot: $quote->companySnapshot,
             createdAt: $quote->createdAt,
-            availableActions: $availableActions,
+            availableTransitions: $availableTransitions,
         );
     }
 

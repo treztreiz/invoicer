@@ -34,13 +34,13 @@ final class DocumentWorkflowManager
     }
 
     /** @return list<string> */
-    public function invoiceActions(Invoice $invoice): array
+    public function getInvoiceTransitions(Invoice $invoice): array
     {
         return $this->transitionNames($this->invoiceWorkflow->getEnabledTransitions($invoice));
     }
 
     /** @return list<string> */
-    public function quoteActions(Quote $quote): array
+    public function getQuoteTransitions(Quote $quote): array
     {
         return $this->transitionNames($this->quoteWorkflow->getEnabledTransitions($quote));
     }

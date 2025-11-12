@@ -13,22 +13,22 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation as OpenApiOperation;
 use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use App\Application\UseCase\Customer\Output\CustomerOutput;
-use App\Application\UseCase\Invoice\Input\InvoiceActionInput;
 use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
 use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
+use App\Application\UseCase\Invoice\Input\InvoiceTransitionInput;
 use App\Application\UseCase\Invoice\Output\InvoiceOutput;
-use App\Application\UseCase\Quote\Input\QuoteActionInput;
+use App\Application\UseCase\Quote\Input\QuoteTransitionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceActionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanDeleteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceDeleteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceRecurrenceStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceTransitionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceUpdateStateProcessor;
-use App\Infrastructure\ApiPlatform\State\Quote\QuoteActionStateProcessor;
+use App\Infrastructure\ApiPlatform\State\Quote\QuoteTransitionStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\QuoteUpdateStateProcessor;
 use App\Infrastructure\ApiPlatform\State\User\PasswordStateProcessor;
 use Symfony\Component\HttpFoundation\Response;
@@ -115,13 +115,13 @@ final class ResourceRegistry
                             processor: QuoteUpdateStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{quoteId}/actions',
+                            uriTemplate: '/{quoteId}/transition',
                             status: Response::HTTP_OK,
-                            denormalizationContext: ['groups' => ['quote:action']],
-                            input: ['class' => QuoteActionInput::class],
+                            denormalizationContext: ['groups' => ['quote:transition']],
+                            input: ['class' => QuoteTransitionInput::class],
                             read: false,
-                            name: 'api_quotes_action',
-                            processor: QuoteActionStateProcessor::class,
+                            name: 'api_quotes_transition',
+                            processor: QuoteTransitionStateProcessor::class,
                         ),
                     ],
                     routePrefix: '/quotes',
@@ -141,13 +141,13 @@ final class ResourceRegistry
                             processor: InvoiceUpdateStateProcessor::class,
                         ),
                         new Post(
-                            uriTemplate: '/{invoiceId}/actions',
+                            uriTemplate: '/{invoiceId}/transition',
                             status: Response::HTTP_OK,
-                            denormalizationContext: ['groups' => ['invoice:action']],
-                            input: ['class' => InvoiceActionInput::class],
+                            denormalizationContext: ['groups' => ['invoice:transition']],
+                            input: ['class' => InvoiceTransitionInput::class],
                             read: false,
-                            name: 'api_invoices_action',
-                            processor: InvoiceActionStateProcessor::class,
+                            name: 'api_invoices_transition',
+                            processor: InvoiceTransitionStateProcessor::class,
                         ),
                         new Post(
                             uriTemplate: '/{invoiceId}/recurrence',

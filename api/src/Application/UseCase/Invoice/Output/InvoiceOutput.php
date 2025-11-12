@@ -13,7 +13,7 @@ final readonly class InvoiceOutput
      * @param list<DocumentLineOutput> $lines
      * @param array<string, mixed>     $customerSnapshot
      * @param array<string, mixed>     $companySnapshot
-     * @param list<string>             $availableActions
+     * @param list<string>             $availableTransitions
      */
     public function __construct(
         #[Groups(['invoice:read'])]
@@ -62,7 +62,7 @@ final readonly class InvoiceOutput
         public ?InvoiceInstallmentPlanOutput $installmentPlan = null,
 
         #[Groups(['invoice:read'])]
-        public array $availableActions = [],
+        public array $availableTransitions = [],
     ) {
     }
 }

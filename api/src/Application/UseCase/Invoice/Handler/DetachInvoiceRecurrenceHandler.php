@@ -34,6 +34,6 @@ final readonly class DetachInvoiceRecurrenceHandler implements UseCaseHandlerInt
         $invoice->detachRecurrence();
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
+        return $this->outputMapper->map($invoice, $this->workflowManager->getInvoiceTransitions($invoice));
     }
 }

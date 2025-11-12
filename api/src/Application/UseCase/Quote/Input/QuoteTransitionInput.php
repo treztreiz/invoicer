@@ -7,13 +7,13 @@ namespace App\Application\UseCase\Quote\Input;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class QuoteActionInput
+final class QuoteTransitionInput
 {
     public function __construct(
-        #[Groups(['quote:action'])]
+        #[Groups(['quote:transition'])]
         #[Assert\NotBlank]
         #[Assert\Choice(['send', 'accept', 'reject'])]
-        public string $action,
+        public string $transition,
     ) {
     }
 }

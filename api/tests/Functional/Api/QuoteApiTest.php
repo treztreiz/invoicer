@@ -34,7 +34,7 @@ final class QuoteApiTest extends ApiTestCase
         static::assertSame('Website revamp', $data['title']);
         static::assertSame('2400.00', $data['total']['gross']);
         static::assertSame(QuoteStatus::DRAFT->value, $data['status']);
-        static::assertSame(['send'], $data['availableActions']);
+        static::assertSame(['send'], $data['availableTransitions']);
 
         QuoteFactory::assert()->exists([
             'id' => Uuid::fromString($data['quoteId']),
@@ -56,7 +56,7 @@ final class QuoteApiTest extends ApiTestCase
 
         static::assertNotEmpty($data);
         static::assertCount(10, $data['member']);
-        static::assertNotEmpty($data['member'][0]['availableActions'] ?? []);
+        static::assertNotEmpty($data['member'][0]['availableTransitions'] ?? []);
 
         QuoteFactory::assert()->count(10);
     }
@@ -68,15 +68,15 @@ final class QuoteApiTest extends ApiTestCase
         $quote = QuoteFactory::new()->draft()->create();
         static::assertSame(QuoteStatus::DRAFT, $quote->status);
 
-        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/actions', $quote->id->toRfc4122()), [
-            'json' => ['action' => 'send'],
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/transition', $quote->id->toRfc4122()), [
+            'json' => ['transition' => 'send'],
         ]);
 
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
         static::assertSame(QuoteStatus::SENT->value, $data['status']);
-        static::assertSame(['accept', 'reject'], $data['availableActions']);
+        static::assertSame(['accept', 'reject'], $data['availableTransitions']);
 
         static::assertSame(QuoteStatus::SENT, $quote->status);
     }
@@ -89,15 +89,15 @@ final class QuoteApiTest extends ApiTestCase
         $quote = QuoteFactory::new()->sent()->create();
         static::assertSame(QuoteStatus::SENT, $quote->status);
 
-        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/actions', $quote->id->toRfc4122()), [
-            'json' => ['action' => $transition],
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/transition', $quote->id->toRfc4122()), [
+            'json' => ['transition' => $transition],
         ]);
 
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
         static::assertSame($status->value, $data['status']);
-        static::assertSame([], $data['availableActions']);
+        static::assertSame([], $data['availableTransitions']);
 
         static::assertSame($status, $quote->status);
     }

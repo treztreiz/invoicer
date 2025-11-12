@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\UseCase\Invoice\Task;
 
-final readonly class InvoiceActionTask
+final readonly class InvoiceTransitionTask
 {
     public function __construct(
         public string $invoiceId,
-        public string $action,
+        public string $transition,
     ) {
     }
 }

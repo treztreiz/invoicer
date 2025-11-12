@@ -13,7 +13,7 @@ final readonly class QuoteOutput
      * @param list<DocumentLineOutput> $lines
      * @param array<string, mixed>     $customerSnapshot
      * @param array<string, mixed>     $companySnapshot
-     * @param list<string>             $availableActions
+     * @param list<string>             $availableTransitions
      */
     public function __construct(
         #[Groups(['quote:read'])]
@@ -50,7 +50,7 @@ final readonly class QuoteOutput
         public \DateTimeImmutable $createdAt,
 
         #[Groups(['quote:read'])]
-        public array $availableActions = [],
+        public array $availableTransitions = [],
     ) {
     }
 }

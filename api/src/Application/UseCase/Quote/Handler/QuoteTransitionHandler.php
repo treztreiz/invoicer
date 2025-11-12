@@ -11,12 +11,12 @@ use App\Application\Service\EntityFetcher;
 use App\Application\Service\Workflow\DocumentWorkflowManager;
 use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
-use App\Application\UseCase\Quote\Task\QuoteActionTask;
+use App\Application\UseCase\Quote\Task\QuoteTransitionTask;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 
-/** @implements UseCaseHandlerInterface<QuoteActionTask, QuoteOutput> */
-final readonly class QuoteActionHandler implements UseCaseHandlerInterface
+/** @implements UseCaseHandlerInterface<QuoteTransitionTask, QuoteOutput> */
+final readonly class QuoteTransitionHandler implements UseCaseHandlerInterface
 {
     private const string ACTION_SEND = 'send';
     private const string ACTION_ACCEPT = 'accept';
@@ -32,11 +32,11 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 
     public function handle(object $data): QuoteOutput
     {
-        $task = TypeGuard::assertClass(QuoteActionTask::class, $data);
+        $task = TypeGuard::assertClass(QuoteTransitionTask::class, $data);
 
         $quote = $this->entityFetcher->quote($task->quoteId);
 
-        $transition = $task->action;
+        $transition = $task->transition;
 
         if (!$this->workflowManager->canQuoteTransition($quote, $transition)) {
             throw new DomainRuleViolationException(sprintf('Quote cannot transition via "%s".', $transition));
@@ -47,7 +47,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $quote,
-            $this->workflowManager->quoteActions($quote)
+            $this->workflowManager->getQuoteTransitions($quote)
         );
     }
 
@@ -59,7 +59,7 @@ final readonly class QuoteActionHandler implements UseCaseHandlerInterface
             self::ACTION_SEND => $quote->send($now),
             self::ACTION_ACCEPT => $quote->markAccepted($now),
             self::ACTION_REJECT => $quote->markRejected($now),
-            default => throw new DomainRuleViolationException(sprintf('Unknown action "%s".', $transition)),
+            default => throw new DomainRuleViolationException(sprintf('Unknown transition "%s".', $transition)),
         };
     }
 }

@@ -28,6 +28,6 @@ final readonly class GetInvoiceHandler implements UseCaseHandlerInterface
 
         $invoice = $this->entityFetcher->invoice($task->invoiceId);
 
-        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
+        return $this->outputMapper->map($invoice, $this->workflowManager->getInvoiceTransitions($invoice));
     }
 }

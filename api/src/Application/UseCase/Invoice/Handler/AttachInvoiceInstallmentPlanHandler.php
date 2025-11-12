@@ -46,6 +46,6 @@ final readonly class AttachInvoiceInstallmentPlanHandler implements UseCaseHandl
 
         $this->invoiceRepository->save($invoice);
 
-        return $this->outputMapper->map($invoice, $this->workflowManager->invoiceActions($invoice));
+        return $this->outputMapper->map($invoice, $this->workflowManager->getInvoiceTransitions($invoice));
     }
 }

@@ -44,7 +44,7 @@ final readonly class UpdateInvoiceHandler implements UseCaseHandlerInterface
 
         return $this->outputMapper->map(
             $invoice,
-            $this->workflowManager->invoiceActions($invoice)
+            $this->workflowManager->getInvoiceTransitions($invoice)
         );
     }
 }
