@@ -27,9 +27,9 @@ final readonly class QuoteStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): QuoteOutput
     {
         $input = TypeGuard::assertClass(QuoteInput::class, $data);
-        $user = SecurityGuard::assertAuth($this->security->getUser());
+        $securityUser = SecurityGuard::assertAuth($this->security->getUser());
 
-        $input->userId = $user->domainUser->id->toRfc4122();
+        $input->userId = $securityUser->user->id->toRfc4122();
 
         return $this->createQuoteHandler->handle($input);
     }

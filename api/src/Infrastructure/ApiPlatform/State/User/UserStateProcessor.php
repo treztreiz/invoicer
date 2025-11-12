@@ -27,9 +27,9 @@ final readonly class UserStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): UserOutput
     {
         $userInput = TypeGuard::assertClass(UserInput::class, $data);
-        $user = SecurityGuard::assertAuth($this->security->getUser());
+        $securityUser = SecurityGuard::assertAuth($this->security->getUser());
 
-        $userInput->userId = $user->domainUser->id->toRfc4122();
+        $userInput->userId = $securityUser->user->id->toRfc4122();
 
         return $this->handler->handle($userInput);
     }
