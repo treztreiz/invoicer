@@ -8,28 +8,28 @@ use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class QuoteRepositoryStub implements QuoteRepositoryInterface
+final class QuoteRepositoryStub implements QuoteRepositoryInterface
 {
-    public function __construct(private Quote $quote)
+    public function __construct(private ?Quote $quote = null)
     {
     }
 
     public function save(Quote $quote): void
     {
-        // no-op
+        $this->quote = $quote;
     }
 
     public function remove(Quote $quote): void
     {
     }
 
-    public function findOneById(Uuid $id): Quote
+    public function findOneById(Uuid $id): ?Quote
     {
         return $this->quote;
     }
 
     public function list(): array
     {
-        return [$this->quote];
+        return $this->quote ? [$this->quote] : [];
     }
 }

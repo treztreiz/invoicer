@@ -8,28 +8,28 @@ use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\Uid\Uuid;
 
-final readonly class InvoiceRepositoryStub implements InvoiceRepositoryInterface
+final class InvoiceRepositoryStub implements InvoiceRepositoryInterface
 {
-    public function __construct(private Invoice $invoice)
+    public function __construct(private ?Invoice $invoice = null)
     {
     }
 
     public function save(Invoice $invoice): void
     {
-        // no-op for unit tests
+        $this->invoice = $invoice;
     }
 
     public function remove(Invoice $invoice): void
     {
     }
 
-    public function findOneById(Uuid $id): Invoice
+    public function findOneById(Uuid $id): ?Invoice
     {
         return $this->invoice;
     }
 
     public function list(): array
     {
-        return [$this->invoice];
+        return $this->invoice ? [$this->invoice] : [];
     }
 }
