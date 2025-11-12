@@ -23,9 +23,9 @@ final readonly class UserStateProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): UserOutput
     {
-        $user = SecurityGuard::assertAuth($this->security->getUser());
+        $securityUser = SecurityGuard::assertAuth($this->security->getUser());
 
-        $task = new GetUserTask($user->domainUser->id->toRfc4122());
+        $task = new GetUserTask($securityUser->user->id->toRfc4122());
 
         $output = $this->handler->handle($task);
 

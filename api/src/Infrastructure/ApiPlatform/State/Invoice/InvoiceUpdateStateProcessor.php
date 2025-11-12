@@ -28,14 +28,14 @@ final readonly class InvoiceUpdateStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): InvoiceOutput
     {
         $input = TypeGuard::assertClass(InvoiceInput::class, $data);
-        $user = SecurityGuard::assertAuth($this->security->getUser());
+        $securityUser = SecurityGuard::assertAuth($this->security->getUser());
         $invoiceId = (string) ($uriVariables['invoiceId'] ?? '');
 
         if ('' === $invoiceId) {
             throw new \InvalidArgumentException('Invoice id is required.');
         }
 
-        $input->userId = $user->domainUser->id->toRfc4122();
+        $input->userId = $securityUser->user->id->toRfc4122();
 
         return $this->handler->handle(new UpdateInvoiceTask($invoiceId, $input));
     }

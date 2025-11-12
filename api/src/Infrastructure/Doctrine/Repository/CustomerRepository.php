@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpMultipleClassDeclarationsInspection */
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
@@ -12,7 +14,7 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @extends ServiceEntityRepository<\App\Domain\Entity\Customer\Customer>
+ * @extends ServiceEntityRepository<Customer>
  */
 class CustomerRepository extends ServiceEntityRepository implements CustomerRepositoryInterface
 {

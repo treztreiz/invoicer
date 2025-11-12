@@ -28,14 +28,14 @@ final readonly class QuoteUpdateStateProcessor implements ProcessorInterface
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): QuoteOutput
     {
         $input = TypeGuard::assertClass(QuoteInput::class, $data);
-        $user = SecurityGuard::assertAuth($this->security->getUser());
+        $securityUser = SecurityGuard::assertAuth($this->security->getUser());
         $quoteId = (string) ($uriVariables['quoteId'] ?? '');
 
         if ('' === $quoteId) {
             throw new \InvalidArgumentException('Quote id is required.');
         }
 
-        $input->userId = $user->domainUser->id->toRfc4122();
+        $input->userId = $securityUser->user->id->toRfc4122();
 
         return $this->handler->handle(new UpdateQuoteTask($quoteId, $input));
     }

@@ -12,12 +12,12 @@ use App\Domain\ValueObject\Quantity;
 final readonly class DocumentLinePayload
 {
     public function __construct(
-        public string $description,
-        public Quantity $quantity,
-        public RateUnit $rateUnit,
-        public Money $rate,
-        public AmountBreakdown $amount,
-        public int $position,
+        private(set) string $description,
+        private(set) Quantity $quantity,
+        private(set) RateUnit $rateUnit,
+        private(set) Money $rate,
+        private(set) AmountBreakdown $amount,
+        private(set) int $position,
     ) {
     }
 }

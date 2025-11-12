@@ -49,20 +49,7 @@ class Invoice extends Document
 
     public static function fromPayload(InvoicePayload $payload): self
     {
-        $invoice = new self(
-            title: $payload->title,
-            currency: $payload->currency,
-            vatRate: $payload->vatRate,
-            total: $payload->total,
-            customerSnapshot: $payload->customerSnapshot,
-            companySnapshot: $payload->companySnapshot,
-            subtitle: $payload->subtitle,
-        );
-
-        foreach ($payload->lines as $linePayload) {
-            $invoice->addLine($linePayload);
-        }
-
+        $invoice = self::fromDocumentPayload($payload);
         $invoice->dueDate = $payload->dueDate;
 
         return $invoice;
@@ -74,16 +61,9 @@ class Invoice extends Document
             throw new \LogicException('Only draft invoices can be updated.');
         }
 
-        $this->title = $payload->title;
-        $this->subtitle = $payload->subtitle;
-        $this->currency = $payload->currency;
-        $this->vatRate = $payload->vatRate;
-        $this->total = $payload->total;
-        $this->customerSnapshot = $payload->customerSnapshot;
-        $this->companySnapshot = $payload->companySnapshot;
-        $this->dueDate = $payload->dueDate;
+        parent::applyDocumentPayload($payload);
 
-        $this->replaceLines($payload->lines);
+        $this->dueDate = $payload->dueDate;
     }
 
     public function issue(\DateTimeImmutable $issuedAt, \DateTimeImmutable $dueDate): self

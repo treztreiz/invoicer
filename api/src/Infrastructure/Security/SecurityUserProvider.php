@@ -1,12 +1,13 @@
 <?php
 
+/** @noinspection PhpParameterNameChangedDuringInheritanceInspection */
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+use App\Domain\Entity\User\User;
 use App\Infrastructure\Doctrine\Repository\UserRepository;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -17,9 +18,8 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
  */
 final readonly class SecurityUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    public function __construct(
-        private UserRepository $userRepository,
-    ) {
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,38 +31,33 @@ final readonly class SecurityUserProvider implements UserProviderInterface, Pass
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $domainUser = $this->userRepository->findOneByUserIdentifier($identifier);
+        /** @var User $user */
+        $user = SecurityGuard::assertExists(
+            $this->userRepository->findOneByUserIdentifier($identifier),
+            $identifier
+        );
 
-        if (null === $domainUser) {
-            throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
-        }
-
-        return new SecurityUser($domainUser);
+        return new SecurityUser($user);
     }
 
-    public function refreshUser(UserInterface $user): UserInterface
+    public function refreshUser(UserInterface $securityUser): UserInterface
     {
-        if (!$user instanceof SecurityUser) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
+        $securityUser = SecurityGuard::assertSupported($securityUser);
 
-        $domainUser = $this->userRepository->findOneById($user->id);
+        /** @var User $user */
+        $user = SecurityGuard::assertExists(
+            $this->userRepository->findOneById($securityUser->user->id),
+            $securityUser->getUserIdentifier()
+        );
 
-        if (null === $domainUser) {
-            throw new UserNotFoundException(sprintf('User "%s" no longer exists.', $user->userIdentifier));
-        }
-
-        return new SecurityUser($domainUser);
+        return new SecurityUser($user);
     }
 
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    public function upgradePassword(PasswordAuthenticatedUserInterface $securityUser, string $newHashedPassword): void
     {
-        if (!$user instanceof SecurityUser) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
+        $user = SecurityGuard::assertSupported($securityUser)->user;
+        $user->updatePassword($newHashedPassword);
 
-        $domainUser = $user->domainUser;
-        $domainUser->password = $newHashedPassword;
-        $this->userRepository->save($domainUser);
+        $this->userRepository->save($user);
     }
 }

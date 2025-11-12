@@ -7,7 +7,7 @@ namespace App\Domain\DTO;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\VatRate;
 
-final readonly class QuotePayload
+final class QuotePayload extends DocumentPayload
 {
     /**
      * @param list<DocumentLinePayload> $lines
@@ -15,14 +15,14 @@ final readonly class QuotePayload
      * @param array<string, mixed>      $companySnapshot
      */
     public function __construct(
-        public string $title,
-        public ?string $subtitle,
-        public string $currency,
-        public VatRate $vatRate,
-        public AmountBreakdown $total,
-        public array $lines,
-        public array $customerSnapshot,
-        public array $companySnapshot,
+        protected(set) string $title,
+        protected(set) ?string $subtitle,
+        protected(set) string $currency,
+        protected(set) VatRate $vatRate,
+        protected(set) AmountBreakdown $total,
+        protected(set) array $lines,
+        protected(set) array $customerSnapshot,
+        protected(set) array $companySnapshot,
     ) {
     }
 }

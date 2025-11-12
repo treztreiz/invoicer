@@ -23,13 +23,13 @@ class Customer
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
-        public Name $name,
+        private(set) Name $name,
 
         #[ORM\Embedded(columnPrefix: false)]
-        public Contact $contact,
+        private(set) Contact $contact,
 
         #[ORM\Embedded]
-        public Address $address,
+        private(set) Address $address,
     ) {
     }
 
@@ -38,7 +38,7 @@ class Customer
         return new self($payload->name, $payload->contact, $payload->address);
     }
 
-    public function apply(CustomerPayload $payload): void
+    public function applyPayload(CustomerPayload $payload): void
     {
         $this->name = $payload->name;
         $this->contact = $payload->contact;

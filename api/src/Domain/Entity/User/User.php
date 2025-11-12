@@ -27,16 +27,16 @@ class User
 
     public function __construct(
         #[ORM\Embedded(columnPrefix: false)]
-        public Name $name,
+        private(set) Name $name,
 
         #[ORM\Embedded(columnPrefix: false)]
-        public Contact $contact,
+        private(set) Contact $contact,
 
         #[ORM\Embedded]
-        public Company $company,
+        private(set) Company $company,
 
         #[ORM\Column(length: 180, unique: true)]
-        public string $userIdentifier {
+        private(set) string $userIdentifier {
             set {
                 $value = DomainGuard::nonEmpty($value, 'User identifier');
                 $this->userIdentifier = DomainGuard::email($value, 'User identifier');
@@ -45,18 +45,18 @@ class User
 
         /** @var array<int, string> */
         #[ORM\Column]
-        public array $roles {
+        private(set) array $roles {
             get => array_unique([...$this->roles, 'ROLE_USER']);
             set => array_unique($value);
         },
 
         #[ORM\Column]
-        public string $password {
+        private(set) string $password {
             set => DomainGuard::nonEmpty($value, 'Password');
         },
 
         #[ORM\Column(length: 10)]
-        public string $locale {
+        private(set) string $locale {
             set => DomainGuard::nonEmpty($value, 'Locale');
         },
     ) {
@@ -71,5 +71,10 @@ class User
         $this->company = $payload->company;
         $this->locale = $payload->locale;
         $this->userIdentifier = $payload->userIdentifier;
+    }
+
+    public function updatePassword(string $password): void
+    {
+        $this->password = $password;
     }
 }

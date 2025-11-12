@@ -7,51 +7,32 @@ namespace App\Infrastructure\Security;
 use App\Domain\Entity\User\User;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Uid\Uuid;
 
-final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInterface
+final readonly class SecurityUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    public function __construct(
-        private(set) readonly User $domainUser,
-    ) {
-    }
-
-    public Uuid $id {
-        get => $this->domainUser->id;
-    }
-
-    public string $userIdentifier {
-        get => $this->domainUser->userIdentifier;
-    }
-
-    public string $password {
-        get => $this->domainUser->password;
-    }
-
-    /** @var array<int, string> */
-    public array $roles {
-        get => $this->domainUser->roles;
+    public function __construct(private(set) User $user)
+    {
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function getUserIdentifier(): string
     {
-        if ('' === $this->userIdentifier) {
+        if ('' === $this->user->userIdentifier) {
             throw new \InvalidArgumentException('User identifier cannot be empty.');
         }
 
-        return $this->userIdentifier;
+        return $this->user->userIdentifier;
     }
 
     public function getPassword(): string
     {
-        return $this->password;
+        return $this->user->password;
     }
 
     public function getRoles(): array
     {
-        return $this->roles;
+        return $this->user->roles;
     }
 
     public function eraseCredentials(): void

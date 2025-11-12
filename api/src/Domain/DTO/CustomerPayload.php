@@ -11,9 +11,9 @@ use App\Domain\ValueObject\Name;
 final readonly class CustomerPayload
 {
     public function __construct(
-        public Name $name,
-        public Contact $contact,
-        public Address $address,
+        private(set) Name $name,
+        private(set) Contact $contact,
+        private(set) Address $address,
     ) {
     }
 }

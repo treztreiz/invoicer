@@ -12,8 +12,8 @@ final readonly class DocumentLinePayloadCollection
      * @param list<DocumentLinePayload> $lines
      */
     public function __construct(
-        public array $lines,
-        public AmountBreakdown $total,
+        private(set) array $lines,
+        private(set) AmountBreakdown $total,
     ) {
     }
 }

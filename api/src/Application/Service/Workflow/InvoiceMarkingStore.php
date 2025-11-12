@@ -12,7 +12,7 @@ use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 final class InvoiceMarkingStore implements MarkingStoreInterface
 {
     /**
-     * @param Invoice $subject
+     * @param Invoice&object $subject
      */
     public function getMarking(object $subject): Marking
     {
@@ -22,7 +22,7 @@ final class InvoiceMarkingStore implements MarkingStoreInterface
     }
 
     /**
-     * @param Invoice          $subject
+     * @param Invoice&object   $subject
      * @param array<int,mixed> $context
      */
     public function setMarking(object $subject, Marking $marking, array $context = []): void

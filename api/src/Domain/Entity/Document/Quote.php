@@ -36,21 +36,7 @@ class Quote extends Document
 
     public static function fromPayload(QuotePayload $payload): self
     {
-        $quote = new self(
-            title: $payload->title,
-            currency: $payload->currency,
-            vatRate: $payload->vatRate,
-            total: $payload->total,
-            customerSnapshot: $payload->customerSnapshot,
-            companySnapshot: $payload->companySnapshot,
-            subtitle: $payload->subtitle,
-        );
-
-        foreach ($payload->lines as $linePayload) {
-            $quote->addLine($linePayload);
-        }
-
-        return $quote;
+        return self::fromDocumentPayload($payload);
     }
 
     public function applyPayload(QuotePayload $payload): void
@@ -59,15 +45,7 @@ class Quote extends Document
             throw new \LogicException('Only draft quotes can be updated.');
         }
 
-        $this->title = $payload->title;
-        $this->subtitle = $payload->subtitle;
-        $this->currency = $payload->currency;
-        $this->vatRate = $payload->vatRate;
-        $this->total = $payload->total;
-        $this->customerSnapshot = $payload->customerSnapshot;
-        $this->companySnapshot = $payload->companySnapshot;
-
-        $this->replaceLines($payload->lines);
+        parent::applyDocumentPayload($payload);
     }
 
     public function send(\DateTimeImmutable $sentAt): self

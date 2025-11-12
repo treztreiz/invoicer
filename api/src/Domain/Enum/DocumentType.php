@@ -8,4 +8,12 @@ enum DocumentType: string
 {
     case QUOTE = 'QUOTE';
     case INVOICE = 'INVOICE';
+
+    public function getPrefix(): string
+    {
+        return match ($this) {
+            self::INVOICE => 'INV',
+            self::QUOTE => 'Q',
+        };
+    }
 }
