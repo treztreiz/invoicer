@@ -27,4 +27,13 @@ abstract class DocumentFactory extends PersistentObjectFactory
             'companySnapshot' => [],
         ];
     }
+
+    public function withLines(int $numberOfLines): static
+    {
+        $lines = DocumentLineFactory::build([
+            'document' => $this,
+        ])->many($numberOfLines);
+
+        return $this->with(['lines' => $lines]);
+    }
 }

@@ -31,6 +31,7 @@ abstract class Document
 
     /** @var ArrayCollection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['position' => 'ASC'])]
     protected(set) Collection $lines;
 
     public function __construct(
@@ -102,15 +103,10 @@ abstract class Document
         $this->customerSnapshot = $payload->customerSnapshot;
         $this->companySnapshot = $payload->companySnapshot;
 
-        $this->replaceLines($payload->lines);
+        $this->applyLinePayloads($payload->lines);
     }
 
-    protected function assignReference(string $reference): void
-    {
-        $this->reference = DomainGuard::nonEmpty($reference, 'Reference');
-    }
-
-    public function addLine(DocumentLinePayload $payload): DocumentLine
+    protected function addLine(DocumentLinePayload $payload): DocumentLine
     {
         $line = DocumentLine::fromPayload($this, $payload);
 
@@ -129,14 +125,24 @@ abstract class Document
     /**
      * @param list<DocumentLinePayload> $linePayloads
      */
-    protected function replaceLines(array $linePayloads): void
+    protected function applyLinePayloads(array $linePayloads): void
     {
-        foreach ($this->lines as $line) {
-            $this->removeLine($line);
-        }
+        $existingLinePayloads = [];
 
         foreach ($linePayloads as $linePayload) {
-            $this->addLine($linePayload);
+            null !== $linePayload->lineId
+                ? $existingLinePayloads[$linePayload->lineId] = $linePayload
+                : $this->addLine($linePayload);
+        }
+
+        $existingLines = $this->lines->filter(fn (DocumentLine $line) => null !== $line->id);
+
+        foreach ($existingLines as $line) {
+            $lineId = $line->id->toRfc4122();
+
+            isset($existingLinePayloads[$lineId])
+                ? $line->applyPayload($existingLinePayloads[$lineId])
+                : $this->removeLine($line);
         }
     }
 }

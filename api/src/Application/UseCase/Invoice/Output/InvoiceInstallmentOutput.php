@@ -10,16 +10,13 @@ final readonly class InvoiceInstallmentOutput
 {
     public function __construct(
         #[Groups(['invoice:read'])]
-        public int $position,
-
+        private(set) int $position,
         #[Groups(['invoice:read'])]
-        public string $percentage,
-
+        private(set) string $percentage,
         #[Groups(['invoice:read'])]
-        public InvoiceTotalsOutput $amount,
-
+        private(set) InvoiceTotalsOutput $amount,
         #[Groups(['invoice:read'])]
-        public ?string $dueDate,
+        private(set) ?string $dueDate,
     ) {
     }
 }

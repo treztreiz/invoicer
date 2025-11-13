@@ -10,25 +10,19 @@ final readonly class DocumentLineOutput
 {
     public function __construct(
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $description,
-
+        private(set) string $description,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $quantity,
-
+        private(set) string $quantity,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $rateUnit,
-
+        private(set) string $rateUnit,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $rate,
-
+        private(set) string $rate,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $net,
-
+        private(set) string $net,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $tax,
-
+        private(set) string $tax,
         #[Groups(['quote:read', 'invoice:read'])]
-        public string $gross,
+        private(set) string $gross,
     ) {
     }
 }

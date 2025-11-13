@@ -17,40 +17,29 @@ final readonly class QuoteOutput
      */
     public function __construct(
         #[Groups(['quote:read'])]
-        public string $quoteId,
-
+        private(set) string $quoteId,
         #[Groups(['quote:read'])]
-        public string $title,
-
+        private(set) string $title,
         #[Groups(['quote:read'])]
-        public ?string $subtitle,
-
+        private(set) ?string $subtitle,
         #[Groups(['quote:read'])]
-        public string $status,
-
+        private(set) string $status,
         #[Groups(['quote:read'])]
-        public string $currency,
-
+        private(set) string $currency,
         #[Groups(['quote:read'])]
-        public string $vatRate,
-
+        private(set) string $vatRate,
         #[Groups(['quote:read'])]
-        public QuoteTotalsOutput $total,
-
+        private(set) QuoteTotalsOutput $total,
         #[Groups(['quote:read'])]
-        public array $lines,
-
+        private(set) array $lines,
         #[Groups(['quote:read'])]
-        public array $customerSnapshot,
-
+        private(set) array $customerSnapshot,
         #[Groups(['quote:read'])]
-        public array $companySnapshot,
-
+        private(set) array $companySnapshot,
         #[Groups(['quote:read'])]
-        public \DateTimeImmutable $createdAt,
-
+        private(set) \DateTimeImmutable $createdAt,
         #[Groups(['quote:read'])]
-        public array $availableTransitions = [],
+        private(set) array $availableTransitions = [],
     ) {
     }
 }

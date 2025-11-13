@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class CompanyInput
+final readonly class CompanyInput
 {
     /**
      * @param numeric-string $defaultHourlyRate
@@ -19,46 +19,46 @@ final class CompanyInput
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 255)]
-        public string $legalName,
+        private(set) string $legalName,
 
         #[Groups(['user:write'])]
         #[Assert\Valid]
-        public CompanyAddressInput $address,
+        private(set) CompanyAddressInput $address,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Currency]
-        public string $defaultCurrency,
+        private(set) string $defaultCurrency,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/')]
         #[ApiProperty(openapiContext: ['example' => '50.00'])]
-        public string $defaultHourlyRate,
+        private(set) string $defaultHourlyRate,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/')]
         #[ApiProperty(openapiContext: ['example' => '350.00'])]
-        public string $defaultDailyRate,
+        private(set) string $defaultDailyRate,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Regex(pattern: '/^(?:100(?:\.0{1,2})?|\d{1,2}(?:\.\d{1,2})?)$/')]
         #[ApiProperty(openapiContext: ['example' => '00.00'])]
-        public string $defaultVatRate,
+        private(set) string $defaultVatRate,
 
         #[Groups(['user:write'])]
         #[Assert\Email]
         #[Assert\Length(max: 180)]
-        public ?string $email = null,
+        private(set) ?string $email = null,
 
         #[Groups(['user:write'])]
         #[Assert\Length(max: 32)]
-        public ?string $phone = null,
+        private(set) ?string $phone = null,
 
         #[Groups(['user:write'])]
-        public ?string $legalMention = null,
+        private(set) ?string $legalMention = null,
     ) {
     }
 }

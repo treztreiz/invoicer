@@ -7,36 +7,36 @@ namespace App\Application\UseCase\User\Input;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class CompanyAddressInput
+final readonly class CompanyAddressInput
 {
     public function __construct(
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 255)]
-        public string $streetLine1,
+        private(set) string $streetLine1,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 20)]
-        public string $postalCode,
+        private(set) string $postalCode,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
-        public string $city,
+        private(set) string $city,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Country]
-        public string $countryCode,
+        private(set) string $countryCode,
 
         #[Groups(['user:write'])]
         #[Assert\Length(max: 255)]
-        public ?string $streetLine2 = null,
+        private(set) ?string $streetLine2 = null,
 
         #[Groups(['user:write'])]
         #[Assert\Length(max: 150)]
-        public ?string $region = null,
+        private(set) ?string $region = null,
     ) {
     }
 }

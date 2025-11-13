@@ -6,21 +6,21 @@ namespace App\Application\UseCase\User\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class CompanyAddressOutput
+final readonly class CompanyAddressOutput
 {
     public function __construct(
         #[Groups(['user:read'])]
-        public string $streetLine1,
+        private(set) string $streetLine1,
         #[Groups(['user:read'])]
-        public ?string $streetLine2,
+        private(set) ?string $streetLine2,
         #[Groups(['user:read'])]
-        public string $postalCode,
+        private(set) string $postalCode,
         #[Groups(['user:read'])]
-        public string $city,
+        private(set) string $city,
         #[Groups(['user:read'])]
-        public ?string $region,
+        private(set) ?string $region,
         #[Groups(['user:read'])]
-        public string $countryCode,
+        private(set) string $countryCode,
     ) {
     }
 }

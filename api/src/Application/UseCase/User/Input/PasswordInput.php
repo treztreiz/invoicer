@@ -24,19 +24,19 @@ final class PasswordInput
         #[Groups(['user:password:write'])]
         #[Assert\NotBlank(message: 'Current password is required.')]
         #[ApiProperty(openapiContext: ['example' => 'CurrentPassw0rd!'])]
-        public string $currentPassword,
+        private(set) readonly string $currentPassword,
 
         #[Groups(['user:password:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(min: 12, max: 72)]
         #[Assert\NotCompromisedPassword]
         #[ApiProperty(openapiContext: ['example' => 'NewSecurePass123!'])]
-        public string $newPassword,
+        private(set) readonly string $newPassword,
 
         #[Groups(['user:password:write'])]
         #[Assert\NotBlank]
         #[ApiProperty(openapiContext: ['example' => 'NewSecurePass123!'])]
-        public string $confirmPassword,
+        private(set) readonly string $confirmPassword,
     ) {
     }
 }

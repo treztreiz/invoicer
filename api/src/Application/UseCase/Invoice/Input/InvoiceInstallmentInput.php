@@ -7,15 +7,15 @@ namespace App\Application\UseCase\Invoice\Input;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class InvoiceInstallmentInput
+final readonly class InvoiceInstallmentInput
 {
     public function __construct(
         #[Groups(['invoice:installment'])]
         #[Assert\Positive]
-        public float $percentage,
+        private(set) float $percentage,
 
         #[Groups(['invoice:installment'])]
-        public ?string $dueDate = null,
+        private(set) ?string $dueDate = null,
     ) {
     }
 }

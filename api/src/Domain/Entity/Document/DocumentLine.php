@@ -15,6 +15,7 @@ use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+// TODO: ADD UNIQUE POSITION FOR SAME DOCUMENT
 #[ORM\Entity]
 #[ORM\Table(name: 'document_line')]
 #[EnumCheck(property: 'rateUnit', name: 'CHK_DOCUMENT_LINE_RATE_UNIT')]
@@ -25,28 +26,30 @@ class DocumentLine
     public function __construct(
         #[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'lines')]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-        private(set) Document $document,
+        private(set) readonly Document $document,
 
         #[ORM\Column(type: Types::TEXT)]
-        private(set) string $description,
+        private(set) string $description {
+            set => DomainGuard::nonEmpty($value, 'Line description');
+        },
 
         #[ORM\Embedded]
-        private(set) readonly Quantity $quantity,
+        private(set) Quantity $quantity,
 
         #[ORM\Column(enumType: RateUnit::class)]
-        private(set) readonly RateUnit $rateUnit,
+        private(set) RateUnit $rateUnit,
 
         #[ORM\Embedded]
-        private(set) readonly Money $rate,
+        private(set) Money $rate,
 
         #[ORM\Embedded]
-        private(set) readonly AmountBreakdown $amount,
+        private(set) AmountBreakdown $amount,
 
         #[ORM\Column(type: Types::INTEGER)]
-        private(set) int $position,
+        private(set) int $position {
+            set => DomainGuard::nonNegativeInt($value, 'Line position');
+        },
     ) {
-        $this->description = DomainGuard::nonEmpty($description, 'Line description');
-        $this->position = DomainGuard::nonNegativeInt($position, 'Line position');
     }
 
     public static function fromPayload(Document $document, DocumentLinePayload $payload): self
@@ -62,9 +65,13 @@ class DocumentLine
         );
     }
 
-    public function reassign(Document $document, int $position): void
+    public function applyPayload(DocumentLinePayload $payload): void
     {
-        $this->document = $document;
-        $this->position = DomainGuard::nonNegativeInt($position, 'Line position');
+        $this->description = $payload->description;
+        $this->quantity = $payload->quantity;
+        $this->rateUnit = $payload->rateUnit;
+        $this->rate = $payload->rate;
+        $this->amount = $payload->amount;
+        $this->position = $payload->position;
     }
 }

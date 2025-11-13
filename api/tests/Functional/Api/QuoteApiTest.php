@@ -7,8 +7,10 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\QuoteStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
+use App\Tests\Factory\Document\DocumentLineFactory;
 use App\Tests\Factory\Document\QuoteFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -106,17 +108,23 @@ final class QuoteApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $quote = QuoteFactory::createOne([
+        $quote = QuoteFactory::build([
             'status' => QuoteStatus::DRAFT,
             'title' => 'New quote',
             'subtitle' => 'New scope',
             'currency' => 'EUR',
-        ]);
+        ])->withLines(3)->create();
+
+        $firstLine = $quote->lines->first();
+
+        static::assertInstanceOf(DocumentLine::class, $firstLine);
+        static::assertSame(0, $firstLine->position);
+        DocumentLineFactory::assert()->count(3);
 
         static::assertSame('New quote', $quote->title);
         static::assertSame('New scope', $quote->subtitle);
         static::assertSame('EUR', $quote->currency);
-        static::assertCount(0, $quote->lines);
+        static::assertCount(3, $quote->lines);
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/quotes/%s', $quote->id->toRfc4122()), [
             'json' => $this->createQuotePayload(
@@ -125,7 +133,10 @@ final class QuoteApiTest extends ApiTestCase
                     'title' => 'Updated quote',
                     'subtitle' => 'Updated scope',
                     'currency' => 'USD',
-                    'lines' => [['description' => 'Consulting']],
+                    'lines' => [
+                        ['description' => 'Marketing', 'lineId' => $firstLine->id->toRfc4122()],
+                        ['description' => 'Consulting'],
+                    ],
                 ]
             ),
         ]);
@@ -136,12 +147,18 @@ final class QuoteApiTest extends ApiTestCase
         static::assertSame('Updated quote', $data['title']);
         static::assertSame('Updated scope', $data['subtitle']);
         static::assertSame('USD', $data['currency']);
-        static::assertCount(1, $data['lines']);
+        static::assertCount(2, $data['lines']);
 
         static::assertSame('Updated quote', $quote->title);
         static::assertSame('Updated scope', $quote->subtitle);
         static::assertSame('USD', $quote->currency);
-        static::assertCount(1, $quote->lines);
+        static::assertCount(2, $quote->lines);
+
+        // Ensure first line has been mutated
+        static::assertSame('Marketing', $firstLine->description);
+        static::assertSame(0, $firstLine->position);
+        // Ensure previous lines have been deleted
+        DocumentLineFactory::assert()->count(2);
     }
 
     public function test_update_quote_rejected_when_not_draft(): void

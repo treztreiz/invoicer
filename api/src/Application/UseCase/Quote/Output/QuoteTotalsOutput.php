@@ -10,13 +10,11 @@ final readonly class QuoteTotalsOutput
 {
     public function __construct(
         #[Groups(['quote:read'])]
-        public string $net,
-
+        private(set) string $net,
         #[Groups(['quote:read'])]
-        public string $tax,
-
+        private(set) string $tax,
         #[Groups(['quote:read'])]
-        public string $gross,
+        private(set) string $gross,
     ) {
     }
 }

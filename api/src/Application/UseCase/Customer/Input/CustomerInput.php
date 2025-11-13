@@ -18,26 +18,26 @@ final class CustomerInput
         #[Groups(['customer:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
-        public string $firstName,
+        private(set) readonly string $firstName,
 
         #[Groups(['customer:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
-        public string $lastName,
+        private(set) readonly string $lastName,
 
         #[Groups(['customer:write'])]
         #[Assert\NotBlank]
         #[Assert\Email]
         #[Assert\Length(max: 180)]
-        public string $email,
+        private(set) readonly string $email,
 
         #[Groups(['customer:write'])]
         #[Assert\Valid]
-        public CustomerAddressInput $address,
+        private(set) readonly CustomerAddressInput $address,
 
         #[Groups(['customer:write'])]
         #[Assert\Length(max: 32)]
-        public ?string $phone = null,
+        private(set) readonly ?string $phone = null,
     ) {
     }
 }

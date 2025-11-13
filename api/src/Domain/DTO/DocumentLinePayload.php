@@ -18,6 +18,7 @@ final readonly class DocumentLinePayload
         private(set) Money $rate,
         private(set) AmountBreakdown $amount,
         private(set) int $position,
+        private(set) ?string $lineId = null,
     ) {
     }
 }

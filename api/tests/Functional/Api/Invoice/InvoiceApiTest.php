@@ -7,8 +7,10 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Api\Invoice;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\InvoiceStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
+use App\Tests\Factory\Document\DocumentLineFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use Symfony\Component\Uid\Uuid;
@@ -84,7 +86,12 @@ final class InvoiceApiTest extends ApiTestCase
     public function test_update_invoice_mutates_document(): void
     {
         $client = $this->createAuthenticatedClient();
-        $invoice = InvoiceFactory::new()->draft()->create();
+        $invoice = InvoiceFactory::new()->draft()->withLines(3)->create();
+        $firstLine = $invoice->lines->first();
+
+        static::assertInstanceOf(DocumentLine::class, $firstLine);
+        static::assertSame(0, $firstLine->position);
+        DocumentLineFactory::assert()->count(3);
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/invoices/%s', $invoice->id->toRfc4122()), [
             'json' => $this->invoicePayload(
@@ -92,7 +99,10 @@ final class InvoiceApiTest extends ApiTestCase
                 [
                     'title' => 'Updated invoice',
                     'currency' => 'USD',
-                    'lines' => [['description' => 'Consulting']],
+                    'lines' => [
+                        ['description' => 'Consulting'],
+                        ['description' => 'Marketing', 'lineId' => $firstLine->id->toRfc4122()],
+                    ],
                 ]
             ),
         ]);
@@ -100,11 +110,17 @@ final class InvoiceApiTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
         static::assertSame('Updated invoice', $data['title']);
-        static::assertCount(1, $data['lines']);
+        static::assertCount(2, $data['lines']);
 
         static::assertSame('Updated invoice', $invoice->title);
         static::assertSame('USD', $invoice->currency);
-        static::assertCount(1, $invoice->lines);
+        static::assertCount(2, $invoice->lines);
+
+        // Ensure first line has been mutated (renamed and repositioned)
+        static::assertSame('Marketing', $firstLine->description);
+        static::assertSame(1, $firstLine->position);
+        // Ensure previous lines have been deleted
+        DocumentLineFactory::assert()->count(2);
     }
 
     public function test_update_invoice_rejected_when_not_draft(): void
