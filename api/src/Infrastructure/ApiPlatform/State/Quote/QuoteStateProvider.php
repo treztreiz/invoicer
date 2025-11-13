@@ -13,6 +13,8 @@ use App\Application\UseCase\Quote\Handler\ListQuotesHandler;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\Quote\Task\GetQuoteTask;
 use App\Application\UseCase\Quote\Task\ListQuotesTask;
+use App\Domain\Filter\QuoteFilterCollection;
+use App\Infrastructure\ApiPlatform\Guard\ParameterGuard;
 
 /** @implements ProviderInterface<QuoteOutput> */
 final readonly class QuoteStateProvider implements ProviderInterface
@@ -27,7 +29,9 @@ final readonly class QuoteStateProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): QuoteOutput|array
     {
         if ($operation instanceof GetCollection) {
-            return $this->listQuotesHandler->handle(new ListQuotesTask());
+            $filters = $this->buildFilters($operation);
+
+            return $this->listQuotesHandler->handle(new ListQuotesTask($filters));
         }
 
         if ($operation instanceof Get) {
@@ -37,5 +41,18 @@ final readonly class QuoteStateProvider implements ProviderInterface
         }
 
         throw new \LogicException(sprintf('Unsupported operation %s for quote provider.', $operation::class));
+    }
+
+    private function buildFilters(GetCollection $operation): QuoteFilterCollection
+    {
+        $parameters = $operation->getParameters();
+
+        if (null === $parameters) {
+            return new QuoteFilterCollection();
+        }
+
+        return new QuoteFilterCollection(
+            statuses: ParameterGuard::get($parameters, 'status', [])
+        );
     }
 }

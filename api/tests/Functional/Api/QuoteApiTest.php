@@ -51,7 +51,7 @@ final class QuoteApiTest extends ApiTestCase
 
         QuoteFactory::createMany(10);
 
-        $response = $this->apiRequest($client, 'GET', '/api/quotes');
+        $response = $this->apiRequest($client, 'GET', '/api/quotes?statuses=hello');
 
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);

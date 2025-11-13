@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contracts;
 
 use App\Domain\Entity\Document\Quote;
+use App\Domain\Filter\QuoteFilterCollection;
 use Symfony\Component\Uid\Uuid;
 
 interface QuoteRepositoryInterface
@@ -18,5 +19,5 @@ interface QuoteRepositoryInterface
     /**
      * @return list<Quote>
      */
-    public function list(): array;
+    public function list(QuoteFilterCollection $filters): array;
 }

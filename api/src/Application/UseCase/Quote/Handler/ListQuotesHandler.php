@@ -27,9 +27,9 @@ final readonly class ListQuotesHandler implements UseCaseHandlerInterface
      */
     public function handle(object $data): array
     {
-        TypeGuard::assertClass(ListQuotesTask::class, $data);
+        $task = TypeGuard::assertClass(ListQuotesTask::class, $data);
 
-        $quotes = $this->quoteRepository->list();
+        $quotes = $this->quoteRepository->list($task->filters);
 
         return array_map(
             fn ($quote) => $this->outputMapper->map(

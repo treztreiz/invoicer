@@ -21,6 +21,8 @@ use App\Application\UseCase\Quote\Input\QuoteTransitionInput;
 use App\Application\UseCase\Quote\Output\QuoteOutput;
 use App\Application\UseCase\User\Input\PasswordInput;
 use App\Application\UseCase\User\Output\UserOutput;
+use App\Domain\Enum\QuoteStatus;
+use App\Infrastructure\ApiPlatform\Metadata\Parameter\EnumParameter;
 use App\Infrastructure\ApiPlatform\State\Customer\CustomerStatusStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanDeleteStateProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\InvoiceInstallmentPlanStateProcessor;
@@ -105,7 +107,17 @@ final class ResourceRegistry
                 new ApiResource(
                     shortName: 'Quote',
                     operations: [
-                        new GetCollection(name: 'api_quotes_get_collection'),
+                        new GetCollection(
+                            name: 'api_quotes_get_collection',
+                            parameters: [
+                                'status' => EnumParameter::create(
+                                    key: 'status',
+                                    description: 'Filter by one or multiple quote statuses.',
+                                    enumFqcn: QuoteStatus::class,
+                                    enumValues: fn () => QuoteStatus::statuses()
+                                ),
+                            ]
+                        ),
                         new Get(uriTemplate: '/{quoteId}', name: 'api_quotes_get'),
                         new Post(name: 'api_quotes_post'),
                         new Put(

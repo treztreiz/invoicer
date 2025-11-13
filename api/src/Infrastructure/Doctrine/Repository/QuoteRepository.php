@@ -8,7 +8,10 @@ namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
+use App\Domain\Filter\QuoteFilterCollection;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\Query\QueryException;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -46,11 +49,26 @@ final class QuoteRepository extends ServiceEntityRepository implements QuoteRepo
             ->getOneOrNullResult();
     }
 
-    public function list(): array
+    /**
+     * @return list<Quote>
+     *
+     * @throws QueryException
+     */
+    public function list(QuoteFilterCollection $filters): array
     {
         return $this->createQueryBuilder('quote')
+            ->addCriteria(self::statusFilterCriteria($filters))
             ->orderBy('quote.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    private static function statusFilterCriteria(QuoteFilterCollection $filters): Criteria
+    {
+        $criteria = Criteria::create();
+
+        return empty($filters->statuses)
+            ? $criteria
+            : $criteria->andWhere(Criteria::expr()->in('status', $filters->statuses));
     }
 }

@@ -223,6 +223,10 @@ final readonly class ResourceMetadataCollectionFactory implements ResourceMetada
             $operation = $operation->withUriVariables($operationUriVariables);
         }
 
+        if (null === $operation->getFilters()) {
+            $operation = $operation->withFilters($resource->getFilters() ?: []);
+        }
+
         return $operation;
     }
 

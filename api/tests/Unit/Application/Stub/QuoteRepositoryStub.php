@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Application\Stub;
 
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
+use App\Domain\Filter\QuoteFilterCollection;
 use Symfony\Component\Uid\Uuid;
 
 final class QuoteRepositoryStub implements QuoteRepositoryInterface
@@ -28,7 +29,7 @@ final class QuoteRepositoryStub implements QuoteRepositoryInterface
         return $this->quote;
     }
 
-    public function list(): array
+    public function list(QuoteFilterCollection $filters): array
     {
         return $this->quote ? [$this->quote] : [];
     }
