@@ -6,29 +6,23 @@ namespace App\Application\UseCase\Customer\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class CustomerOutput
+final readonly class CustomerOutput
 {
     public function __construct(
         #[Groups(['customer:read'])]
-        public string $customerId,
-
+        private(set) string $customerId,
         #[Groups(['customer:read'])]
-        public string $firstName,
-
+        private(set) string $firstName,
         #[Groups(['customer:read'])]
-        public string $lastName,
-
+        private(set) string $lastName,
         #[Groups(['customer:read'])]
-        public string $email,
-
+        private(set) string $email,
         #[Groups(['customer:read'])]
-        public ?string $phone,
-
+        private(set) ?string $phone,
         #[Groups(['customer:read'])]
-        public bool $isArchived,
-
+        private(set) bool $isArchived,
         #[Groups(['customer:read'])]
-        public CustomerAddressOutput $address,
+        private(set) CustomerAddressOutput $address,
     ) {
     }
 }

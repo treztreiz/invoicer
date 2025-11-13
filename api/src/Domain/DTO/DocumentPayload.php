@@ -9,52 +9,28 @@ use App\Domain\ValueObject\VatRate;
 
 abstract class DocumentPayload
 {
-    abstract protected(set) string $title {
-        get;
-        set;
-    }
+    protected(set) string $title;
 
-    abstract protected(set) ?string $subtitle {
-        get;
-        set;
-    }
+    protected(set) ?string $subtitle;
 
-    abstract protected(set) string $currency {
-        get;
-        set;
-    }
+    protected(set) string $currency;
 
-    abstract protected(set) VatRate $vatRate {
-        get;
-        set;
-    }
+    protected(set) VatRate $vatRate;
 
-    abstract protected(set) AmountBreakdown $total {
-        get;
-        set;
-    }
+    protected(set) AmountBreakdown $total;
 
     /**
-     * @var list<DocumentLinePayload> $lines
+     * @var list<DocumentLinePayload>
      */
-    abstract protected(set) array $lines {
-        get;
-        set;
-    }
+    protected(set) array $lines;
 
     /**
-     * @var array<string, mixed> $customerSnapshot
+     * @var array<string, mixed>
      */
-    abstract protected(set) array $customerSnapshot {
-        get;
-        set;
-    }
+    protected(set) array $customerSnapshot;
 
     /**
-     * @var array<string, mixed> $companySnapshot
+     * @var array<string, mixed>
      */
-    abstract protected(set) array $companySnapshot {
-        get;
-        set;
-    }
+    protected(set) array $companySnapshot;
 }

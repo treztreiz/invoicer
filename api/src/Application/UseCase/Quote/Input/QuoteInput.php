@@ -19,29 +19,30 @@ final class QuoteInput
         #[Groups(['quote:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 200)]
-        public string $title,
+        private(set) readonly string $title,
 
         #[Groups(['quote:write'])]
         #[Assert\Currency]
-        public string $currency,
+        private(set) readonly string $currency,
 
         #[Groups(['quote:write'])]
         #[Assert\PositiveOrZero]
-        public float $vatRate,
+        private(set) readonly float $vatRate,
 
         /** @var list<DocumentLineInput|array<string, mixed>> */
         #[Groups(['quote:write'])]
         #[Assert\Count(min: 1)]
         #[Assert\Valid]
-        public array $lines,
+        private(set) readonly array $lines,
 
         #[Groups(['quote:write'])]
         #[Assert\NotBlank]
-        public string $customerId,
+        #[Assert\Uuid(strict: true)]
+        private(set) readonly string $customerId,
 
         #[Groups(['quote:write'])]
         #[Assert\Length(max: 200)]
-        public ?string $subtitle = null,
+        private(set) readonly ?string $subtitle = null,
     ) {
     }
 }

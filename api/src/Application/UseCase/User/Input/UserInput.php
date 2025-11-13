@@ -19,31 +19,31 @@ final class UserInput
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
-        public string $firstName,
+        private(set) readonly string $firstName,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 150)]
-        public string $lastName,
+        private(set) readonly string $lastName,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Email]
         #[Assert\Length(max: 180)]
-        public string $email,
+        private(set) readonly string $email,
 
         #[Groups(['user:write'])]
         #[Assert\NotBlank]
         #[Assert\Locale]
-        public string $locale,
+        private(set) readonly string $locale,
 
         #[Groups(['user:write'])]
         #[Assert\Valid]
-        public CompanyInput $company,
+        private(set) readonly CompanyInput $company,
 
         #[Groups(['user:write'])]
         #[Assert\Length(max: 32)]
-        public ?string $phone = null,
+        private(set) readonly ?string $phone = null,
     ) {
     }
 }

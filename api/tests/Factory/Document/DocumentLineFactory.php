@@ -6,6 +6,7 @@ namespace App\Tests\Factory\Document;
 
 use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\RateUnit;
+use App\Tests\Factory\Common\BuildableFactoryTrait;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use App\Tests\Factory\ValueObject\MoneyFactory;
 use App\Tests\Factory\ValueObject\QuantityFactory;
@@ -16,6 +17,8 @@ use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
  */
 class DocumentLineFactory extends PersistentObjectFactory
 {
+    use BuildableFactoryTrait;
+
     #[\Override]
     public static function class(): string
     {

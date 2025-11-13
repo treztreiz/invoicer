@@ -42,6 +42,7 @@ final readonly class DocumentLineFactory
             rate: $rate,
             amount: AmountBreakdown::fromValues($net, $tax, $gross),
             position: $position,
+            lineId: $line->lineId
         );
     }
 
@@ -57,6 +58,7 @@ final readonly class DocumentLineFactory
             quantity: (float) ($input['quantity'] ?? 0),
             rateUnit: (string) ($input['rateUnit'] ?? RateUnit::HOURLY->value),
             rate: (float) ($input['rate'] ?? 0),
+            lineId: isset($input['lineId']) ? (string) $input['lineId'] : null,
         );
     }
 }

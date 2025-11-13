@@ -10,25 +10,19 @@ final readonly class InvoiceRecurrenceOutput
 {
     public function __construct(
         #[Groups(['invoice:read'])]
-        public string $frequency,
-
+        private(set) string $frequency,
         #[Groups(['invoice:read'])]
-        public int $interval,
-
+        private(set) int $interval,
         #[Groups(['invoice:read'])]
-        public string $anchorDate,
-
+        private(set) string $anchorDate,
         #[Groups(['invoice:read'])]
-        public string $endStrategy,
-
+        private(set) string $endStrategy,
         #[Groups(['invoice:read'])]
-        public ?string $nextRunAt,
-
+        private(set) ?string $nextRunAt,
         #[Groups(['invoice:read'])]
-        public ?string $endDate,
-
+        private(set) ?string $endDate,
         #[Groups(['invoice:read'])]
-        public ?int $occurrenceCount,
+        private(set) ?int $occurrenceCount,
     ) {
     }
 }

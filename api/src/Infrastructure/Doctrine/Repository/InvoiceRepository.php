@@ -59,11 +59,4 @@ final class InvoiceRepository extends ServiceEntityRepository implements Invoice
             ->getQuery()
             ->getResult();
     }
-
-    public function refresh(Invoice $invoice): Invoice
-    {
-        $this->getEntityManager()->refresh($invoice);
-
-        return $invoice;
-    }
 }

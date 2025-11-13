@@ -19,33 +19,34 @@ final class InvoiceInput
         #[Groups(['invoice:write'])]
         #[Assert\NotBlank]
         #[Assert\Length(max: 200)]
-        public string $title,
+        private(set) readonly string $title,
 
         #[Groups(['invoice:write'])]
         #[Assert\Currency]
-        public string $currency,
+        private(set) readonly string $currency,
 
         #[Groups(['invoice:write'])]
         #[Assert\PositiveOrZero]
-        public float $vatRate,
+        private(set) readonly float $vatRate,
 
         /** @var list<DocumentLineInput|array<string, mixed>> */
         #[Groups(['invoice:write'])]
         #[Assert\Count(min: 1)]
         #[Assert\Valid]
-        public array $lines,
+        private(set) readonly array $lines,
 
         #[Groups(['invoice:write'])]
         #[Assert\NotBlank]
-        public string $customerId,
+        #[Assert\Uuid(strict: true)]
+        private(set) readonly string $customerId,
 
         #[Groups(['invoice:write'])]
         #[Assert\NotBlank]
-        public string $dueDate,
+        private(set) readonly string $dueDate,
 
         #[Groups(['invoice:write'])]
         #[Assert\Length(max: 200)]
-        public ?string $subtitle = null,
+        private(set) readonly ?string $subtitle = null,
     ) {
     }
 }

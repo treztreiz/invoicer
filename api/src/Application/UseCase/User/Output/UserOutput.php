@@ -6,26 +6,26 @@ namespace App\Application\UseCase\User\Output;
 
 use Symfony\Component\Serializer\Annotation\Groups;
 
-final class UserOutput
+final readonly class UserOutput
 {
     /** @param array<int, string> $roles */
     public function __construct(
         #[Groups(['user:read'])]
-        public string $userId,
+        private(set) string $userId,
         #[Groups(['user:read'])]
-        public string $firstName,
+        private(set) string $firstName,
         #[Groups(['user:read'])]
-        public string $lastName,
+        private(set) string $lastName,
         #[Groups(['user:read'])]
-        public string $email,
+        private(set) string $email,
         #[Groups(['user:read'])]
-        public ?string $phone,
+        private(set) ?string $phone,
         #[Groups(['user:read'])]
-        public string $locale,
+        private(set) string $locale,
         #[Groups(['user:read'])]
-        public array $roles,
+        private(set) array $roles,
         #[Groups(['user:read'])]
-        public CompanyOutput $company,
+        private(set) CompanyOutput $company,
     ) {
     }
 }

@@ -17,52 +17,37 @@ final readonly class InvoiceOutput
      */
     public function __construct(
         #[Groups(['invoice:read'])]
-        public string $invoiceId,
-
+        private(set) string $invoiceId,
         #[Groups(['invoice:read'])]
-        public string $title,
-
+        private(set) string $title,
         #[Groups(['invoice:read'])]
-        public ?string $subtitle,
-
+        private(set) ?string $subtitle,
         #[Groups(['invoice:read'])]
-        public string $status,
-
+        private(set) string $status,
         #[Groups(['invoice:read'])]
-        public string $currency,
-
+        private(set) string $currency,
         #[Groups(['invoice:read'])]
-        public string $vatRate,
-
+        private(set) string $vatRate,
         #[Groups(['invoice:read'])]
-        public InvoiceTotalsOutput $total,
-
+        private(set) InvoiceTotalsOutput $total,
         #[Groups(['invoice:read'])]
-        public array $lines,
-
+        private(set) array $lines,
         #[Groups(['invoice:read'])]
-        public array $customerSnapshot,
-
+        private(set) array $customerSnapshot,
         #[Groups(['invoice:read'])]
-        public array $companySnapshot,
-
+        private(set) array $companySnapshot,
         #[Groups(['invoice:read'])]
-        public ?string $issuedAt,
-
+        private(set) ?string $issuedAt,
         #[Groups(['invoice:read'])]
-        public ?string $dueDate,
-
+        private(set) ?string $dueDate,
         #[Groups(['invoice:read'])]
-        public ?string $paidAt,
-
+        private(set) ?string $paidAt,
         #[Groups(['invoice:read'])]
-        public ?InvoiceRecurrenceOutput $recurrence = null,
-
+        private(set) ?InvoiceRecurrenceOutput $recurrence = null,
         #[Groups(['invoice:read'])]
-        public ?InvoiceInstallmentPlanOutput $installmentPlan = null,
-
+        private(set) ?InvoiceInstallmentPlanOutput $installmentPlan = null,
         #[Groups(['invoice:read'])]
-        public array $availableTransitions = [],
+        private(set) array $availableTransitions = [],
     ) {
     }
 }

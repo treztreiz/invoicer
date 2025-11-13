@@ -10,13 +10,11 @@ final readonly class InvoiceTotalsOutput
 {
     public function __construct(
         #[Groups(['invoice:read'])]
-        public string $net,
-
+        private(set) string $net,
         #[Groups(['invoice:read'])]
-        public string $tax,
-
+        private(set) string $tax,
         #[Groups(['invoice:read'])]
-        public string $gross,
+        private(set) string $gross,
     ) {
     }
 }

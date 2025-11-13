@@ -7,7 +7,7 @@ namespace App\Application\UseCase\Invoice\Input;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class InvoiceInstallmentPlanInput
+final readonly class InvoiceInstallmentPlanInput
 {
     /**
      * @param list<InvoiceInstallmentInput|array<string, mixed>> $installments
@@ -16,7 +16,7 @@ final class InvoiceInstallmentPlanInput
         #[Groups(['invoice:installment'])]
         #[Assert\Count(min: 1)]
         #[Assert\Valid]
-        public array $installments,
+        private(set) array $installments,
     ) {
     }
 }
