@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Dto\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
+use App\Application\Dto\Invoice\Input\Recurrence\InvoiceRecurrenceInput;
+use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\DomainRuleViolationException;
-use App\Application\UseCase\Invoice\Handler\AttachInvoiceRecurrenceHandler;
-use App\Application\UseCase\Invoice\Input\InvoiceRecurrenceInput;
-use App\Application\UseCase\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
-use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\UseCase\Invoice\Task\AttachInvoiceRecurrenceTask;
+use App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceTask;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
@@ -78,11 +77,11 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(Invoice $invoice): AttachInvoiceRecurrenceHandler
+    private function createHandler(Invoice $invoice): \App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceUseCase
     {
         $invoiceRepository = new InvoiceRepositoryStub($invoice);
 
-        return new AttachInvoiceRecurrenceHandler(
+        return new \App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceUseCase(
             invoiceRepository: $invoiceRepository,
             entityFetcher: EntityFetcherStub::create(invoiceRepository: $invoiceRepository),
             outputMapper: new InvoiceOutputMapper(),

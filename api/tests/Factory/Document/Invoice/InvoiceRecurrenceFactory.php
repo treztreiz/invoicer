@@ -26,7 +26,7 @@ class InvoiceRecurrenceFactory extends PersistentObjectFactory
             'frequency' => self::faker()->randomElement(RecurrenceFrequency::cases()),
             'interval' => self::faker()->numberBetween(1, 12),
             'anchorDate' => new \DateTimeImmutable(),
-            'endStrategy' => RecurrenceEndStrategy::UNTIL_DATE,
+            'endStrategy' => RecurrenceEndStrategy::NEVER,
         ];
     }
 }

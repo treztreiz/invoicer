@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
-use App\Domain\DTO\DocumentLinePayload;
-use App\Domain\DTO\DocumentPayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Guard\DomainGuard;
+use App\Domain\Payload\Document\AbstractDocumentPayload;
+use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,6 +30,12 @@ abstract class Document
     use TimestampableTrait;
     use ArchivableTrait;
 
+    #[ORM\Column(length: 30, nullable: true)]
+    protected(set) ?string $reference {
+        get => $this->reference ?? null;
+        set => DomainGuard::optionalNonEmpty($value, 'Reference');
+    }
+
     /** @var ArrayCollection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
@@ -38,6 +45,12 @@ abstract class Document
         #[ORM\Column(length: 200)]
         protected(set) string $title {
             set => DomainGuard::nonEmpty($value, 'Title');
+        },
+
+        #[ORM\Column(length: 200, nullable: true)]
+        protected(set) ?string $subtitle {
+            get => $this->subtitle ?? null;
+            set => DomainGuard::optionalNonEmpty($value, 'Subtitle');
         },
 
         #[ORM\Column(length: 3)]
@@ -51,6 +64,10 @@ abstract class Document
         #[ORM\Embedded]
         protected(set) AmountBreakdown $total,
 
+        #[ORM\ManyToOne(targetEntity: Customer::class)]
+        #[ORM\JoinColumn(nullable: false)]
+        protected(set) Customer $customer,
+
         /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $customerSnapshot,
@@ -58,52 +75,52 @@ abstract class Document
         /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $companySnapshot,
-
-        #[ORM\Column(length: 200, nullable: true)]
-        protected(set) ?string $subtitle = null {
-            set => DomainGuard::optionalNonEmpty($value, 'Subtitle');
-        },
-
-        #[ORM\Column(length: 30, nullable: true)]
-        protected(set) ?string $reference = null {
-            set => DomainGuard::optionalNonEmpty($value, 'Reference');
-        },
     ) {
         $this->lines = new ArrayCollection();
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected static function fromDocumentPayload(DocumentPayload $payload): static
-    {
+    protected static function fromDocumentPayload(
+        AbstractDocumentPayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): static {
         $document = new static(
             title: $payload->title,
+            subtitle: $payload->subtitle,
             currency: $payload->currency,
             vatRate: $payload->vatRate,
-            total: $payload->total,
-            customerSnapshot: $payload->customerSnapshot,
-            companySnapshot: $payload->companySnapshot,
-            subtitle: $payload->subtitle,
+            total: $payload->linesPayload->total,
+            customer: $customer,
+            customerSnapshot: $customerSnapshot,
+            companySnapshot: $companySnapshot,
         );
 
-        foreach ($payload->lines as $linePayload) {
+        foreach ($payload->linesPayload->lines as $linePayload) {
             $document->addLine($linePayload);
         }
 
         return $document;
     }
 
-    protected function applyDocumentPayload(DocumentPayload $payload): void
-    {
+    protected function applyDocumentPayload(
+        AbstractDocumentPayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): void {
         $this->title = $payload->title;
         $this->subtitle = $payload->subtitle;
         $this->currency = $payload->currency;
         $this->vatRate = $payload->vatRate;
-        $this->total = $payload->total;
-        $this->customerSnapshot = $payload->customerSnapshot;
-        $this->companySnapshot = $payload->companySnapshot;
+        $this->total = $payload->linesPayload->total;
+        $this->customer = $customer;
+        $this->customerSnapshot = $customerSnapshot;
+        $this->companySnapshot = $companySnapshot;
 
-        $this->applyLinePayloads($payload->lines);
+        $this->applyLinePayloads($payload->linesPayload->lines);
     }
 
     protected function addLine(DocumentLinePayload $payload): DocumentLine
@@ -115,11 +132,6 @@ abstract class Document
         }
 
         return $line;
-    }
-
-    protected function removeLine(DocumentLine $line): void
-    {
-        $this->lines->removeElement($line);
     }
 
     /**
@@ -142,7 +154,7 @@ abstract class Document
 
             isset($existingLinePayloads[$lineId])
                 ? $line->applyPayload($existingLinePayloads[$lineId])
-                : $this->removeLine($line);
+                : $this->lines->removeElement($line);
         }
     }
 }

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Quote\Handler;
 
+use App\Application\Dto\Quote\Input\Mapper\QuotePayloadMapper;
+use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
-use App\Application\UseCase\Quote\Handler\CreateQuoteHandler;
-use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
-use App\Application\UseCase\Quote\Input\QuoteInput;
-use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
+use App\Application\UseCase\Quote\CreateQuoteUseCase;
+use App\Application\UseCase\Quote\Dto\Output\Mapper\QuoteOutputMapper;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\QuoteRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
@@ -95,7 +95,7 @@ final class CreateQuoteHandlerTest extends TestCase
         ?QuoteRepositoryInterface $repository = null,
         ?UserRepositoryInterface $userRepository = null,
         ?CustomerRepositoryInterface $customerRepository = null,
-    ): CreateQuoteHandler {
+    ): CreateQuoteUseCase {
         $repository = $repository ?? new QuoteRepositoryStub();
         $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
         $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
@@ -105,7 +105,7 @@ final class CreateQuoteHandlerTest extends TestCase
             new DocumentLinePayloadFactory(new DocumentLineFactory()),
         );
 
-        return new CreateQuoteHandler(
+        return new CreateQuoteUseCase(
             quoteRepository: $repository,
             mapper: $payloadMapper,
             outputMapper: new QuoteOutputMapper(),

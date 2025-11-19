@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Customer\Handler;
 
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\UseCase\Customer\Handler\RestoreCustomerHandler;
-use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\RestoreCustomerUseCase;
 use App\Application\UseCase\Customer\Task\CustomerStatusTask;
 use App\Domain\Entity\Customer\Customer;
 use App\Tests\Factory\Customer\CustomerFactory;
@@ -48,11 +48,11 @@ final class RestoreCustomerHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(?Customer $customer = null): RestoreCustomerHandler
+    private function createHandler(?Customer $customer = null): RestoreCustomerUseCase
     {
         $repository = new CustomerRepositoryStub($customer);
 
-        return new RestoreCustomerHandler(
+        return new RestoreCustomerUseCase(
             customerRepository: $repository,
             entityFetcher: EntityFetcherStub::create(
                 customerRepository: $repository,

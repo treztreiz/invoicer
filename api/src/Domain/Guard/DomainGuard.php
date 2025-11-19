@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Guard;
 
+use App\Domain\Service\MoneyMath;
+
 final class DomainGuard
 {
     private function __construct()
@@ -164,7 +166,7 @@ final class DomainGuard
             }
         }
 
-        return number_format($number, $scale, '.', '');
+        return MoneyMath::decimal($number, $scale);
     }
 
     private static function normalizeDecimalSeparator(string $value): string

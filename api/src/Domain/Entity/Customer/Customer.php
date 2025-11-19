@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Customer;
 
-use App\Domain\DTO\CustomerPayload;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Payload\Customer\CustomerPayload;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Name;
@@ -32,6 +32,8 @@ class Customer
         private(set) Address $address,
     ) {
     }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static function fromPayload(CustomerPayload $payload): self
     {

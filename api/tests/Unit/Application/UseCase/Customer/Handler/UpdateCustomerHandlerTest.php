@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Customer\Handler;
 
+use App\Application\Dto\Customer\Input\CustomerAddressInput;
+use App\Application\Dto\Customer\Input\CustomerInput;
+use App\Application\Dto\Customer\Input\Mapper\UpdateCustomerMapper;
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\UseCase\Customer\Handler\UpdateCustomerHandler;
-use App\Application\UseCase\Customer\Input\CustomerAddressInput;
-use App\Application\UseCase\Customer\Input\CustomerInput;
-use App\Application\UseCase\Customer\Input\Mapper\UpdateCustomerMapper;
-use App\Application\UseCase\Customer\Output\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\Mapper\CustomerOutputMapper;
+use App\Application\UseCase\Customer\UpdateCustomerUseCase;
 use App\Domain\Entity\Customer\Customer;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Unit\Application\Stub\CustomerRepositoryStub;
@@ -64,11 +64,11 @@ final class UpdateCustomerHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(?Customer $customer = null): UpdateCustomerHandler
+    private function createHandler(?Customer $customer = null): UpdateCustomerUseCase
     {
         $repository = new CustomerRepositoryStub($customer);
 
-        return new UpdateCustomerHandler(
+        return new UpdateCustomerUseCase(
             customerRepository: $repository,
             entityFetcher: EntityFetcherStub::create(
                 customerRepository: $repository,

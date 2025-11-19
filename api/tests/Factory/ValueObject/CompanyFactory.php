@@ -23,7 +23,6 @@ final class CompanyFactory extends ObjectFactory
     {
         return [
             'legalName' => self::faker()->company(),
-            'logo' => CompanyLogoFactory::new(),
             'contact' => ContactFactory::new(),
             'address' => AddressFactory::new(),
             'defaultCurrency' => self::faker()->currencyCode(),

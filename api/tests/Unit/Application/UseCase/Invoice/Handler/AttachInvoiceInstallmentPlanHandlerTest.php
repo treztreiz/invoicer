@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Dto\Invoice\Input\Installment\InstallmentPlanInput;
+use App\Application\Dto\Invoice\Input\Mapper\InvoiceInstallmentPlanMapper;
+use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Service\Document\InstallmentAllocator;
-use App\Application\UseCase\Invoice\Handler\AttachInvoiceInstallmentPlanHandler;
-use App\Application\UseCase\Invoice\Input\InvoiceInstallmentPlanInput;
-use App\Application\UseCase\Invoice\Input\Mapper\InvoiceInstallmentPlanMapper;
-use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\UseCase\Invoice\Task\AttachInvoiceInstallmentPlanTask;
+use App\Application\UseCase\Invoice\Installment\AttachInstallmentPlanTask;
+use App\Application\UseCase\Invoice\Installment\AttachInstallmentPlanUseCase;
 use App\Domain\Entity\Document\Invoice;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
@@ -30,18 +30,18 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
 {
     use Factories;
 
-    private InvoiceInstallmentPlanInput $planInput;
+    private InstallmentPlanInput $planInput;
 
-    private AttachInvoiceInstallmentPlanTask $task;
+    private AttachInstallmentPlanTask $task;
 
     protected function setUp(): void
     {
-        $this->planInput = new InvoiceInstallmentPlanInput([
+        $this->planInput = new InstallmentPlanInput([
             ['percentage' => 50, 'dueDate' => '2025-01-01'],
             ['percentage' => 50, 'dueDate' => '2025-02-01'],
         ]);
 
-        $this->task = new AttachInvoiceInstallmentPlanTask(
+        $this->task = new AttachInstallmentPlanTask(
             invoiceId: Uuid::v7()->toRfc4122(),
             input: $this->planInput,
         );
@@ -88,7 +88,7 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
     {
         $invoice = InvoiceFactory::build()->withInstallmentPlan()->create();
 
-        $task = new AttachInvoiceInstallmentPlanTask(
+        $task = new AttachInstallmentPlanTask(
             invoiceId: Uuid::v7()->toRfc4122(),
             input: $this->planInput,
             replaceExisting: true,
@@ -103,11 +103,11 @@ final class AttachInvoiceInstallmentPlanHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(Invoice $invoice): AttachInvoiceInstallmentPlanHandler
+    private function createHandler(Invoice $invoice): AttachInstallmentPlanUseCase
     {
         $invoiceRepository = new InvoiceRepositoryStub($invoice);
 
-        return new AttachInvoiceInstallmentPlanHandler(
+        return new AttachInstallmentPlanUseCase(
             invoiceRepository: $invoiceRepository,
             entityFetcher: EntityFetcherStub::create(invoiceRepository: $invoiceRepository),
             outputMapper: new InvoiceOutputMapper(),

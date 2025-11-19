@@ -10,6 +10,9 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Tests\Factory\User\UserFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 
+/**
+ * @testType functional
+ */
 final class UserApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;
@@ -31,8 +34,8 @@ final class UserApiTest extends ApiTestCase
         static::assertSame($user?->userIdentifier, $data['email']);
         static::assertSame($user?->locale, $data['locale']);
         static::assertSame($user?->company->legalName, $data['company']['legalName']);
-        static::assertArrayHasKey('logoUrl', $data['company']);
-        static::assertNull($data['company']['logoUrl']);
+        static::assertArrayHasKey('logoUrl', $data);
+        static::assertNull($data['logoUrl']);
     }
 
     public function test_update_me_persists_changes(): void

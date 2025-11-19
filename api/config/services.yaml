@@ -16,6 +16,7 @@ services:
         exclude:
             - '../src/Domain'
             - '../src/Kernel.php'
+            - '../src/Infrastructure/ObjectMapper/Compat/'
 
     App\Application\:
         resource: '../src/Application/'
@@ -25,6 +26,8 @@ services:
 
     App\Infrastructure\:
         resource: '../src/Infrastructure/'
+        exclude:
+            - '../src/Infrastructure/ObjectMapper/Compat/'
 
     # PostgreSQL `CREATE SCHEMA public` fix
     # See https://github.com/doctrine/migrations/issues/1415

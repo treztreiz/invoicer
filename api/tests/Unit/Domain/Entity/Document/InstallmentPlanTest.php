@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
-use App\Domain\DTO\InstallmentPayload;
-use App\Domain\DTO\InstallmentPlanPayload;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Payload\Document\Invoice\InstallmentPayload;
+use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use PHPUnit\Framework\TestCase;
 
@@ -19,28 +19,27 @@ final class InstallmentPlanTest extends TestCase
     {
         $payload = new InstallmentPlanPayload([
             new InstallmentPayload(
-                position: 1,
+                id: null,
                 percentage: '40.00',
-                amount: AmountBreakdown::fromValues('400.00', '80.00', '480.00'),
                 dueDate: new \DateTimeImmutable('2025-01-01'),
             ),
             new InstallmentPayload(
-                position: 2,
+                id: null,
                 percentage: '60.00',
-                amount: AmountBreakdown::fromValues('600.00', '120.00', '720.00'),
                 dueDate: new \DateTimeImmutable('2025-02-01'),
             ),
         ]);
 
-        $plan = InstallmentPlan::fromPayload($payload);
+        $invoiceTotal = AmountBreakdown::fromValues('1000.00', '200.00', '1200.00');
+        $plan = InstallmentPlan::fromPayload($payload, $invoiceTotal);
         $installments = $plan->installments();
 
         static::assertCount(2, $installments);
-        static::assertSame(1, $installments[0]->position);
+        static::assertSame(0, $installments[0]->position);
         static::assertSame('40.00', $installments[0]->percentage);
         static::assertSame('480.00', $installments[0]->amount->gross->value);
 
-        static::assertSame(2, $installments[1]->position);
+        static::assertSame(1, $installments[1]->position);
         static::assertSame('60.00', $installments[1]->percentage);
         static::assertSame('720.00', $installments[1]->amount->gross->value);
     }

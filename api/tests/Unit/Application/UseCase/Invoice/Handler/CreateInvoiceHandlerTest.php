@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Dto\Invoice\Input\InvoiceInput;
+use App\Application\Dto\Invoice\Input\Mapper\InvoicePayloadMapper;
+use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
-use App\Application\UseCase\Invoice\Handler\CreateInvoiceHandler;
-use App\Application\UseCase\Invoice\Input\InvoiceInput;
-use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
-use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
+use App\Application\UseCase\Invoice\CreateInvoiceUseCase;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\InvoiceRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
@@ -94,7 +94,7 @@ final class CreateInvoiceHandlerTest extends TestCase
         ?InvoiceRepositoryInterface $repository = null,
         ?UserRepositoryInterface $userRepository = null,
         ?CustomerRepositoryInterface $customerRepository = null,
-    ): CreateInvoiceHandler {
+    ): CreateInvoiceUseCase {
         $repository ??= new InvoiceRepositoryStub();
         $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
         $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
@@ -104,7 +104,7 @@ final class CreateInvoiceHandlerTest extends TestCase
             new DocumentLinePayloadFactory(new DocumentLineFactory()),
         );
 
-        return new CreateInvoiceHandler(
+        return new CreateInvoiceUseCase(
             invoiceRepository: $repository,
             mapper: $payloadMapper,
             outputMapper: new InvoiceOutputMapper(),

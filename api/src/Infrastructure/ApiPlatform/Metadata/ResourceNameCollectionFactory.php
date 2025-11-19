@@ -6,10 +6,9 @@ namespace App\Infrastructure\ApiPlatform\Metadata;
 
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceNameCollection;
-use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 
-#[AsDecorator(decorates: 'api_platform.metadata.resource.name_collection_factory')]
+// #[AsDecorator(decorates: 'api_platform.metadata.resource.name_collection_factory')]
 final readonly class ResourceNameCollectionFactory implements ResourceNameCollectionFactoryInterface
 {
     public function __construct(

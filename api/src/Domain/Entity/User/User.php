@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\User;
 
-use App\Domain\DTO\UserUpdateProfilePayload;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Guard\DomainGuard;
+use App\Domain\Payload\User\UserPayload;
 use App\Domain\ValueObject\Company;
+use App\Domain\ValueObject\CompanyLogo;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Name;
 use Doctrine\DBAL\Types\Types;
@@ -34,6 +35,9 @@ class User
 
         #[ORM\Embedded]
         private(set) Company $company,
+
+        #[ORM\Embedded]
+        private(set) readonly CompanyLogo $companyLogo,
 
         #[ORM\Column(length: 180, unique: true)]
         private(set) string $userIdentifier {
@@ -64,13 +68,13 @@ class User
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function updateProfile(UserUpdateProfilePayload $payload): void
+    public function applyPayload(UserPayload $payload): void
     {
         $this->name = $payload->name;
         $this->contact = $payload->contact;
         $this->company = $payload->company;
-        $this->locale = $payload->locale;
         $this->userIdentifier = $payload->userIdentifier;
+        $this->locale = $payload->locale;
     }
 
     public function updatePassword(string $password): void

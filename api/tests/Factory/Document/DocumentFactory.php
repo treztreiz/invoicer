@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Factory\Document;
 
 use App\Domain\Entity\Document\Document;
+use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use App\Tests\Factory\ValueObject\VatRateFactory;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
@@ -20,9 +21,11 @@ abstract class DocumentFactory extends PersistentObjectFactory
     {
         return [
             'title' => static::faker()->title(),
+            'subtitle' => null,
             'currency' => static::faker()->currencyCode(),
             'vatRate' => VatRateFactory::new(),
             'total' => AmountBreakdownFactory::new(),
+            'customer' => CustomerFactory::new(),
             'customerSnapshot' => [],
             'companySnapshot' => [],
         ];

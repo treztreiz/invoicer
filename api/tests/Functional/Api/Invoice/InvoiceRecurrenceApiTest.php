@@ -12,6 +12,9 @@ use App\Tests\Factory\Document\Invoice\InvoiceRecurrenceFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 
+/**
+ * @testType functional
+ */
 final class InvoiceRecurrenceApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;

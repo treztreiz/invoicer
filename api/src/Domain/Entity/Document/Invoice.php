@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
-use App\Domain\DTO\InvoicePayload;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Payload\Document\InvoicePayload;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
 use Doctrine\DBAL\Types\Types;
@@ -47,21 +49,29 @@ class Invoice extends Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function fromPayload(InvoicePayload $payload): self
-    {
-        $invoice = self::fromDocumentPayload($payload);
+    public static function fromPayload(
+        InvoicePayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): self {
+        $invoice = self::fromDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
         $invoice->dueDate = $payload->dueDate;
 
         return $invoice;
     }
 
-    public function applyPayload(InvoicePayload $payload): void
-    {
+    public function applyPayload(
+        InvoicePayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): void {
         if (InvoiceStatus::DRAFT !== $this->status) {
             throw new \LogicException('Only draft invoices can be updated.');
         }
 
-        parent::applyDocumentPayload($payload);
+        parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
 
         $this->dueDate = $payload->dueDate;
     }
@@ -138,6 +148,8 @@ class Invoice extends Document
         return $this;
     }
 
+    // RECURRENCE //////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public function attachRecurrence(InvoiceRecurrence $recurrence): void
     {
         $this->assertNotGeneratedFromSeed();
@@ -149,9 +161,17 @@ class Invoice extends Document
         $this->recurrence = $recurrence;
     }
 
+    public function detachRecurrence(): void
+    {
+        $this->recurrence = null;
+    }
+
+    // INSTALLMENTS ////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public function attachInstallmentPlan(InstallmentPlan $plan): void
     {
         $this->assertNotGeneratedFromSeed();
+        $this->assertInstallmentPlanDetachable();
 
         if (null !== $this->recurrence) {
             throw new \LogicException('Invoices cannot have both an installment plan and a recurrence.');
@@ -160,15 +180,31 @@ class Invoice extends Document
         $this->installmentPlan = $plan;
     }
 
-    public function detachRecurrence(): void
+    public function updateInstallmentPlan(InstallmentPlanPayload $payload): void
     {
-        $this->recurrence = null;
+        if (null === $this->installmentPlan) {
+            throw new \LogicException('No installment plan is set.');
+        }
+
+        $this->installmentPlan->applyPayload($payload);
     }
 
     public function detachInstallmentPlan(): void
     {
+        $this->assertInstallmentPlanDetachable();
         $this->installmentPlan = null;
     }
+
+    private function assertInstallmentPlanDetachable(): void
+    {
+        if (null === $this->installmentPlan) {
+            return;
+        }
+
+        $this->installmentPlan->assertDetachable();
+    }
+
+    // SEED ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function markGeneratedFromRecurrence(Uuid $seedId): void
     {

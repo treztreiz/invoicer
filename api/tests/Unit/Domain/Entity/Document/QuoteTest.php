@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
-use App\Domain\DTO\QuotePayload;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Quote;
 use App\Domain\Enum\QuoteStatus;
+use App\Domain\Payload\Document\QuotePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -91,7 +92,7 @@ final class QuoteTest extends TestCase
     public static function createQuote(): Quote
     {
         return Quote::fromPayload(
-            new QuotePayload(
+            payload: new QuotePayload(
                 title: 'Sample quote',
                 subtitle: null,
                 currency: 'EUR',
@@ -104,7 +105,8 @@ final class QuoteTest extends TestCase
                 lines: [],
                 customerSnapshot: ['name' => 'Client'],
                 companySnapshot: ['name' => 'My Company']
-            )
+            ),
+            customer: static::createStub(Customer::class),
         );
     }
 }

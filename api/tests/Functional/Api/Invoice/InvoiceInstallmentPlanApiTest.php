@@ -12,6 +12,9 @@ use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
 use App\Tests\Factory\Document\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 
+/**
+ * @testType functional
+ */
 final class InvoiceInstallmentPlanApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;

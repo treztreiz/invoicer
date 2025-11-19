@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Service\Document;
 
-use App\Application\Service\MoneyMath;
-use App\Application\UseCase\Document\Input\DocumentLineInput;
-use App\Domain\DTO\DocumentLinePayload;
+use App\Application\Dto\Document\Input\DocumentLineInput;
 use App\Domain\Enum\RateUnit;
+use App\Domain\Payload\Document\DocumentLinePayload;
+use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
@@ -15,12 +15,11 @@ use App\Domain\ValueObject\Quantity;
 final readonly class DocumentLineFactory
 {
     /**
-     * @param array<string, mixed>|DocumentLineInput $input
-     * @param numeric-string                         $vatRate
+     * @param numeric-string $vatRate
      */
-    public function create(array|DocumentLineInput $input, string $vatRate, int $position): DocumentLinePayload
+    public function create(DocumentLineInput $input, string $vatRate, int $position): DocumentLinePayload
     {
-        return $this->buildPayload($this->normalizeInput($input), $vatRate, $position);
+        return $this->buildPayload($input, $vatRate, $position);
     }
 
     /**
@@ -43,22 +42,6 @@ final readonly class DocumentLineFactory
             amount: AmountBreakdown::fromValues($net, $tax, $gross),
             position: $position,
             lineId: $line->lineId
-        );
-    }
-
-    /** @param array<string, mixed>|DocumentLineInput $input */
-    private function normalizeInput(array|DocumentLineInput $input): DocumentLineInput
-    {
-        if ($input instanceof DocumentLineInput) {
-            return $input;
-        }
-
-        return new DocumentLineInput(
-            description: (string) ($input['description'] ?? ''),
-            quantity: (float) ($input['quantity'] ?? 0),
-            rateUnit: (string) ($input['rateUnit'] ?? RateUnit::HOURLY->value),
-            rate: (float) ($input['rate'] ?? 0),
-            lineId: isset($input['lineId']) ? (string) $input['lineId'] : null,
         );
     }
 }

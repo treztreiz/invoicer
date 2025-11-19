@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
-use App\Domain\DTO\InvoiceRecurrencePayload;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
+use App\Domain\Payload\Document\Invoice\InvoiceRecurrencePayload;
 use PHPUnit\Framework\TestCase;
 
 /**

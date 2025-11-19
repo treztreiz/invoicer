@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Service\Document;
 
-use App\Application\Service\MoneyMath;
-use App\Application\UseCase\Document\Input\DocumentLineInput;
-use App\Domain\DTO\DocumentLinePayloadCollection;
+use App\Application\Dto\Document\Input\DocumentLineInput;
+use App\Domain\Payload\Document\DocumentLinePayloadCollection;
+use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\AmountBreakdown;
 
 final readonly class DocumentLinePayloadFactory
@@ -16,8 +16,8 @@ final readonly class DocumentLinePayloadFactory
     }
 
     /**
-     * @param list<DocumentLineInput|array<string, mixed>> $lines
-     * @param numeric-string                               $vatRate
+     * @param list<DocumentLineInput> $lines
+     * @param numeric-string          $vatRate
      */
     public function build(array $lines, string $vatRate): DocumentLinePayloadCollection
     {

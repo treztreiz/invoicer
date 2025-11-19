@@ -11,11 +11,10 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 
-#[AsDecorator(decorates: 'api_platform.metadata.resource.metadata_collection_factory')]
+// #[AsDecorator(decorates: 'api_platform.metadata.resource.metadata_collection_factory')]
 final readonly class ResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
     /**

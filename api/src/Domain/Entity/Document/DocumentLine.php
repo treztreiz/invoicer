@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
-use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Enum\RateUnit;
 use App\Domain\Guard\DomainGuard;
+use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
@@ -51,6 +51,8 @@ class DocumentLine
         },
     ) {
     }
+
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static function fromPayload(Document $document, DocumentLinePayload $payload): self
     {

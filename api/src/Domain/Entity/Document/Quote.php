@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
-use App\Domain\DTO\QuotePayload;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Enum\QuoteStatus;
+use App\Domain\Payload\Document\QuotePayload;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,18 +35,26 @@ class Quote extends Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function fromPayload(QuotePayload $payload): self
-    {
-        return self::fromDocumentPayload($payload);
+    public static function fromPayload(
+        QuotePayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): self {
+        return self::fromDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
     }
 
-    public function applyPayload(QuotePayload $payload): void
-    {
+    public function applyPayload(
+        QuotePayload $payload,
+        Customer $customer,
+        array $customerSnapshot,
+        array $companySnapshot,
+    ): void {
         if (QuoteStatus::DRAFT !== $this->status) {
             throw new \LogicException('Only draft quotes can be updated.');
         }
 
-        parent::applyDocumentPayload($payload);
+        parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
     }
 
     public function send(\DateTimeImmutable $sentAt): self

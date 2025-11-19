@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
-use App\Domain\DTO\InvoicePayload;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\Payload\Document\InvoicePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -143,7 +144,7 @@ final class InvoiceTest extends TestCase
     public static function createInvoice(): Invoice
     {
         return Invoice::fromPayload(
-            new InvoicePayload(
+            payload: new InvoicePayload(
                 title: 'Sample invoice',
                 subtitle: null,
                 currency: 'EUR',
@@ -157,7 +158,8 @@ final class InvoiceTest extends TestCase
                 customerSnapshot: ['name' => 'Client'],
                 companySnapshot: ['name' => 'My Company'],
                 dueDate: null
-            )
+            ),
+            customer: static::createStub(Customer::class),
         );
     }
 }

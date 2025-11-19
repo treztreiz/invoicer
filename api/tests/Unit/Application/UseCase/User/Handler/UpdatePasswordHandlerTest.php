@@ -6,9 +6,9 @@ namespace App\Tests\Unit\Application\UseCase\User\Handler;
 
 use ApiPlatform\Validator\Exception\ValidationException;
 use App\Application\Contract\UserPasswordHasherInterface;
+use App\Application\Dto\User\Input\PasswordInput;
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\UseCase\User\Handler\UpdatePasswordHandler;
-use App\Application\UseCase\User\Input\PasswordInput;
+use App\Application\UseCase\User\UpdatePasswordUseCase;
 use App\Domain\Entity\User\User;
 use App\Tests\Factory\User\UserFactory;
 use App\Tests\Unit\Application\Stub\EntityFetcherStub;
@@ -71,11 +71,11 @@ final class UpdatePasswordHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(?User $user = null, ?UserPasswordHasherInterface $hasher = null): UpdatePasswordHandler
+    private function createHandler(?User $user = null, ?UserPasswordHasherInterface $hasher = null): UpdatePasswordUseCase
     {
         $repository = new UserRepositoryStub($user);
 
-        return new UpdatePasswordHandler(
+        return new UpdatePasswordUseCase(
             userRepository: $repository,
             entityFetcher: EntityFetcherStub::create(userRepository: $repository),
             passwordHasher: $hasher ?: static::createMock(UserPasswordHasherInterface::class),

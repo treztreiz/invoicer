@@ -12,7 +12,9 @@ use App\Tests\Factory\ValueObject\NameFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use Symfony\Component\Uid\Uuid;
 
-// TODO: Make sure (un)archived customer is removed/restored from get and get collection lists
+/**
+ * @testType functional
+ */
 final class CustomerApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;
@@ -44,8 +46,8 @@ final class CustomerApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
         CustomerFactory::createSequence([
-            ['name' => NameFactory::new(['lastName' => 'Zephyr'])],
             ['name' => NameFactory::new(['lastName' => 'Yellow'])],
+            ['name' => NameFactory::new(['lastName' => 'Zephyr'])],
         ]);
 
         $response = $this->apiRequest($client, 'GET', '/api/customers');

@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Quote\Handler;
 
+use App\Application\Dto\Quote\Input\Mapper\QuotePayloadMapper;
+use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
-use App\Application\UseCase\Quote\Handler\UpdateQuoteHandler;
-use App\Application\UseCase\Quote\Input\Mapper\QuotePayloadMapper;
-use App\Application\UseCase\Quote\Input\QuoteInput;
-use App\Application\UseCase\Quote\Output\Mapper\QuoteOutputMapper;
-use App\Application\UseCase\Quote\Task\UpdateQuoteTask;
+use App\Application\UseCase\Quote\Dto\Output\Mapper\QuoteOutputMapper;
+use App\Application\UseCase\Quote\UpdateQuoteTask;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
@@ -115,7 +114,7 @@ final class UpdateQuoteHandlerTest extends TestCase
         Quote $quote,
         ?UserRepositoryInterface $userRepository = null,
         ?CustomerRepositoryInterface $customerRepository = null,
-    ): UpdateQuoteHandler {
+    ): \App\Application\UseCase\Quote\UpdateQuoteUseCase {
         $quoteRepository = new QuoteRepositoryStub($quote);
         $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
         $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
@@ -123,7 +122,7 @@ final class UpdateQuoteHandlerTest extends TestCase
         $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
         $payloadMapper = new QuotePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
 
-        return new UpdateQuoteHandler(
+        return new \App\Application\UseCase\Quote\UpdateQuoteUseCase(
             quoteRepository: $quoteRepository,
             payloadMapper: $payloadMapper,
             outputMapper: new QuoteOutputMapper(),

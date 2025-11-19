@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
+use App\Application\Dto\Invoice\Input\InvoiceInput;
+use App\Application\Dto\Invoice\Input\Mapper\InvoicePayloadMapper;
+use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Exception\ResourceNotFoundException;
 use App\Application\Service\Document\DocumentLineFactory;
 use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Document\DocumentSnapshotFactory;
-use App\Application\UseCase\Invoice\Handler\UpdateInvoiceHandler;
-use App\Application\UseCase\Invoice\Input\InvoiceInput;
-use App\Application\UseCase\Invoice\Input\Mapper\InvoicePayloadMapper;
-use App\Application\UseCase\Invoice\Output\Mapper\InvoiceOutputMapper;
-use App\Application\UseCase\Invoice\Task\UpdateInvoiceTask;
+use App\Application\UseCase\Invoice\UpdateInvoiceTask;
+use App\Application\UseCase\Invoice\UpdateInvoiceUseCase;
 use App\Domain\Contracts\CustomerRepositoryInterface;
 use App\Domain\Contracts\UserRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
@@ -116,7 +116,7 @@ final class UpdateInvoiceHandlerTest extends TestCase
         Invoice $invoice,
         ?UserRepositoryInterface $userRepository = null,
         ?CustomerRepositoryInterface $customerRepository = null,
-    ): UpdateInvoiceHandler {
+    ): UpdateInvoiceUseCase {
         $invoiceRepository = new InvoiceRepositoryStub($invoice);
         $userRepository ??= new UserRepositoryStub(UserFactory::build()->create());
         $customerRepository ??= new CustomerRepositoryStub(CustomerFactory::build()->create());
@@ -124,7 +124,7 @@ final class UpdateInvoiceHandlerTest extends TestCase
         $linePayloadFactory = new DocumentLinePayloadFactory(new DocumentLineFactory());
         $payloadMapper = new InvoicePayloadMapper(new DocumentSnapshotFactory(), $linePayloadFactory);
 
-        return new UpdateInvoiceHandler(
+        return new UpdateInvoiceUseCase(
             invoiceRepository: $invoiceRepository,
             payloadMapper: $payloadMapper,
             outputMapper: new InvoiceOutputMapper(),

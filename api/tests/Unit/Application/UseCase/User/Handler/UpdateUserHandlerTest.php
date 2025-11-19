@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\UseCase\User\Handler;
 
+use App\Application\Dto\User\Input\CompanyAddressInput;
+use App\Application\Dto\User\Input\CompanyInput;
+use App\Application\Dto\User\Input\Mapper\UpdateUserMapper;
+use App\Application\Dto\User\Input\UserInput;
+use App\Application\Dto\User\Output\Mapper\UserOutputMapper;
 use App\Application\Exception\ResourceNotFoundException;
-use App\Application\UseCase\User\Handler\UpdateUserHandler;
-use App\Application\UseCase\User\Input\CompanyAddressInput;
-use App\Application\UseCase\User\Input\CompanyInput;
-use App\Application\UseCase\User\Input\Mapper\UpdateUserMapper;
-use App\Application\UseCase\User\Input\UserInput;
-use App\Application\UseCase\User\Output\Mapper\UserOutputMapper;
+use App\Application\UseCase\User\UpdateUserUseCase;
 use App\Domain\Entity\User\User;
 use App\Tests\Factory\User\UserFactory;
 use App\Tests\Unit\Application\Stub\EntityFetcherStub;
@@ -76,11 +76,11 @@ final class UpdateUserHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(?User $user = null): UpdateUserHandler
+    private function createHandler(?User $user = null): UpdateUserUseCase
     {
         $repository = new UserRepositoryStub($user);
 
-        return new UpdateUserHandler(
+        return new UpdateUserUseCase(
             userRepository: $repository,
             entityFetcher: EntityFetcherStub::create(
                 userRepository: $repository,

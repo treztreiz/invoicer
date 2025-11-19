@@ -16,6 +16,9 @@ use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @testType functional
+ */
 final class QuoteApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;
@@ -51,7 +54,7 @@ final class QuoteApiTest extends ApiTestCase
 
         QuoteFactory::createMany(10);
 
-        $response = $this->apiRequest($client, 'GET', '/api/quotes?statuses=hello');
+        $response = $this->apiRequest($client, 'GET', '/api/quotes');
 
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
@@ -61,6 +64,20 @@ final class QuoteApiTest extends ApiTestCase
         static::assertNotEmpty($data['member'][0]['availableTransitions'] ?? []);
 
         QuoteFactory::assert()->count(10);
+    }
+
+    public function test_get_quote_returns_single_quote(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $quote = QuoteFactory::createOne(['title' => 'New quote']);
+
+        $response = $this->apiRequest($client, 'GET', sprintf('/api/quotes/%s', $quote->id->toRfc4122()));
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('New quote', $data['title']);
     }
 
     public function test_send_quote_transitions_to_sent(): void
@@ -134,8 +151,19 @@ final class QuoteApiTest extends ApiTestCase
                     'subtitle' => 'Updated scope',
                     'currency' => 'USD',
                     'lines' => [
-                        ['description' => 'Marketing', 'lineId' => $firstLine->id->toRfc4122()],
-                        ['description' => 'Consulting'],
+                        [
+                            'lineId' => $firstLine->id->toRfc4122(),
+                            'description' => 'Marketing',
+                            'quantity' => 10,
+                            'rateUnit' => 'HOURLY',
+                            'rate' => 80,
+                        ],
+                        [
+                            'description' => 'Consulting',
+                            'quantity' => 2,
+                            'rateUnit' => 'DAILY',
+                            'rate' => 600,
+                        ],
                     ],
                 ]
             ),
