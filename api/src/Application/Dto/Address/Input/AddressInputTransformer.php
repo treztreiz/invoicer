@@ -14,7 +14,7 @@ use App\Domain\ValueObject\Address;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<CustomerInput|UserInput, CustomerPayload|UserPayload> */
-class AddressInputTransformer implements TransformCallableInterface
+final class AddressInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
 

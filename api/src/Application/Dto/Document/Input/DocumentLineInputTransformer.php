@@ -15,7 +15,7 @@ use App\Domain\Payload\Document\QuotePayload;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<InvoiceInput|QuoteInput, InvoicePayload|QuotePayload> */
-class DocumentLineInputTransformer implements TransformCallableInterface
+final class DocumentLineInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
 

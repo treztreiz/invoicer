@@ -15,7 +15,7 @@ final class InvoiceRecurrenceOutputTransformer implements TransformCallableInter
     use ObjectMapperAwareTrait;
 
     /**
-     * @param InvoiceRecurrence $value
+     * @param ?InvoiceRecurrence $value
      */
     public function __invoke(mixed $value, object $source, ?object $target): ?InvoiceRecurrenceOutput
     {

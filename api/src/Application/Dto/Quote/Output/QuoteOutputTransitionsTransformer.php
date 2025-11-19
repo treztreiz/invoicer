@@ -10,7 +10,7 @@ use App\Domain\Entity\Document\Quote;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<Quote, QuoteOutput> */
-readonly class QuoteOutputTransitionsTransformer implements TransformCallableInterface
+final class QuoteOutputTransitionsTransformer implements TransformCallableInterface
 {
     use DocumentWorkflowManagerAwareTrait;
 

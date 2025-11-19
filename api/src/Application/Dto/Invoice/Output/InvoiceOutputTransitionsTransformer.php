@@ -10,7 +10,7 @@ use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<Invoice, InvoiceOutput> */
-readonly class InvoiceOutputTransitionsTransformer implements TransformCallableInterface
+final class InvoiceOutputTransitionsTransformer implements TransformCallableInterface
 {
     use DocumentWorkflowManagerAwareTrait;
 

@@ -66,6 +66,7 @@ class InstallmentPlan
         return $installment;
     }
 
+    /** @param list<InstallmentPayload> $installmentPayloads */
     private function synchronizeInstallments(array $installmentPayloads, AmountBreakdown $invoiceTotal): void
     {
         $amounts = $this->allocateAmounts($installmentPayloads, $invoiceTotal);
@@ -120,6 +121,7 @@ class InstallmentPlan
      */
     private function allocateAmounts(array $installmentPayloads, AmountBreakdown $total): array
     {
+        /** @var array<numeric-string> $percentages */
         $percentages = array_map(static fn (InstallmentPayload $installment) => $installment->percentage, $installmentPayloads);
         $this->assertTotal($percentages);
 

@@ -36,7 +36,7 @@ class DateParameter
             constraints: [new Assert\Type(\DateTimeImmutable::class, message: 'This value is not a valid date. Expected format: "Y-m-d".')],
             nativeType: new ObjectType(\DateTimeImmutable::class),
             castToNativeType: true,
-            castFn: static fn (string $date) => \DateTimeImmutable::createFromFormat('Y-m-d', $date) ?? $date,
+            castFn: static fn (string $date) => \DateTimeImmutable::createFromFormat('Y-m-d', $date) ?: $date,
         );
     }
 }

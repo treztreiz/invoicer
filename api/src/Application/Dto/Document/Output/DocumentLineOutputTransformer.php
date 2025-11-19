@@ -27,9 +27,11 @@ final class DocumentLineOutputTransformer implements TransformCallableInterface
      */
     public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        return TypeGuard::assertClass(Collection::class, $value)
-            ->map(fn (DocumentLine $documentLine) => $this->transform($documentLine))
-            ->toArray();
+        return array_values(
+            TypeGuard::assertClass(Collection::class, $value)
+                ->map(fn (DocumentLine $documentLine) => $this->transform($documentLine))
+                ->toArray()
+        );
     }
 
     private function transform(DocumentLine $documentLine): DocumentLineOutput

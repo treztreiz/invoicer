@@ -10,16 +10,21 @@ use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<InstallmentPlanInput, InstallmentPlanPayload> */
-class InstallmentInputTransformer implements TransformCallableInterface
+final class InstallmentInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
 
-    /** @param InstallmentInput[] $value */
+    /** @param InstallmentInput[] $value
+     *
+     * @return list<InstallmentPayload>
+     */
     public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        return array_map(
-            fn (InstallmentInput $installmentInput) => $this->transform($installmentInput),
-            $value
+        return array_values(
+            array_map(
+                fn (InstallmentInput $installmentInput) => $this->transform($installmentInput),
+                $value
+            )
         );
     }
 

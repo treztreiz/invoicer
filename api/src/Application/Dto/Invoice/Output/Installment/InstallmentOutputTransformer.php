@@ -18,12 +18,16 @@ final class InstallmentOutputTransformer implements TransformCallableInterface
 
     /**
      * @param list<InstallmentPlan> $value
+     *
+     * @return list<InstallmentOutput>
      */
     public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        return TypeGuard::assertClass(Collection::class, $value)
-            ->map(fn (Installment $installment) => $this->transform($installment))
-            ->toArray();
+        return array_values(
+            TypeGuard::assertClass(Collection::class, $value)
+                ->map(fn (Installment $installment) => $this->transform($installment))
+                ->toArray()
+        );
     }
 
     private function transform(Installment $installment): InstallmentOutput

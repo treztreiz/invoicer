@@ -72,6 +72,9 @@ class InvoiceRecurrence
         );
     }
 
+    /**
+     * @param array<string, mixed> $propertyRequirements
+     */
     private function assertEndStrategyProperties(array $propertyRequirements): void
     {
         if (!isset($propertyRequirements['endDate']) || !is_bool($propertyRequirements['endDate'])) {

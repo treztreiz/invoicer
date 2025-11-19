@@ -23,6 +23,10 @@ class OutputTransformer
 
     public static function valueObject(object $valueObject, object $source): mixed
     {
+        if (false === property_exists($valueObject, 'value')) {
+            throw new \InvalidArgumentException("Property 'value' does not exist.");
+        }
+
         return $valueObject->value;
     }
 
