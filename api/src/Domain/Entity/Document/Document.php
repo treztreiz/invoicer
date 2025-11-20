@@ -9,8 +9,11 @@ use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Customer\Customer;
+use App\Domain\Entity\Document\Invoice\Invoice;
+use App\Domain\Entity\Document\Quote\Quote;
 use App\Domain\Guard\DomainGuard;
-use App\Domain\Payload\Document\DocumentLinePayload;
+use App\Domain\Payload\Document\ComputedLinePayload;
+use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,7 +21,15 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/** @phpstan-consistent-constructor */
+/**
+ * @phpstan-consistent-constructor
+ *
+ * @phpstan-type NameSnapshot array{first: string, last: string}
+ * @phpstan-type ContactSnapshot array{email: string|null, phone: string|null}
+ * @phpstan-type AddressSnapshot array{streetLine1: string, streetLine2: string|null, postalCode: string, city: string, region: string|null, countryCode: string}
+ * @phpstan-type CustomerSnapshot array{id: string|null, name: NameSnapshot, contact: ContactSnapshot, address: AddressSnapshot}
+ * @phpstan-type CompanySnapshot array{legalName: string, contact: ContactSnapshot, address: AddressSnapshot, defaultCurrency: string, defaultHourlyRate: string, defaultDailyRate: string, defaultVatRate: string, legalMention: string|null}
+ */
 #[ORM\Entity]
 #[ORM\Table(name: 'document')]
 #[ORM\InheritanceType('JOINED')]
@@ -41,6 +52,13 @@ abstract class Document
     #[ORM\OrderBy(['position' => 'ASC'])]
     protected(set) Collection $lines;
 
+    #[ORM\Embedded]
+    protected(set) AmountBreakdown $total;
+
+    /**
+     * @param CustomerSnapshot $customerSnapshot
+     * @param CompanySnapshot  $companySnapshot
+     */
     public function __construct(
         #[ORM\Column(length: 200)]
         protected(set) string $title {
@@ -61,18 +79,13 @@ abstract class Document
         #[ORM\Embedded]
         protected(set) VatRate $vatRate,
 
-        #[ORM\Embedded]
-        protected(set) AmountBreakdown $total,
-
         #[ORM\ManyToOne(targetEntity: Customer::class)]
         #[ORM\JoinColumn(nullable: false)]
         protected(set) Customer $customer,
 
-        /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $customerSnapshot,
 
-        /** @var array<string, mixed> */
         #[ORM\Column(type: Types::JSON)]
         protected(set) array $companySnapshot,
     ) {
@@ -81,6 +94,10 @@ abstract class Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @param CustomerSnapshot $customerSnapshot
+     * @param CompanySnapshot  $companySnapshot
+     */
     protected static function fromDocumentPayload(
         DocumentPayloadInterface $payload,
         Customer $customer,
@@ -92,19 +109,20 @@ abstract class Document
             subtitle: $payload->subtitle,
             currency: $payload->currency,
             vatRate: $payload->vatRate,
-            total: $payload->linesPayload->total,
             customer: $customer,
             customerSnapshot: $customerSnapshot,
             companySnapshot: $companySnapshot,
         );
 
-        foreach ($payload->linesPayload->lines as $linePayload) {
-            $document->addLine($linePayload);
-        }
+        $document->computePayload($payload);
 
         return $document;
     }
 
+    /**
+     * @param CustomerSnapshot $customerSnapshot
+     * @param CompanySnapshot  $companySnapshot
+     */
     protected function applyDocumentPayload(
         DocumentPayloadInterface $payload,
         Customer $customer,
@@ -115,35 +133,58 @@ abstract class Document
         $this->subtitle = $payload->subtitle;
         $this->currency = $payload->currency;
         $this->vatRate = $payload->vatRate;
-        $this->total = $payload->linesPayload->total;
         $this->customer = $customer;
         $this->customerSnapshot = $customerSnapshot;
         $this->companySnapshot = $companySnapshot;
 
-        $this->applyLinePayloads($payload->linesPayload->lines);
+        $this->computePayload($payload);
     }
 
-    protected function addLine(DocumentLinePayload $payload): DocumentLine
+    private function computePayload(DocumentPayloadInterface $payload): void
     {
-        $line = DocumentLine::fromPayload($this, $payload);
+        $computedLines = [];
+        $totalNet = '0.00';
+        $totalTax = '0.00';
 
-        if (!$this->lines->contains($line)) {
-            $this->lines->add($line);
+        // compute lines and total
+        foreach ($payload->linesPayload as $position => $linePayload) {
+            $net = MoneyMath::multiply($linePayload->quantity->value, $linePayload->rate->value);
+            $tax = MoneyMath::percentage($net, $payload->vatRate->value);
+            $gross = MoneyMath::add($net, $tax);
+
+            $computedLines[] = new ComputedLinePayload(
+                payload: $linePayload,
+                amount: AmountBreakdown::fromValues($net, $tax, $gross),
+                position: $position,
+            );
+
+            $totalNet = MoneyMath::add($totalNet, $net);
+            $totalTax = MoneyMath::add($totalTax, $tax);
         }
 
-        return $line;
+        // Update total
+        $this->total = AmountBreakdown::fromValues(
+            net: $totalNet,
+            tax: $totalTax,
+            gross: MoneyMath::add($totalNet, $totalTax)
+        );
+
+        // Apply lines
+        $this->applyLinePayloads($computedLines);
     }
 
+    // DOCUMENT LINES //////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
-     * @param list<DocumentLinePayload> $linePayloads
+     * @param list<ComputedLinePayload> $linePayloads
      */
-    protected function applyLinePayloads(array $linePayloads): void
+    private function applyLinePayloads(array $linePayloads): void
     {
         $existingLinePayloads = [];
 
         foreach ($linePayloads as $linePayload) {
-            null !== $linePayload->lineId
-                ? $existingLinePayloads[$linePayload->lineId] = $linePayload
+            null !== $linePayload->id
+                ? $existingLinePayloads[$linePayload->id->toRfc4122()] = $linePayload
                 : $this->addLine($linePayload);
         }
 
@@ -156,5 +197,16 @@ abstract class Document
                 ? $line->applyPayload($existingLinePayloads[$lineId])
                 : $this->lines->removeElement($line);
         }
+    }
+
+    private function addLine(ComputedLinePayload $payload): DocumentLine
+    {
+        $line = DocumentLine::fromPayload($this, $payload);
+
+        if (!$this->lines->contains($line)) {
+            $this->lines->add($line);
+        }
+
+        return $line;
     }
 }

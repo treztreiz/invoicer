@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Domain\Entity\Document;
 
-use App\Tests\Factory\Document\QuoteFactory;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -21,7 +20,7 @@ final class QuoteStatusEnumPersistenceTest extends KernelTestCase
 
     public function test_quote_status_constraint_blocks_invalid_value(): void
     {
-        $quote = QuoteFactory::createOne();
+        $quote = \App\Tests\Factory\Document\Quote\QuoteFactory::createOne();
 
         $this->expectException(DriverException::class);
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts\Repository;
 
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use Symfony\Component\Uid\Uuid;
 
 interface InvoiceRepositoryInterface

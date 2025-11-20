@@ -15,7 +15,7 @@ use App\Application\UseCase\Invoice\CreateInvoiceUseCase;
 use App\Domain\Contracts\Repository\CustomerRepositoryInterface;
 use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
 use App\Domain\Contracts\Repository\UserRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\User\UserFactory;
 use App\Tests\Unit\Application\Stub\CustomerRepositoryStub;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Entity\Document;
 
-use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
+use App\Domain\Entity\Document\Invoice\Recurrence;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
-use App\Domain\Payload\Document\Invoice\InvoiceRecurrencePayload;
+use App\Domain\Payload\Invoice\Recurrence\RecurrencePayload;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,7 +27,7 @@ final class InvoiceRecurrenceTest extends TestCase
 
     public function test_interval_must_be_positive(): void
     {
-        $payload = new InvoiceRecurrencePayload(
+        $payload = new RecurrencePayload(
             frequency: RecurrenceFrequency::MONTHLY,
             interval: 0,
             anchorDate: new \DateTimeImmutable('2025-01-01'),
@@ -38,15 +38,15 @@ final class InvoiceRecurrenceTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        InvoiceRecurrence::fromPayload($payload);
+        Recurrence::fromPayload($payload);
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function createRecurrence(): InvoiceRecurrence
+    public static function createRecurrence(): Recurrence
     {
-        return InvoiceRecurrence::fromPayload(
-            new InvoiceRecurrencePayload(
+        return Recurrence::fromPayload(
+            new RecurrencePayload(
                 frequency: RecurrenceFrequency::MONTHLY,
                 interval: 1,
                 anchorDate: new \DateTimeImmutable('2025-01-01'),

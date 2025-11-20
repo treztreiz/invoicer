@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\Stub;
 
 use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use Symfony\Component\Uid\Uuid;
 
 final class InvoiceRepositoryStub implements InvoiceRepositoryInterface

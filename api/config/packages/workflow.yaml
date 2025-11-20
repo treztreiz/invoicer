@@ -3,7 +3,7 @@ framework:
         quote_flow:
             type: state_machine
             supports:
-                - App\Domain\Entity\Document\Quote
+                - App\Domain\Entity\Document\Quote\Quote
             marking_store:
                 service: App\Application\Service\Workflow\QuoteMarkingStore
             initial_marking:
@@ -27,7 +27,7 @@ framework:
         invoice_flow:
             type: state_machine
             supports:
-                - App\Domain\Entity\Document\Invoice
+                - App\Domain\Entity\Document\Invoice\Invoice
             marking_store:
                 service: App\Application\Service\Workflow\InvoiceMarkingStore
             initial_marking:

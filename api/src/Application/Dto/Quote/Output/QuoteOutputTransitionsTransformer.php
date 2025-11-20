@@ -6,7 +6,7 @@ namespace App\Application\Dto\Quote\Output;
 
 use App\Application\Guard\TypeGuard;
 use App\Application\Service\Trait\DocumentWorkflowManagerAwareTrait;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<Quote, QuoteOutput> */

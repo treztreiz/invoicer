@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Service\Transformer;
 
+use App\Domain\Enum\RateUnit;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
 use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
+use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
 use Symfony\Component\Uid\Uuid;
 
@@ -21,7 +23,7 @@ class InputTransformer
 
     // UUID ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function uuid(mixed $value, object $source): ?Uuid
+    public static function uuid(?string $value, object $source): ?Uuid
     {
         if (null === $value) {
             return null;
@@ -64,24 +66,31 @@ class InputTransformer
 
     // NUMBER //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public function percentage(mixed $value, object $source): string
+    public function percentage(float $value, object $source): string
     {
         return MoneyMath::decimal($value);
     }
 
-    public static function vatRate(mixed $value, object $source): VatRate
+    /** @param numeric-string|float $value */
+    public static function vatRate(string|float $value, object $source): VatRate
     {
         return new VatRate(is_string($value) ? $value : MoneyMath::decimal($value));
     }
 
-    public static function money(mixed $value, object $source): Money
+    /** @param numeric-string|float $value */
+    public static function money(string|float $value, object $source): Money
     {
         return new Money(is_string($value) ? $value : MoneyMath::decimal($value));
     }
 
+    public static function quantity(float $value, object $source): Quantity
+    {
+        return new Quantity(MoneyMath::decimal($value, 3));
+    }
+
     // DATE ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function date(mixed $value, object $source): \DateTimeImmutable
+    public static function date(string $value, object $source): \DateTimeImmutable
     {
         $parsed = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
 
@@ -92,7 +101,7 @@ class InputTransformer
         return $parsed;
     }
 
-    public static function dateOptional(mixed $value, object $source): ?\DateTimeImmutable
+    public static function dateOptional(?string $value, object $source): ?\DateTimeImmutable
     {
         if (null === $value || '' === $value) {
             return null;
@@ -103,13 +112,18 @@ class InputTransformer
 
     // ENUM ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function recurrenceFrequency(mixed $value, object $source): RecurrenceFrequency
+    public static function recurrenceFrequency(string $value, object $source): RecurrenceFrequency
     {
         return RecurrenceFrequency::from($value);
     }
 
-    public static function recurrenceEndStrategy(mixed $value, object $source): RecurrenceEndStrategy
+    public static function recurrenceEndStrategy(string $value, object $source): RecurrenceEndStrategy
     {
         return RecurrenceEndStrategy::from($value);
+    }
+
+    public static function rateUnit(string $value, object $source): RateUnit
+    {
+        return RateUnit::from($value);
     }
 }

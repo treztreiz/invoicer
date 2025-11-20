@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class InvoiceInput
 {
-    /** @param DocumentLineInput[] $lines */
+    /** @param list<DocumentLineInput> $lines */
     public function __construct(
         #[Assert\NotBlank]
         #[Assert\Length(max: 200)]

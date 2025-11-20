@@ -9,7 +9,7 @@ use App\Application\Dto\Quote\Output\QuoteOutput;
 use App\Application\Service\Trait\DocumentWorkflowManagerAwareTrait;
 use App\Application\Service\Trait\QuoteRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use App\Domain\Exception\DocumentTransitionException;
 
 final class TransitionQuoteUseCase extends AbstractUseCase

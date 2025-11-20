@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Domain\Entity\Document;
 
-use App\Tests\Factory\Document\InvoiceFactory;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -21,7 +20,7 @@ final class InvoiceStatusEnumPersistenceTest extends KernelTestCase
 
     public function test_invoice_status_constraint_blocks_invalid_value(): void
     {
-        $invoice = InvoiceFactory::createOne();
+        $invoice = \App\Tests\Factory\Document\Invoice\InvoiceFactory::createOne();
 
         $this->expectException(DriverException::class);
 

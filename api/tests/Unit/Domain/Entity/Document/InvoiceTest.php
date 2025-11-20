@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Customer\Customer;
-use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Domain\Enum\InvoiceStatus;
-use App\Domain\Payload\Document\InvoicePayload;
+use App\Domain\Payload\Invoice\InvoicePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -141,7 +141,7 @@ final class InvoiceTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function createInvoice(): Invoice
+    public static function createInvoice(): Invoice\Invoice
     {
         return Invoice::fromPayload(
             payload: new InvoicePayload(

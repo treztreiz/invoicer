@@ -6,11 +6,10 @@ namespace App\Domain\Entity\Document\Invoice;
 
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
-use App\Domain\Entity\Document\Invoice;
 use App\Domain\Exception\DocumentRuleViolationException;
-use App\Domain\Payload\Document\Invoice\AllocatedInstallmentPayload;
-use App\Domain\Payload\Document\Invoice\InstallmentPayload;
-use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Payload\Invoice\Installment\ComputedInstallmentPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload;
 use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\AmountBreakdown;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -56,63 +55,41 @@ class InstallmentPlan
         $this->synchronizeInstallments($payload->installments, $this->invoice->total);
     }
 
-    private function addInstallment(AllocatedInstallmentPayload $installmentPayload): Installment
-    {
-        $installment = Installment::fromPayload($installmentPayload, $this);
-
-        if (!$this->installments->contains($installment)) {
-            $this->installments->add($installment);
-        }
-
-        return $installment;
-    }
+    // INSTALLMENTS ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** @param list<InstallmentPayload> $installmentPayloads */
     private function synchronizeInstallments(array $installmentPayloads, AmountBreakdown $invoiceTotal): void
     {
         $amounts = $this->allocateAmounts($installmentPayloads, $invoiceTotal);
-        $existingInstallments = $this->getInstallmentsById();
+
+        $existingInstallments = [];
+        foreach ($this->installments as $installment) {
+            if ($installment->id) {
+                $existingInstallments[$installment->id->toRfc4122()] = $installment;
+            }
+        }
 
         foreach ($installmentPayloads as $position => $payload) {
-            $allocatedPayload = new AllocatedInstallmentPayload(
+            $computedInstallment = new ComputedInstallmentPayload(
+                payload: $payload,
                 position: $position,
-                percentage: $payload->percentage,
                 amount: $amounts[$position],
-                dueDate: $payload->dueDate
             );
 
             $id = $payload->id?->toRfc4122();
 
             if (null !== $id && isset($existingInstallments[$id])) {
-                $existingInstallments[$id]->applyPayload($allocatedPayload);
+                $existingInstallments[$id]->applyPayload($computedInstallment);
                 unset($existingInstallments[$id]);
-
-                continue;
+            } else {
+                $this->addInstallment($computedInstallment);
             }
-
-            $this->addInstallment($allocatedPayload);
         }
 
         foreach ($existingInstallments as $installment) {
             $installment->assertMutable();
             $this->installments->removeElement($installment);
         }
-    }
-
-    /**
-     * @return array<string, Installment>
-     */
-    private function getInstallmentsById(): array
-    {
-        $indexed = [];
-
-        foreach ($this->installments as $installment) {
-            if ($installment->id) {
-                $indexed[$installment->id->toRfc4122()] = $installment;
-            }
-        }
-
-        return $indexed;
     }
 
     /**
@@ -124,7 +101,7 @@ class InstallmentPlan
     {
         /** @var array<numeric-string> $percentages */
         $percentages = array_map(static fn (InstallmentPayload $installment) => $installment->percentage, $installmentPayloads);
-        $this->assertTotal($percentages);
+        $this->assertTotalEqualsOneHundred($percentages);
 
         $amounts = [];
         $accumulatedNet = '0.00';
@@ -164,10 +141,23 @@ class InstallmentPlan
         return $amounts;
     }
 
+    private function addInstallment(ComputedInstallmentPayload $installmentPayload): Installment
+    {
+        $installment = Installment::fromPayload($installmentPayload, $this);
+
+        if (!$this->installments->contains($installment)) {
+            $this->installments->add($installment);
+        }
+
+        return $installment;
+    }
+
+    // GUARDS //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @param array<numeric-string> $percentages
      */
-    private function assertTotal(array $percentages): void
+    private function assertTotalEqualsOneHundred(array $percentages): void
     {
         $total = array_reduce($percentages, fn (string $carry, string $value) => MoneyMath::add($carry, $value), '0.00');
 

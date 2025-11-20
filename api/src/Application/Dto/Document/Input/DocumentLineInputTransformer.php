@@ -6,30 +6,30 @@ namespace App\Application\Dto\Document\Input;
 
 use App\Application\Dto\Invoice\Input\InvoiceInput;
 use App\Application\Dto\Quote\Input\QuoteInput;
-use App\Application\Service\Document\DocumentLinePayloadFactory;
 use App\Application\Service\Trait\ObjectMapperAwareTrait;
-use App\Application\Service\Transformer\InputTransformer;
-use App\Domain\Payload\Document\DocumentLinePayloadCollection;
-use App\Domain\Payload\Document\InvoicePayload;
-use App\Domain\Payload\Document\QuotePayload;
+use App\Domain\Payload\Document\DocumentLinePayload;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
-/** @implements TransformCallableInterface<InvoiceInput|QuoteInput, InvoicePayload|QuotePayload> */
+/** @implements TransformCallableInterface<InvoiceInput|QuoteInput, \App\Domain\Payload\Invoice\InvoicePayload|\App\Domain\Payload\Quote\QuotePayload> */
 final class DocumentLineInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
 
-    public function __construct(private readonly DocumentLinePayloadFactory $linePayloadFactory)
-    {
-    }
-
     /**
      * @param list<DocumentLineInput> $value
+     *
+     * @return list<DocumentLinePayload>
      */
-    public function __invoke(mixed $value, object $source, ?object $target): DocumentLinePayloadCollection
+    public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        $vatRate = InputTransformer::vatRate($source->vatRate, $source);
+        return array_map(
+            fn (DocumentLineInput $documentLineInput) => $this->transform($documentLineInput),
+            $value
+        );
+    }
 
-        return $this->linePayloadFactory->build($value, $vatRate->value);
+    private function transform(DocumentLineInput $documentLineInput): DocumentLinePayload
+    {
+        return $this->objectMapper->map($documentLineInput, DocumentLinePayload::class);
     }
 }

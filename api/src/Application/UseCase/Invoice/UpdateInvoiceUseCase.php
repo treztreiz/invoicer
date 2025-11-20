@@ -12,9 +12,8 @@ use App\Application\Service\Trait\InvoiceRepositoryAwareTrait;
 use App\Application\Service\Trait\UserRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
 use App\Domain\Entity\Customer\Customer;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Domain\Entity\User\User;
-use App\Domain\Payload\Document\InvoicePayload;
 
 final class UpdateInvoiceUseCase extends AbstractUseCase
 {
@@ -29,7 +28,7 @@ final class UpdateInvoiceUseCase extends AbstractUseCase
         $user = $this->findOneById($this->userRepository, $userId, User::class);
         $customer = $this->findOneById($this->customerRepository, $input->customerId, Customer::class);
 
-        $payload = $this->map($input, InvoicePayload::class);
+        $payload = $this->map($input, \App\Domain\Payload\Invoice\InvoicePayload::class);
 
         $invoice->applyPayload(
             payload: $payload,

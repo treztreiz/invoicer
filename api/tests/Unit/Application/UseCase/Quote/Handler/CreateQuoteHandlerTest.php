@@ -15,7 +15,7 @@ use App\Application\UseCase\Quote\Dto\Output\Mapper\QuoteOutputMapper;
 use App\Domain\Contracts\Repository\CustomerRepositoryInterface;
 use App\Domain\Contracts\Repository\QuoteRepositoryInterface;
 use App\Domain\Contracts\Repository\UserRepositoryInterface;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\User\UserFactory;
 use App\Tests\Unit\Application\Stub\CustomerRepositoryStub;

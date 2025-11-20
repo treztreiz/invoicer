@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Dto\Invoice\Input\Installment;
 
 use App\Application\Service\Trait\ObjectMapperAwareTrait;
-use App\Domain\Payload\Document\Invoice\InstallmentPayload;
-use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<InstallmentPlanInput, InstallmentPlanPayload> */
@@ -14,17 +14,15 @@ final class InstallmentInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
 
-    /** @param InstallmentInput[] $value
+    /** @param list<InstallmentInput> $value
      *
      * @return list<InstallmentPayload>
      */
     public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        return array_values(
-            array_map(
-                fn (InstallmentInput $installmentInput) => $this->transform($installmentInput),
-                $value
-            )
+        return array_map(
+            fn (InstallmentInput $installmentInput) => $this->transform($installmentInput),
+            $value
         );
     }
 

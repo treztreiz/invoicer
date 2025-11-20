@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts\Repository;
 
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\Uid\Uuid;
 
 interface QuoteRepositoryInterface

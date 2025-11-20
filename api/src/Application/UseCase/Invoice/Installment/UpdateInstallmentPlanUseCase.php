@@ -8,8 +8,7 @@ use App\Application\Dto\Invoice\Input\Installment\InstallmentPlanInput;
 use App\Application\Dto\Invoice\Output\InvoiceOutput;
 use App\Application\Service\Trait\InvoiceRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
-use App\Domain\Entity\Document\Invoice;
-use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Entity\Document\Invoice\Invoice;
 
 final class UpdateInstallmentPlanUseCase extends AbstractUseCase
 {
@@ -19,7 +18,7 @@ final class UpdateInstallmentPlanUseCase extends AbstractUseCase
     {
         $invoice = $this->findOneById($this->invoiceRepository, $invoiceId, Invoice::class);
 
-        $payload = $this->map($input, InstallmentPlanPayload::class);
+        $payload = $this->map($input, \App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload::class);
         $invoice->updateInstallmentPlan($payload);
 
         $this->invoiceRepository->save($invoice);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Service\Workflow;
 
-use App\Domain\Entity\Document\Invoice;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Invoice\Invoice;
+use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\WorkflowInterface;

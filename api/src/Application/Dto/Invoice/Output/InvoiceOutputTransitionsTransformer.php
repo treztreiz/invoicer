@@ -6,7 +6,7 @@ namespace App\Application\Dto\Invoice\Output;
 
 use App\Application\Guard\TypeGuard;
 use App\Application\Service\Trait\DocumentWorkflowManagerAwareTrait;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
 /** @implements TransformCallableInterface<Invoice, InvoiceOutput> */

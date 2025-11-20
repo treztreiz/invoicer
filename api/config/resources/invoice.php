@@ -12,16 +12,17 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Application\Dto\Invoice\Input\Installment\InstallmentPlanInput;
 use App\Application\Dto\Invoice\Input\InvoiceInput;
-use App\Application\Dto\Invoice\Input\Recurrence\InvoiceRecurrenceInput;
+use App\Application\Dto\Invoice\Input\Recurrence\RecurrenceInput;
 use App\Application\Dto\Invoice\Input\TransitionInvoiceInput;
 use App\Application\Dto\Invoice\Output\InvoiceOutput;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Infrastructure\ApiPlatform\State\Invoice\CreateInvoiceProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\Installment\AttachInvoiceInstallmentPlanProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\Installment\AttachInstallmentPlanProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Installment\DetachInstallmentPlanProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Installment\UpdateInstallmentPlanProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\AttachInvoiceRecurrenceProcessor;
-use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\DetachInvoiceRecurrenceProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\AttachRecurrenceProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\DetachRecurrenceProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\UpdateRecurrenceProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\TransitionInvoiceProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\UpdateInvoiceProcessor;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,19 +55,20 @@ return new ApiResource(
             read: false,
             processor: TransitionInvoiceProcessor::class,
         ),
+        // Recurrence
         new Post(
             uriTemplate: '/{invoiceId}/recurrence',
             status: Response::HTTP_OK,
-            input: InvoiceRecurrenceInput::class,
+            input: RecurrenceInput::class,
             read: false,
-            processor: AttachInvoiceRecurrenceProcessor::class,
+            processor: AttachRecurrenceProcessor::class,
         ),
         new Put(
             uriTemplate: '/{invoiceId}/recurrence',
             status: Response::HTTP_OK,
-            input: InvoiceRecurrenceInput::class,
+            input: RecurrenceInput::class,
             read: false,
-            processor: AttachInvoiceRecurrenceProcessor::class,
+            processor: UpdateRecurrenceProcessor::class,
         ),
         new Delete(
             uriTemplate: '/{invoiceId}/recurrence',
@@ -74,14 +76,15 @@ return new ApiResource(
             input: false,
             read: false,
             deserialize: false,
-            processor: DetachInvoiceRecurrenceProcessor::class,
+            processor: DetachRecurrenceProcessor::class,
         ),
+        // Installments
         new Post(
             uriTemplate: '/{invoiceId}/installment-plan',
             status: Response::HTTP_OK,
             input: InstallmentPlanInput::class,
             read: false,
-            processor: AttachInvoiceInstallmentPlanProcessor::class,
+            processor: AttachInstallmentPlanProcessor::class,
         ),
         new Put(
             uriTemplate: '/{invoiceId}/installment-plan',

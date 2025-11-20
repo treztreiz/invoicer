@@ -7,7 +7,7 @@ namespace App\Application\UseCase\Invoice\Installment;
 use App\Application\Dto\Invoice\Output\InvoiceOutput;
 use App\Application\Service\Trait\InvoiceRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 
 final class DetachInstallmentPlanUseCase extends AbstractUseCase
 {

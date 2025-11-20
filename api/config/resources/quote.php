@@ -16,7 +16,7 @@ use ApiPlatform\Metadata\QueryParameter;
 use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Dto\Quote\Input\TransitionQuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use App\Infrastructure\ApiPlatform\State\Quote\CreateQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\TransitionQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\UpdateQuoteProcessor;

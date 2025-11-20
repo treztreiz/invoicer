@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Application\Service\Document;
 
 use App\Domain\Entity\Customer\Customer;
+use App\Domain\Entity\Document\Document;
 use App\Domain\Entity\User\User;
 
+/**
+ * @phpstan-import-type CustomerSnapshot from Document
+ * @phpstan-import-type CompanySnapshot from Document
+ */
 final class DocumentSnapshotFactory
 {
     /**
-     * @return array<string, mixed>
+     * @return CustomerSnapshot
      */
     public function customerSnapshot(Customer $customer): array
     {
@@ -36,7 +41,7 @@ final class DocumentSnapshotFactory
     }
 
     /**
-     * @return array<string, mixed>
+     * @return CompanySnapshot
      */
     public function companySnapshot(User $user): array
     {

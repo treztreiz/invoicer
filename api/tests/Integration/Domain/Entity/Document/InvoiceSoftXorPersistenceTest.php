@@ -8,8 +8,8 @@ namespace App\Tests\Integration\Domain\Entity\Document;
 
 use App\Tests\Factory\Document\Invoice\InstallmentFactory;
 use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
-use App\Tests\Factory\Document\Invoice\InvoiceRecurrenceFactory;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\RecurrenceFactory;
 use Doctrine\DBAL\Exception\DriverException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
@@ -38,7 +38,7 @@ final class InvoiceSoftXorPersistenceTest extends KernelTestCase
     public function test_invoice_with_only_recurrence_persists(): void
     {
         $invoice = InvoiceFactory::createOne([
-            'recurrence' => InvoiceRecurrenceFactory::new(),
+            'recurrence' => RecurrenceFactory::new(),
         ]);
 
         static::assertNotNull($invoice->id);
@@ -50,7 +50,7 @@ final class InvoiceSoftXorPersistenceTest extends KernelTestCase
 
         try {
             InvoiceFactory::createOne([
-                'recurrence' => InvoiceRecurrenceFactory::new(),
+                'recurrence' => RecurrenceFactory::new(),
                 'installmentPlan' => InstallmentPlanFactory::new(),
             ]);
         } catch (DriverException $exception) {
@@ -86,18 +86,18 @@ final class InvoiceSoftXorPersistenceTest extends KernelTestCase
     {
         $invoice = flush_after(function () {
             $invoice = InvoiceFactory::createOne();
-            InvoiceRecurrenceFactory::createOne(['invoice' => $invoice]);
+            RecurrenceFactory::createOne(['invoice' => $invoice]);
 
             return $invoice;
         });
 
         static::assertNotNull($invoice->recurrence);
-        InvoiceRecurrenceFactory::assert()->count(1);
+        RecurrenceFactory::assert()->count(1);
 
         $invoice->detachRecurrence();
         save($invoice);
 
         static::assertNull($invoice->recurrence);
-        InvoiceRecurrenceFactory::assert()->empty();
+        RecurrenceFactory::assert()->empty();
     }
 }

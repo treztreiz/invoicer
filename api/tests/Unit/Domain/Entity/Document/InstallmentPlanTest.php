@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Entity\Document;
 
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
-use App\Domain\Payload\Document\Invoice\InstallmentPayload;
-use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPayload;
+use App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use PHPUnit\Framework\TestCase;
 

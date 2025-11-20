@@ -7,9 +7,9 @@ namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\UseCase\Invoice\Recurrence\DetachInvoiceRecurrenceTask;
-use App\Application\UseCase\Invoice\Recurrence\DetachInvoiceRecurrenceUseCase;
-use App\Domain\Entity\Document\Invoice;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Application\UseCase\Invoice\Recurrence\DetachRecurrenceUseCase;
+use App\Domain\Entity\Document\Invoice\Invoice;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Unit\Application\Stub\EntityFetcherStub;
 use App\Tests\Unit\Application\Stub\InvoiceRepositoryStub;
 use App\Tests\Unit\Application\Stub\WorkflowManagerStub;
@@ -52,11 +52,11 @@ final class DetachInvoiceRecurrenceHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(Invoice $invoice): DetachInvoiceRecurrenceUseCase
+    private function createHandler(Invoice $invoice): DetachRecurrenceUseCase
     {
         $invoiceRepository = new InvoiceRepositoryStub($invoice);
 
-        return new DetachInvoiceRecurrenceUseCase(
+        return new DetachRecurrenceUseCase(
             invoiceRepository: $invoiceRepository,
             entityFetcher: EntityFetcherStub::create(invoiceRepository: $invoiceRepository),
             outputMapper: new InvoiceOutputMapper(),

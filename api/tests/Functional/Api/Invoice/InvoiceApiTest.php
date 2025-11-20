@@ -11,7 +11,7 @@ use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\InvoiceStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\DocumentLineFactory;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use Symfony\Component\Uid\Uuid;
 

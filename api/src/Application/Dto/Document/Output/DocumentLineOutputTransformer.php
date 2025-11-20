@@ -9,8 +9,8 @@ use App\Application\Dto\Quote\Output\QuoteOutput;
 use App\Application\Guard\TypeGuard;
 use App\Application\Service\Trait\ObjectMapperAwareTrait;
 use App\Domain\Entity\Document\DocumentLine;
-use App\Domain\Entity\Document\Invoice;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Invoice\Invoice;
+use App\Domain\Entity\Document\Quote\Quote;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
@@ -27,11 +27,9 @@ final class DocumentLineOutputTransformer implements TransformCallableInterface
      */
     public function __invoke(mixed $value, object $source, ?object $target): array
     {
-        return array_values(
-            TypeGuard::assertClass(Collection::class, $value)
-                ->map(fn (DocumentLine $documentLine) => $this->transform($documentLine))
-                ->toArray()
-        );
+        return TypeGuard::assertClass(Collection::class, $value)
+            ->map(fn (DocumentLine $documentLine) => $this->transform($documentLine))
+            ->getValues();
     }
 
     private function transform(DocumentLine $documentLine): DocumentLineOutput

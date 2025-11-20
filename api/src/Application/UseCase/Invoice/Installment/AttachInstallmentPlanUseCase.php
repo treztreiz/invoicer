@@ -8,9 +8,9 @@ use App\Application\Dto\Invoice\Input\Installment\InstallmentPlanInput;
 use App\Application\Dto\Invoice\Output\InvoiceOutput;
 use App\Application\Service\Trait\InvoiceRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
-use App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
-use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
+use App\Domain\Entity\Document\Invoice\Invoice;
+use App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload;
 
 final class AttachInstallmentPlanUseCase extends AbstractUseCase
 {

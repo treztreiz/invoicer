@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts\Payload;
 
-use App\Domain\Payload\Document\DocumentLinePayloadCollection;
+use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\VatRate;
 
 interface DocumentPayloadInterface
@@ -29,7 +29,8 @@ interface DocumentPayloadInterface
         set;
     }
 
-    protected(set) DocumentLinePayloadCollection $linesPayload {
+    /** @var list<DocumentLinePayload> $linesPayload */
+    protected(set) array $linesPayload {
         get;
         set;
     }

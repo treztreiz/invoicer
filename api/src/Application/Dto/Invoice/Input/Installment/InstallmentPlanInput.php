@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final readonly class InstallmentPlanInput
 {
     /**
-     * @param InstallmentInput[] $installments
+     * @param list<InstallmentInput> $installments
      */
     public function __construct(
         #[Assert\Valid]

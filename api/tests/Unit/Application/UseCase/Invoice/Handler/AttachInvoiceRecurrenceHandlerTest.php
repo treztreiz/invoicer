@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\UseCase\Invoice\Handler;
 
 use App\Application\Dto\Invoice\Input\Mapper\InvoiceRecurrenceMapper;
-use App\Application\Dto\Invoice\Input\Recurrence\InvoiceRecurrenceInput;
+use App\Application\Dto\Invoice\Input\Recurrence\RecurrenceInput;
 use App\Application\Dto\Invoice\Output\Mapper\InvoiceOutputMapper;
 use App\Application\Exception\DomainRuleViolationException;
 use App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceTask;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Unit\Application\Stub\EntityFetcherStub;
 use App\Tests\Unit\Application\Stub\InvoiceRepositoryStub;
 use App\Tests\Unit\Application\Stub\WorkflowManagerStub;
@@ -32,7 +32,7 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $recurrenceInput = new InvoiceRecurrenceInput(
+        $recurrenceInput = new RecurrenceInput(
             frequency: RecurrenceFrequency::MONTHLY->value,
             interval: 1,
             anchorDate: '2025-01-01',
@@ -77,11 +77,11 @@ final class AttachInvoiceRecurrenceHandlerTest extends TestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createHandler(Invoice $invoice): \App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceUseCase
+    private function createHandler(Invoice $invoice): \App\Application\UseCase\Invoice\Recurrence\AttachRecurrenceUseCase
     {
         $invoiceRepository = new InvoiceRepositoryStub($invoice);
 
-        return new \App\Application\UseCase\Invoice\Recurrence\AttachInvoiceRecurrenceUseCase(
+        return new \App\Application\UseCase\Invoice\Recurrence\AttachRecurrenceUseCase(
             invoiceRepository: $invoiceRepository,
             entityFetcher: EntityFetcherStub::create(invoiceRepository: $invoiceRepository),
             outputMapper: new InvoiceOutputMapper(),

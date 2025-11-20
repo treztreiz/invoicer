@@ -9,16 +9,21 @@ use App\Application\Dto\Document\Output\AmountBreakdownOutputTransformer;
 use App\Application\Dto\Document\Output\DocumentLineOutput;
 use App\Application\Dto\Document\Output\DocumentLineOutputTransformer;
 use App\Application\Service\Transformer\OutputTransformer;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Document;
+use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\ObjectMapper\Attribute\Map;
 
+/**
+ * @phpstan-import-type CustomerSnapshot from Document
+ * @phpstan-import-type CompanySnapshot from Document
+ */
 #[Map(source: Quote::class)]
 final readonly class QuoteOutput
 {
     /**
      * @param list<DocumentLineOutput> $lines
-     * @param array<string, mixed>     $customerSnapshot
-     * @param array<string, mixed>     $companySnapshot
+     * @param CustomerSnapshot         $customerSnapshot
+     * @param CompanySnapshot          $companySnapshot
      * @param list<string>             $availableTransitions
      */
     public function __construct(

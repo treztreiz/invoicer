@@ -10,19 +10,24 @@ use App\Application\Dto\Document\Output\DocumentLineOutput;
 use App\Application\Dto\Document\Output\DocumentLineOutputTransformer;
 use App\Application\Dto\Invoice\Output\Installment\InstallmentPlanOutput;
 use App\Application\Dto\Invoice\Output\Installment\InstallmentPlanOutputTransformer;
-use App\Application\Dto\Invoice\Output\Recurrence\InvoiceRecurrenceOutput;
-use App\Application\Dto\Invoice\Output\Recurrence\InvoiceRecurrenceOutputTransformer;
+use App\Application\Dto\Invoice\Output\Recurrence\RecurrenceOutput;
+use App\Application\Dto\Invoice\Output\Recurrence\RecurrenceOutputTransformer;
 use App\Application\Service\Transformer\OutputTransformer;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Entity\Document\Document;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use Symfony\Component\ObjectMapper\Attribute\Map;
 
+/**
+ * @phpstan-import-type CustomerSnapshot from Document
+ * @phpstan-import-type CompanySnapshot from Document
+ */
 #[Map(source: Invoice::class)]
 final readonly class InvoiceOutput
 {
     /**
      * @param list<DocumentLineOutput> $lines
-     * @param array<string, mixed>     $customerSnapshot
-     * @param array<string, mixed>     $companySnapshot
+     * @param CustomerSnapshot         $customerSnapshot
+     * @param CompanySnapshot          $companySnapshot
      * @param list<string>             $availableTransitions
      */
     public function __construct(
@@ -63,8 +68,8 @@ final readonly class InvoiceOutput
         #[Map(transform: [OutputTransformer::class, 'dateTime'])]
         private(set) ?string $paidAt,
 
-        #[Map(transform: InvoiceRecurrenceOutputTransformer::class)]
-        private(set) ?InvoiceRecurrenceOutput $recurrence = null,
+        #[Map(transform: RecurrenceOutputTransformer::class)]
+        private(set) ?RecurrenceOutput $recurrence = null,
 
         #[Map(transform: InstallmentPlanOutputTransformer::class)]
         private(set) ?InstallmentPlanOutput $installmentPlan = null,
