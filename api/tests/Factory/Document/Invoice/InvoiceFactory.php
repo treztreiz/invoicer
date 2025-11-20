@@ -15,6 +15,7 @@ class InvoiceFactory extends DocumentFactory
 {
     use BuildableFactoryTrait;
 
+    #[\Override]
     public static function class(): string
     {
         return Invoice::class;

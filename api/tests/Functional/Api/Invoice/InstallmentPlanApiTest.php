@@ -61,10 +61,10 @@ final class InstallmentPlanApiTest extends ApiTestCase
         static::assertSame('60.00', $data['installmentPlan']['installments'][1]['percentage']);
 
         // Ensure invoice's installments are correctly updated
-        $installments = $invoice->installmentPlan->installments;
+        $installments = $invoice->installmentPlan->installments->getValues();
         static::assertCount(2, $installments);
-        static::assertSame('40.00', $installments->first()->percentage);
-        static::assertSame('60.00', $installments->last()->percentage);
+        static::assertSame('40.00', $installments[0]->percentage);
+        static::assertSame('60.00', $installments[1]->percentage);
 
         // Ensure old installments are deleted from database
         InstallmentFactory::assert()->count(2);

@@ -26,14 +26,16 @@ class InstallmentPlan
     /** @var ArrayCollection<int, Installment> */
     #[ORM\OneToMany(targetEntity: Installment::class, mappedBy: 'installmentPlan', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
-    private(set) Collection $installments;
+    private(set) Collection $installments {
+        get => $this->installments ?? $this->installments = new ArrayCollection();
+        set => $value;
+    }
 
     #[ORM\OneToOne(targetEntity: Invoice::class, mappedBy: 'installmentPlan')]
     private(set) ?Invoice $invoice = null;
 
-    public function __construct()
+    private function __construct()
     {
-        $this->installments = new ArrayCollection();
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

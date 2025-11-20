@@ -23,7 +23,7 @@ class Installment
     #[ORM\Column(type: UuidType::NAME, nullable: true)]
     private(set) ?Uuid $generatedInvoiceId = null;
 
-    public function __construct(
+    private function __construct(
         #[ORM\ManyToOne(targetEntity: InstallmentPlan::class, inversedBy: 'installments')]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         private(set) readonly InstallmentPlan $installmentPlan,

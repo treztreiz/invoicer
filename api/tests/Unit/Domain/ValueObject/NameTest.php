@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\Name;
 use PHPUnit\Framework\TestCase;
 
@@ -22,14 +23,14 @@ final class NameTest extends TestCase
 
     public function test_blank_first_name_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Name('   ', 'Doe');
     }
 
     public function test_invalid_characters_are_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Name('John123', 'Doe');
     }

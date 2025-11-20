@@ -17,11 +17,11 @@ use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
  */
 abstract class DocumentFactory extends PersistentObjectFactory
 {
+    #[\Override]
     protected function defaults(): array|callable
     {
         return [
             'title' => static::faker()->title(),
-            'subtitle' => null,
             'currency' => static::faker()->currencyCode(),
             'vatRate' => VatRateFactory::new(),
             'total' => AmountBreakdownFactory::new(),

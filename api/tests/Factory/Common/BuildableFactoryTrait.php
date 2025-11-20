@@ -10,12 +10,11 @@ trait BuildableFactoryTrait
 {
     public static function build(array|callable $attributes = [], bool $forcePrivateProperties = true): static
     {
-        $factory = static::new($attributes);
-
+        $instantiator = Instantiator::withoutConstructor();
         if ($forcePrivateProperties) {
-            $factory = $factory->instantiateWith(Instantiator::withConstructor()->alwaysForce());
+            $instantiator = $instantiator->alwaysForce();
         }
 
-        return $factory;
+        return static::new($attributes)->instantiateWith($instantiator);
     }
 }

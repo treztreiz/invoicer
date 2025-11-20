@@ -23,7 +23,7 @@ class DocumentLine
 {
     use UuidTrait;
 
-    public function __construct(
+    private function __construct(
         #[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'lines')]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         private(set) readonly Document $document,

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\Company;
-use App\Domain\ValueObject\CompanyLogo;
 use App\Domain\ValueObject\Contact;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
@@ -20,7 +20,6 @@ final class CompanyTest extends TestCase
     {
         $company = new Company(
             legalName: 'Acme Corp',
-            logo: CompanyLogo::empty(),
             contact: new Contact('info@example.com', '+33123456789'),
             address: AddressTest::createAddress(),
             defaultCurrency: 'eur',
@@ -37,11 +36,10 @@ final class CompanyTest extends TestCase
 
     public function test_blank_legal_name_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Company(
             legalName: '   ',
-            logo: CompanyLogo::empty(),
             contact: new Contact('info@example.com', '+33123456789'),
             address: AddressTest::createAddress(),
             defaultCurrency: 'EUR',
@@ -54,11 +52,10 @@ final class CompanyTest extends TestCase
 
     public function test_invalid_currency_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Company(
             legalName: 'Acme Corp',
-            logo: CompanyLogo::empty(),
             contact: new Contact('info@example.com', '+33123456789'),
             address: AddressTest::createAddress(),
             defaultCurrency: 'EURO',

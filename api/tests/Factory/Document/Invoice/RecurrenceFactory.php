@@ -15,11 +15,13 @@ class RecurrenceFactory extends PersistentObjectFactory
 {
     use BuildableFactoryTrait;
 
+    #[\Override]
     public static function class(): string
     {
         return Recurrence::class;
     }
 
+    #[\Override]
     protected function defaults(): array|callable
     {
         return [

@@ -125,7 +125,7 @@ final class QuoteApiTest extends ApiTestCase
     {
         $client = $this->createAuthenticatedClient();
 
-        $quote = QuoteFactory::build([
+        $quote = QuoteFactory::new([
             'status' => QuoteStatus::DRAFT,
             'title' => 'New quote',
             'subtitle' => 'New scope',

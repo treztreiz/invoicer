@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Domain\Entity\Document;
+namespace App\Tests\Unit\Domain\Entity\Document\Invoice;
 
 use App\Domain\Entity\Document\Invoice\Recurrence;
 use App\Domain\Enum\RecurrenceEndStrategy;
 use App\Domain\Enum\RecurrenceFrequency;
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\Payload\Invoice\Recurrence\RecurrencePayload;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @testType solitary-unit
  */
-final class InvoiceRecurrenceTest extends TestCase
+final class RecurrenceTest extends TestCase
 {
     public function test_from_payload_creates_entity(): void
     {
@@ -36,7 +37,7 @@ final class InvoiceRecurrenceTest extends TestCase
             occurrenceCount: null,
         );
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         Recurrence::fromPayload($payload);
     }

@@ -2,22 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Domain\Entity\Document;
+namespace App\Tests\Unit\Domain\Entity\Document\Quote;
 
-use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Quote\Quote;
 use App\Domain\Enum\QuoteStatus;
-use App\Domain\ValueObject\AmountBreakdown;
-use App\Domain\ValueObject\Money;
+use App\Domain\Exception\DocumentRuleViolationException;
+use App\Domain\Exception\DocumentTransitionException;
+use App\Domain\Payload\Quote\QuotePayload;
 use App\Domain\ValueObject\VatRate;
+use App\Tests\Factory\Customer\CustomerFactory;
+use App\Tests\Factory\ValueObject\CompanyFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @testType solitary-unit
  */
 final class QuoteTest extends TestCase
 {
+    use Factories;
+
     private Quote $quote;
 
     protected function setUp(): void
@@ -39,7 +44,7 @@ final class QuoteTest extends TestCase
     {
         $this->quote->send(new \DateTimeImmutable());
 
-        static::expectException(\LogicException::class);
+        static::expectException(DocumentTransitionException::class);
         $this->quote->send(new \DateTimeImmutable());
     }
 
@@ -82,7 +87,7 @@ final class QuoteTest extends TestCase
     {
         $this->quote->send(new \DateTimeImmutable());
 
-        static::expectException(\LogicException::class);
+        static::expectException(DocumentRuleViolationException::class);
         $this->quote->linkConvertedInvoice(Uuid::v7());
     }
 
@@ -91,21 +96,15 @@ final class QuoteTest extends TestCase
     public static function createQuote(): Quote
     {
         return Quote::fromPayload(
-            payload: new \App\Domain\Payload\Quote\QuotePayload(
+            payload: new QuotePayload(
                 title: 'Sample quote',
                 subtitle: null,
                 currency: 'EUR',
                 vatRate: new VatRate('20'),
-                total: new AmountBreakdown(
-                    net: new Money('100'),
-                    tax: new Money('20'),
-                    gross: new Money('120'),
-                ),
-                lines: [],
-                customerSnapshot: ['name' => 'Client'],
-                companySnapshot: ['name' => 'My Company']
+                linesPayload: [],
             ),
-            customer: static::createStub(Customer::class),
+            customer: CustomerFactory::build()->create(),
+            company: CompanyFactory::createOne()
         );
     }
 }

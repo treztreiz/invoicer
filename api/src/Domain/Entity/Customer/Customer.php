@@ -21,7 +21,7 @@ class Customer
     use TimestampableTrait;
     use ArchivableTrait;
 
-    public function __construct(
+    private function __construct(
         #[ORM\Embedded(columnPrefix: false)]
         private(set) Name $name,
 

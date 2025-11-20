@@ -11,11 +11,13 @@ use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 /** @extends PersistentObjectFactory<NumberSequence> */
 class NumberSequenceFactory extends PersistentObjectFactory
 {
+    #[\Override]
     public static function class(): string
     {
         return NumberSequence::class;
     }
 
+    #[\Override]
     protected function defaults(): array|callable
     {
         return [

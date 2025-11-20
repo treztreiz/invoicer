@@ -2,24 +2,28 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Domain\Entity\Document;
+namespace App\Tests\Unit\Domain\Entity\Document\Invoice;
 
-use App\Domain\Entity\Customer\Customer;
-use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\Exception\DocumentRuleViolationException;
+use App\Domain\Exception\DocumentTransitionException;
 use App\Domain\Payload\Invoice\InvoicePayload;
-use App\Domain\ValueObject\AmountBreakdown;
-use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\VatRate;
+use App\Tests\Factory\Customer\CustomerFactory;
+use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
+use App\Tests\Factory\ValueObject\CompanyFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @testType solitary-unit
  */
 final class InvoiceTest extends TestCase
 {
+    use Factories;
+
     private Invoice $invoice;
 
     protected function setUp(): void
@@ -43,13 +47,13 @@ final class InvoiceTest extends TestCase
     {
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
 
-        static::expectException(\LogicException::class);
+        static::expectException(DocumentTransitionException::class);
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
     }
 
     public function test_mark_overdue_only_from_issued(): void
     {
-        static::expectException(\LogicException::class);
+        static::expectException(DocumentTransitionException::class);
         $this->invoice->markOverdue();
     }
 
@@ -85,21 +89,21 @@ final class InvoiceTest extends TestCase
         $this->invoice->issue(new \DateTimeImmutable(), new \DateTimeImmutable('+1 day'));
         $this->invoice->markPaid(new \DateTimeImmutable('+1 day'));
 
-        static::expectException(\LogicException::class);
+        static::expectException(DocumentTransitionException::class);
         $this->invoice->void();
     }
 
     public function test_attach_recurrence_rejected_when_installment_plan_exists(): void
     {
-        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+        $this->invoice->attachInstallmentPlan(InstallmentPlanFactory::build()->create());
 
-        static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
+        static::expectException(DocumentRuleViolationException::class);
+        $this->invoice->attachRecurrence(RecurrenceTest::createRecurrence());
     }
 
     public function test_detach_recurrence_resets_reference(): void
     {
-        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
+        $this->invoice->attachRecurrence(RecurrenceTest::createRecurrence());
 
         $this->invoice->detachRecurrence();
 
@@ -108,7 +112,7 @@ final class InvoiceTest extends TestCase
 
     public function test_detach_installment_plan(): void
     {
-        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+        $this->invoice->attachInstallmentPlan(InstallmentPlanFactory::build()->create());
 
         $this->invoice->detachInstallmentPlan();
 
@@ -119,29 +123,29 @@ final class InvoiceTest extends TestCase
     {
         $this->invoice->markGeneratedFromRecurrence(Uuid::v7());
 
-        static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
+        static::expectException(DocumentRuleViolationException::class);
+        $this->invoice->attachRecurrence(RecurrenceTest::createRecurrence());
     }
 
     public function test_generated_from_installment_cannot_attach_recurrence(): void
     {
         $this->invoice->markGeneratedFromInstallment(Uuid::v7());
 
-        static::expectException(\LogicException::class);
-        $this->invoice->attachRecurrence(InvoiceRecurrenceTest::createRecurrence());
+        static::expectException(DocumentRuleViolationException::class);
+        $this->invoice->attachRecurrence(RecurrenceTest::createRecurrence());
     }
 
     public function test_generated_invoice_cannot_attach_installment_plan(): void
     {
         $this->invoice->markGeneratedFromRecurrence(Uuid::v7());
 
-        static::expectException(\LogicException::class);
-        $this->invoice->attachInstallmentPlan(new InstallmentPlan());
+        static::expectException(DocumentRuleViolationException::class);
+        $this->invoice->attachInstallmentPlan(InstallmentPlanFactory::build()->create());
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static function createInvoice(): Invoice\Invoice
+    public static function createInvoice(): Invoice
     {
         return Invoice::fromPayload(
             payload: new InvoicePayload(
@@ -149,17 +153,11 @@ final class InvoiceTest extends TestCase
                 subtitle: null,
                 currency: 'EUR',
                 vatRate: new VatRate('20'),
-                total: new AmountBreakdown(
-                    net: new Money('100'),
-                    tax: new Money('20'),
-                    gross: new Money('120'),
-                ),
-                lines: [],
-                customerSnapshot: ['name' => 'Client'],
-                companySnapshot: ['name' => 'My Company'],
+                linesPayload: [],
                 dueDate: null
             ),
-            customer: static::createStub(Customer::class),
+            customer: CustomerFactory::build()->create(),
+            company: CompanyFactory::createOne()
         );
     }
 }

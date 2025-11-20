@@ -14,6 +14,7 @@ class QuoteFactory extends DocumentFactory
 {
     use BuildableFactoryTrait;
 
+    #[\Override]
     public static function class(): string
     {
         return Quote::class;

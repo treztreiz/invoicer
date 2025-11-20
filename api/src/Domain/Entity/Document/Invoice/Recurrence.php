@@ -24,7 +24,7 @@ class Recurrence
     #[ORM\OneToOne(targetEntity: Invoice::class, mappedBy: 'recurrence')]
     private(set) ?Invoice $invoice = null;
 
-    public function __construct(
+    private function __construct(
         #[ORM\Column(enumType: RecurrenceFrequency::class)]
         private(set) RecurrenceFrequency $frequency,
 

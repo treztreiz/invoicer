@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\Contact;
 use PHPUnit\Framework\TestCase;
 
@@ -28,14 +29,14 @@ final class ContactTest extends TestCase
 
     public function test_invalid_email_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Contact('not-an-email', null);
     }
 
     public function test_invalid_phone_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Contact(null, 'abc123');
     }

@@ -51,7 +51,10 @@ abstract class Document
     /** @var ArrayCollection<int, DocumentLine> */
     #[ORM\OneToMany(targetEntity: DocumentLine::class, mappedBy: 'document', cascade: ['persist'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
-    protected(set) Collection $lines;
+    protected(set) Collection $lines {
+        get => $this->lines ?? $this->lines = new ArrayCollection();
+        set => $value;
+    }
 
     #[ORM\Embedded]
     protected(set) AmountBreakdown $total;
@@ -64,7 +67,7 @@ abstract class Document
     #[ORM\Column(type: Types::JSON)]
     protected(set) array $companySnapshot = [];
 
-    public function __construct(
+    protected function __construct(
         #[ORM\Column(length: 200)]
         protected(set) string $title {
             set => DomainGuard::nonEmpty($value, 'Title');
@@ -88,7 +91,6 @@ abstract class Document
         #[ORM\JoinColumn(nullable: false)]
         protected(set) Customer $customer,
     ) {
-        $this->lines = new ArrayCollection();
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

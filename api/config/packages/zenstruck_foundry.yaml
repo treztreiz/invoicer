@@ -13,6 +13,7 @@ when@dev: &dev
         faker:
             locale: fr_FR
         instantiator:
+            use_constructor: false
             always_force_properties: true
 
     #　If you use the `make:factory --test` command, you may need to uncomment the following.

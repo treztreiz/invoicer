@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Domain\Service;
 use App\Domain\Contracts\Repository\NumberSequenceRepositoryInterface;
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\Service\DocumentReferenceGenerator;
 use App\Tests\Unit\Domain\Entity\Numbering\NumberSequenceTest;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
@@ -55,7 +56,7 @@ final class DocumentReferenceGeneratorTest extends TestCase
     #[DataProviderExternal(NumberSequenceTest::class, 'documentTypesProvider')]
     public function test_invalid_year_is_rejected(DocumentType $documentType): void
     {
-        static::expectException(\InvalidArgumentException::class);
+        static::expectException(DomainGuardException::class);
         static::expectExceptionMessage('Year must be a four-digit value.');
 
         $this->generator->generate($documentType, 999);
