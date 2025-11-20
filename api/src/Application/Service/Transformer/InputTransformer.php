@@ -71,12 +71,12 @@ class InputTransformer
 
     public static function vatRate(mixed $value, object $source): VatRate
     {
-        return new VatRate(MoneyMath::decimal($value));
+        return new VatRate(is_string($value) ? $value : MoneyMath::decimal($value));
     }
 
     public static function money(mixed $value, object $source): Money
     {
-        return new Money(MoneyMath::decimal($value));
+        return new Money(is_string($value) ? $value : MoneyMath::decimal($value));
     }
 
     // DATE ////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,11 +6,11 @@ namespace App\Application\UseCase\Quote;
 
 use App\Application\Dto\Quote\Input\TransitionQuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
-use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Service\Trait\DocumentWorkflowManagerAwareTrait;
 use App\Application\Service\Trait\QuoteRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
 use App\Domain\Entity\Document\Quote;
+use App\Domain\Exception\DocumentTransitionException;
 
 final class TransitionQuoteUseCase extends AbstractUseCase
 {
@@ -28,7 +28,7 @@ final class TransitionQuoteUseCase extends AbstractUseCase
         $transition = $input->transition;
 
         if (!$this->documentWorkflowManager->canQuoteTransition($quote, $transition)) {
-            throw new DomainRuleViolationException(sprintf('Quote cannot transition via "%s".', $transition));
+            throw new DocumentTransitionException(sprintf('Quote cannot transition via "%s".', $transition));
         }
 
         $this->applyTransition($quote, $transition);
@@ -45,7 +45,7 @@ final class TransitionQuoteUseCase extends AbstractUseCase
             self::ACTION_SEND => $quote->send($now),
             self::ACTION_ACCEPT => $quote->markAccepted($now),
             self::ACTION_REJECT => $quote->markRejected($now),
-            default => throw new DomainRuleViolationException(sprintf('Unknown transition "%s".', $transition)),
+            default => throw new DocumentTransitionException(sprintf('Unknown transition "%s".', $transition)),
         };
     }
 }

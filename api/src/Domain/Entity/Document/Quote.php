@@ -6,6 +6,8 @@ namespace App\Domain\Entity\Document;
 
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Enum\QuoteStatus;
+use App\Domain\Exception\DocumentRuleViolationException;
+use App\Domain\Exception\DocumentTransitionException;
 use App\Domain\Payload\Document\QuotePayload;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
@@ -51,7 +53,7 @@ class Quote extends Document
         array $companySnapshot,
     ): void {
         if (QuoteStatus::DRAFT !== $this->status) {
-            throw new \LogicException('Only draft quotes can be updated.');
+            throw new DocumentRuleViolationException('Only draft quotes can be updated.');
         }
 
         parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
@@ -60,7 +62,7 @@ class Quote extends Document
     public function send(\DateTimeImmutable $sentAt): self
     {
         if (QuoteStatus::DRAFT !== $this->status) {
-            throw new \LogicException('Only draft quotes can be sent.');
+            throw new DocumentTransitionException('Only draft quotes can be sent.');
         }
 
         $this->status = QuoteStatus::SENT;
@@ -72,7 +74,7 @@ class Quote extends Document
     public function markAccepted(\DateTimeImmutable $acceptedAt): self
     {
         if (QuoteStatus::SENT !== $this->status) {
-            throw new \LogicException('Only sent quotes can be accepted.');
+            throw new DocumentTransitionException('Only sent quotes can be accepted.');
         }
 
         $this->status = QuoteStatus::ACCEPTED;
@@ -85,7 +87,7 @@ class Quote extends Document
     public function markRejected(\DateTimeImmutable $rejectedAt): self
     {
         if (QuoteStatus::SENT !== $this->status) {
-            throw new \LogicException('Only sent quotes can be rejected.');
+            throw new DocumentTransitionException('Only sent quotes can be rejected.');
         }
 
         $this->status = QuoteStatus::REJECTED;
@@ -98,7 +100,7 @@ class Quote extends Document
     public function linkConvertedInvoice(Uuid $invoiceId): self
     {
         if (QuoteStatus::ACCEPTED !== $this->status) {
-            throw new \LogicException('Only accepted quotes can be converted to an invoice.');
+            throw new DocumentRuleViolationException('Only accepted quotes can be converted to an invoice.');
         }
 
         $this->convertedInvoiceId = $invoiceId;

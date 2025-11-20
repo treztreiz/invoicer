@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Service;
 
-use App\Domain\Contracts\NumberSequenceRepositoryInterface;
+use App\Domain\Contracts\Repository\NumberSequenceRepositoryInterface;
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
 use App\Domain\Service\DocumentReferenceGenerator;

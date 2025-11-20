@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Domain\Contracts\InvoiceRepositoryInterface;
+use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

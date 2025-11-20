@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Stub;
 
-use App\Domain\Contracts\InvoiceRepositoryInterface;
+use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice;
 use Symfony\Component\Uid\Uuid;
 

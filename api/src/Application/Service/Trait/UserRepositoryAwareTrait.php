@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Service\Trait;
 
-use App\Domain\Contracts\UserRepositoryInterface;
+use App\Domain\Contracts\Repository\UserRepositoryInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 trait UserRepositoryAwareTrait

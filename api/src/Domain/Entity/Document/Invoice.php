@@ -8,6 +8,8 @@ use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice\InstallmentPlan;
 use App\Domain\Entity\Document\Invoice\InvoiceRecurrence;
 use App\Domain\Enum\InvoiceStatus;
+use App\Domain\Exception\DocumentRuleViolationException;
+use App\Domain\Exception\DocumentTransitionException;
 use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
 use App\Domain\Payload\Document\InvoicePayload;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
@@ -68,7 +70,7 @@ class Invoice extends Document
         array $companySnapshot,
     ): void {
         if (InvoiceStatus::DRAFT !== $this->status) {
-            throw new \LogicException('Only draft invoices can be updated.');
+            throw new DocumentRuleViolationException('Only draft invoices can be updated.');
         }
 
         parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
@@ -79,11 +81,11 @@ class Invoice extends Document
     public function issue(\DateTimeImmutable $issuedAt, \DateTimeImmutable $dueDate): self
     {
         if (InvoiceStatus::DRAFT !== $this->status) {
-            throw new \LogicException('Only draft invoices can be issued.');
+            throw new DocumentTransitionException('Only draft invoices can be issued.');
         }
 
         if ($dueDate < $issuedAt) {
-            throw new \LogicException('Due date must be on or after the issue date.');
+            throw new DocumentTransitionException('Due date must be on or after the issue date.');
         }
 
         $this->status = InvoiceStatus::ISSUED;
@@ -96,7 +98,7 @@ class Invoice extends Document
     public function markOverdue(): self
     {
         if (InvoiceStatus::ISSUED !== $this->status) {
-            throw new \LogicException('Only issued invoices can become overdue.');
+            throw new DocumentTransitionException('Only issued invoices can become overdue.');
         }
 
         $this->status = InvoiceStatus::OVERDUE;
@@ -107,11 +109,11 @@ class Invoice extends Document
     public function markPaid(\DateTimeImmutable $paidAt): self
     {
         if (!in_array($this->status, [InvoiceStatus::ISSUED, InvoiceStatus::OVERDUE], true)) {
-            throw new \LogicException('Only issued or overdue invoices can be marked as paid.');
+            throw new DocumentTransitionException('Only issued or overdue invoices can be marked as paid.');
         }
 
         if (null !== $this->issuedAt && $paidAt < $this->issuedAt) {
-            throw new \LogicException('Payment date cannot precede the issue date.');
+            throw new DocumentTransitionException('Payment date cannot precede the issue date.');
         }
 
         $this->status = InvoiceStatus::PAID;
@@ -123,11 +125,11 @@ class Invoice extends Document
     public function void(): self
     {
         if (!in_array($this->status, [InvoiceStatus::DRAFT, InvoiceStatus::ISSUED], true)) {
-            throw new \LogicException('Only draft or issued invoices can be voided.');
+            throw new DocumentTransitionException('Only draft or issued invoices can be voided.');
         }
 
         if (InvoiceStatus::ISSUED === $this->status && null !== $this->paidAt) {
-            throw new \LogicException('Cannot void an invoice that has registered payments.');
+            throw new DocumentTransitionException('Cannot void an invoice that has registered payments.');
         }
 
         $this->status = InvoiceStatus::VOIDED;
@@ -140,7 +142,7 @@ class Invoice extends Document
     public function revertToDraft(): self
     {
         if (InvoiceStatus::VOIDED !== $this->status) {
-            throw new \LogicException('Only voided invoices can revert to draft.');
+            throw new DocumentTransitionException('Only voided invoices can revert to draft.');
         }
 
         $this->status = InvoiceStatus::DRAFT;
@@ -155,7 +157,7 @@ class Invoice extends Document
         $this->assertNotGeneratedFromSeed();
 
         if (null !== $this->installmentPlan) {
-            throw new \LogicException('Invoices cannot have both a recurrence and an installment plan.');
+            throw new DocumentRuleViolationException('Invoices cannot have both a recurrence and an installment plan.');
         }
 
         $this->recurrence = $recurrence;
@@ -174,7 +176,7 @@ class Invoice extends Document
         $this->assertInstallmentPlanDetachable();
 
         if (null !== $this->recurrence) {
-            throw new \LogicException('Invoices cannot have both an installment plan and a recurrence.');
+            throw new DocumentRuleViolationException('Invoices cannot have both an installment plan and a recurrence.');
         }
 
         $this->installmentPlan = $plan;
@@ -183,7 +185,7 @@ class Invoice extends Document
     public function updateInstallmentPlan(InstallmentPlanPayload $payload): void
     {
         if (null === $this->installmentPlan) {
-            throw new \LogicException('No installment plan is set.');
+            throw new DocumentRuleViolationException('No installment plan is set.');
         }
 
         $this->installmentPlan->applyPayload($payload);
@@ -219,7 +221,7 @@ class Invoice extends Document
     private function assertNotGeneratedFromSeed(): void
     {
         if (null !== $this->recurrenceSeedId || null !== $this->installmentSeedId) {
-            throw new \LogicException('Generated invoices cannot attach new scheduling rules.');
+            throw new DocumentRuleViolationException('Generated invoices cannot attach new scheduling rules.');
         }
     }
 }

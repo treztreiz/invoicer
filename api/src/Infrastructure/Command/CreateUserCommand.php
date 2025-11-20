@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Command;
 
-use App\Domain\Contracts\UserRepositoryInterface;
+use App\Domain\Contracts\Repository\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
 use App\Domain\ValueObject\Address;
 use App\Domain\ValueObject\Company;

@@ -7,6 +7,7 @@ namespace App\Domain\Entity\Document\Invoice;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Exception\DocumentRuleViolationException;
 use App\Domain\Payload\Document\Invoice\AllocatedInstallmentPayload;
 use App\Domain\Payload\Document\Invoice\InstallmentPayload;
 use App\Domain\Payload\Document\Invoice\InstallmentPlanPayload;
@@ -171,7 +172,7 @@ class InstallmentPlan
         $total = array_reduce($percentages, fn (string $carry, string $value) => MoneyMath::add($carry, $value), '0.00');
 
         if (0 !== \bccomp($total, '100.00', 2)) {
-            throw new \InvalidArgumentException('Installment percentages must total 100.');
+            throw new DocumentRuleViolationException('Installment percentages must total 100.');
         }
     }
 

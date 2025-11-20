@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Entity\Document\Invoice;
 
 use App\Domain\Entity\Common\UuidTrait;
+use App\Domain\Exception\DocumentRuleViolationException;
 use App\Domain\Guard\DomainGuard;
 use App\Domain\Payload\Document\Invoice\AllocatedInstallmentPayload;
 use App\Domain\ValueObject\AmountBreakdown;
@@ -70,7 +71,7 @@ class Installment
     public function assertMutable(): void
     {
         if (null !== $this->generatedInvoiceId) {
-            throw new \LogicException('Generated installments cannot be modified or removed.');
+            throw new DocumentRuleViolationException('Generated installments cannot be modified or removed.');
         }
     }
 }

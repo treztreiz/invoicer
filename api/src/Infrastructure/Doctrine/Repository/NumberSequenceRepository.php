@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Domain\Contracts\NumberSequenceRepositoryInterface;
+use App\Domain\Contracts\Repository\NumberSequenceRepositoryInterface;
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

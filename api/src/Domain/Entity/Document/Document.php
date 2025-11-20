@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
+use App\Domain\Contracts\Payload\DocumentPayloadInterface;
 use App\Domain\Entity\Common\ArchivableTrait;
 use App\Domain\Entity\Common\TimestampableTrait;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Guard\DomainGuard;
-use App\Domain\Payload\Document\AbstractDocumentPayload;
 use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\VatRate;
@@ -82,7 +82,7 @@ abstract class Document
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     protected static function fromDocumentPayload(
-        AbstractDocumentPayload $payload,
+        DocumentPayloadInterface $payload,
         Customer $customer,
         array $customerSnapshot,
         array $companySnapshot,
@@ -106,7 +106,7 @@ abstract class Document
     }
 
     protected function applyDocumentPayload(
-        AbstractDocumentPayload $payload,
+        DocumentPayloadInterface $payload,
         Customer $customer,
         array $customerSnapshot,
         array $companySnapshot,

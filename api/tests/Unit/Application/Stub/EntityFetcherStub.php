@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\Stub;
 
 use App\Application\Service\EntityFetcher;
-use App\Domain\Contracts\CustomerRepositoryInterface;
-use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Contracts\QuoteRepositoryInterface;
-use App\Domain\Contracts\UserRepositoryInterface;
+use App\Domain\Contracts\Repository\CustomerRepositoryInterface;
+use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
+use App\Domain\Contracts\Repository\QuoteRepositoryInterface;
+use App\Domain\Contracts\Repository\UserRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 
 class EntityFetcherStub extends TestCase

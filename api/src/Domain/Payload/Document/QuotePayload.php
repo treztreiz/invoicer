@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Payload\Document;
 
+use App\Domain\Contracts\Payload\DocumentPayloadInterface;
 use App\Domain\ValueObject\VatRate;
 
-final class QuotePayload extends AbstractDocumentPayload
+final class QuotePayload implements DocumentPayloadInterface
 {
     public function __construct(
         protected(set) string $title,

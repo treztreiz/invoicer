@@ -60,10 +60,14 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
         static::assertSame('40.00', $data['installmentPlan']['installments'][0]['percentage']);
         static::assertSame('60.00', $data['installmentPlan']['installments'][1]['percentage']);
 
+        // Ensure invoice's installments are correctly updated
         $installments = $invoice->installmentPlan->installments;
         static::assertCount(2, $installments);
-        static::assertSame('40.00', $installments[0]->percentage);
-        static::assertSame('60.00', $installments[1]->percentage);
+        static::assertSame('40.00', $installments->first()->percentage);
+        static::assertSame('60.00', $installments->last()->percentage);
+
+        // Ensure old installments are deleted from database
+        InstallmentFactory::assert()->count(2);
     }
 
     public function test_delete_installment_plan(): void
@@ -95,7 +99,7 @@ final class InvoiceInstallmentPlanApiTest extends ApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
-        static::assertStringContainsString('both a recurrence and an installment plan', $response->toArray(false)['detail'] ?? '');
+        static::assertStringContainsString('both an installment plan and a recurrence', $response->toArray(false)['detail'] ?? '');
     }
 
     public function test_attach_installment_plan_rejected_when_invoice_generated_from_recurrence(): void

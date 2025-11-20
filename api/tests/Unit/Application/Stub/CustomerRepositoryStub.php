@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Stub;
 
-use App\Domain\Contracts\CustomerRepositoryInterface;
+use App\Domain\Contracts\Repository\CustomerRepositoryInterface;
 use App\Domain\Entity\Customer\Customer;
 use Symfony\Component\Uid\Uuid;
 

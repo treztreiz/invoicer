@@ -6,11 +6,11 @@ namespace App\Application\UseCase\Invoice;
 
 use App\Application\Dto\Invoice\Input\TransitionInvoiceInput;
 use App\Application\Dto\Invoice\Output\InvoiceOutput;
-use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Service\Trait\DocumentWorkflowManagerAwareTrait;
 use App\Application\Service\Trait\InvoiceRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
 use App\Domain\Entity\Document\Invoice;
+use App\Domain\Exception\DocumentTransitionException;
 
 final class TransitionInvoiceUseCase extends AbstractUseCase
 {
@@ -28,7 +28,7 @@ final class TransitionInvoiceUseCase extends AbstractUseCase
         $transition = $input->transition;
 
         if (!$this->documentWorkflowManager->canInvoiceTransition($invoice, $transition)) {
-            throw new DomainRuleViolationException(sprintf('Invoice cannot transition via "%s".', $transition));
+            throw new DocumentTransitionException(sprintf('Invoice cannot transition via "%s".', $transition));
         }
 
         $this->applyTransition($invoice, $transition);
@@ -45,7 +45,7 @@ final class TransitionInvoiceUseCase extends AbstractUseCase
             self::TRANSITION_ISSUE => $invoice->issue($now, $invoice->dueDate ?? $now),
             self::TRANSITION_MARK_PAID => $invoice->markPaid($now),
             self::TRANSITION_VOID => $invoice->void(),
-            default => throw new DomainRuleViolationException(sprintf('Unknown transition "%s".', $transition)),
+            default => throw new DocumentTransitionException(sprintf('Unknown transition "%s".', $transition)),
         };
     }
 }

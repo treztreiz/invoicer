@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Domain\Contracts\QuoteRepositoryInterface;
+use App\Domain\Contracts\Repository\QuoteRepositoryInterface;
 use App\Domain\Entity\Document\Quote;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
