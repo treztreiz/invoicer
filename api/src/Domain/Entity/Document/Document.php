@@ -15,6 +15,7 @@ use App\Domain\Guard\DomainGuard;
 use App\Domain\Payload\Document\ComputedLinePayload;
 use App\Domain\Service\MoneyMath;
 use App\Domain\ValueObject\AmountBreakdown;
+use App\Domain\ValueObject\Company;
 use App\Domain\ValueObject\VatRate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,8 +28,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @phpstan-type NameSnapshot array{first: string, last: string}
  * @phpstan-type ContactSnapshot array{email: string|null, phone: string|null}
  * @phpstan-type AddressSnapshot array{streetLine1: string, streetLine2: string|null, postalCode: string, city: string, region: string|null, countryCode: string}
- * @phpstan-type CustomerSnapshot array{id: string|null, name: NameSnapshot, contact: ContactSnapshot, address: AddressSnapshot}
- * @phpstan-type CompanySnapshot array{legalName: string, contact: ContactSnapshot, address: AddressSnapshot, defaultCurrency: string, defaultHourlyRate: string, defaultDailyRate: string, defaultVatRate: string, legalMention: string|null}
+ * @phpstan-type CustomerSnapshot array{}|array{id: string|null, legalName: string|null, name: NameSnapshot, contact: ContactSnapshot, address: AddressSnapshot}
+ * @phpstan-type CompanySnapshot array{}|array{legalName: string, contact: ContactSnapshot, address: AddressSnapshot, defaultCurrency: string, defaultHourlyRate: string, defaultDailyRate: string, defaultVatRate: string, legalMention: string|null}
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'document')]
@@ -55,10 +56,14 @@ abstract class Document
     #[ORM\Embedded]
     protected(set) AmountBreakdown $total;
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
+    /** @var CustomerSnapshot $customerSnapshot */
+    #[ORM\Column(type: Types::JSON)]
+    protected(set) array $customerSnapshot = [];
+
+    /** @var CompanySnapshot $companySnapshot */
+    #[ORM\Column(type: Types::JSON)]
+    protected(set) array $companySnapshot = [];
+
     public function __construct(
         #[ORM\Column(length: 200)]
         protected(set) string $title {
@@ -82,27 +87,16 @@ abstract class Document
         #[ORM\ManyToOne(targetEntity: Customer::class)]
         #[ORM\JoinColumn(nullable: false)]
         protected(set) Customer $customer,
-
-        #[ORM\Column(type: Types::JSON)]
-        protected(set) array $customerSnapshot,
-
-        #[ORM\Column(type: Types::JSON)]
-        protected(set) array $companySnapshot,
     ) {
         $this->lines = new ArrayCollection();
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     protected static function fromDocumentPayload(
         DocumentPayloadInterface $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): static {
         $document = new static(
             title: $payload->title,
@@ -110,34 +104,29 @@ abstract class Document
             currency: $payload->currency,
             vatRate: $payload->vatRate,
             customer: $customer,
-            customerSnapshot: $customerSnapshot,
-            companySnapshot: $companySnapshot,
         );
 
         $document->computePayload($payload);
+        $document->computeCustomerSnapshot($customer);
+        $document->computeCompanySnapshot($company);
 
         return $document;
     }
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     protected function applyDocumentPayload(
         DocumentPayloadInterface $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): void {
         $this->title = $payload->title;
         $this->subtitle = $payload->subtitle;
         $this->currency = $payload->currency;
         $this->vatRate = $payload->vatRate;
         $this->customer = $customer;
-        $this->customerSnapshot = $customerSnapshot;
-        $this->companySnapshot = $companySnapshot;
 
         $this->computePayload($payload);
+        $this->computeCustomerSnapshot($customer);
+        $this->computeCompanySnapshot($company);
     }
 
     private function computePayload(DocumentPayloadInterface $payload): void
@@ -208,5 +197,55 @@ abstract class Document
         }
 
         return $line;
+    }
+
+    // SNAPSHOTS ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private function computeCustomerSnapshot(Customer $customer): void
+    {
+        $this->customerSnapshot = [
+            'id' => $customer->id?->toRfc4122(),
+            'legalName' => $customer->legalName,
+            'name' => [
+                'first' => $customer->name->firstName,
+                'last' => $customer->name->lastName,
+            ],
+            'contact' => [
+                'email' => $customer->contact->email,
+                'phone' => $customer->contact->phone,
+            ],
+            'address' => [
+                'streetLine1' => $customer->address->streetLine1,
+                'streetLine2' => $customer->address->streetLine2,
+                'postalCode' => $customer->address->postalCode,
+                'city' => $customer->address->city,
+                'region' => $customer->address->region,
+                'countryCode' => $customer->address->countryCode,
+            ],
+        ];
+    }
+
+    private function computeCompanySnapshot(Company $company): void
+    {
+        $this->companySnapshot = [
+            'legalName' => $company->legalName,
+            'contact' => [
+                'email' => $company->contact->email,
+                'phone' => $company->contact->phone,
+            ],
+            'address' => [
+                'streetLine1' => $company->address->streetLine1,
+                'streetLine2' => $company->address->streetLine2,
+                'postalCode' => $company->address->postalCode,
+                'city' => $company->address->city,
+                'region' => $company->address->region,
+                'countryCode' => $company->address->countryCode,
+            ],
+            'defaultCurrency' => $company->defaultCurrency,
+            'defaultHourlyRate' => $company->defaultHourlyRate->value,
+            'defaultDailyRate' => $company->defaultDailyRate->value,
+            'defaultVatRate' => $company->defaultVatRate->value,
+            'legalMention' => $company->legalMention,
+        ];
     }
 }

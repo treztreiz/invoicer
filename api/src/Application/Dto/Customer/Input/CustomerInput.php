@@ -23,6 +23,10 @@ final class CustomerInput
         #[Map(if: false)]
         private(set) readonly string $lastName,
 
+        #[Assert\NotBlank(allowNull: true)]
+        #[Assert\Length(max: 255)]
+        private(set) readonly ?string $legalName,
+
         #[Assert\NotBlank]
         #[Assert\Email]
         #[Assert\Length(max: 180)]

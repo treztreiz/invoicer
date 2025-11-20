@@ -10,16 +10,13 @@ use App\Domain\Enum\QuoteStatus;
 use App\Domain\Exception\DocumentRuleViolationException;
 use App\Domain\Exception\DocumentTransitionException;
 use App\Domain\Payload\Quote\QuotePayload;
+use App\Domain\ValueObject\Company;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-/**
- * @phpstan-import-type CustomerSnapshot from Document
- * @phpstan-import-type CompanySnapshot from Document
- */
 #[ORM\Entity]
 #[ORM\Table(name: 'quote')]
 #[EnumCheck(property: 'status', name: 'CHK_QUOTE_STATUS')]
@@ -42,34 +39,24 @@ class Quote extends Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     public static function fromPayload(
         QuotePayload $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): self {
-        return self::fromDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
+        return self::fromDocumentPayload($payload, $customer, $company);
     }
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     public function applyPayload(
         QuotePayload $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): void {
         if (QuoteStatus::DRAFT !== $this->status) {
             throw new DocumentRuleViolationException('Only draft quotes can be updated.');
         }
 
-        parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
+        parent::applyDocumentPayload($payload, $customer, $company);
     }
 
     // TRANSITIONS /////////////////////////////////////////////////////////////////////////////////////////////////////

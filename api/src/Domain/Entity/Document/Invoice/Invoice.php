@@ -9,19 +9,19 @@ use App\Domain\Entity\Document\Document;
 use App\Domain\Enum\InvoiceStatus;
 use App\Domain\Exception\DocumentRuleViolationException;
 use App\Domain\Exception\DocumentTransitionException;
+use App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload;
 use App\Domain\Payload\Invoice\InvoicePayload;
+use App\Domain\Payload\Invoice\Recurrence\RecurrencePayload;
+use App\Domain\ValueObject\Company;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\EnumCheck;
 use App\Infrastructure\Doctrine\CheckAware\Attribute\SoftXorCheck;
+use App\Infrastructure\Doctrine\Repository\InvoiceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-/**
- * @phpstan-import-type CustomerSnapshot from Document
- * @phpstan-import-type CompanySnapshot from Document
- */
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 #[ORM\Table(name: 'invoice')]
 #[EnumCheck(property: 'status', name: 'CHK_INVOICE_STATUS')]
 #[SoftXorCheck(properties: ['recurrence', 'installmentPlan'], name: 'CHK_INVOICE_SCHEDULE_XOR')]
@@ -53,37 +53,27 @@ class Invoice extends Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     public static function fromPayload(
         InvoicePayload $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): self {
-        $invoice = self::fromDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
+        $invoice = self::fromDocumentPayload($payload, $customer, $company);
         $invoice->dueDate = $payload->dueDate;
 
         return $invoice;
     }
 
-    /**
-     * @param CustomerSnapshot $customerSnapshot
-     * @param CompanySnapshot  $companySnapshot
-     */
     public function applyPayload(
         InvoicePayload $payload,
         Customer $customer,
-        array $customerSnapshot,
-        array $companySnapshot,
+        Company $company,
     ): void {
         if (InvoiceStatus::DRAFT !== $this->status) {
             throw new DocumentRuleViolationException('Only draft invoices can be updated.');
         }
 
-        parent::applyDocumentPayload($payload, $customer, $customerSnapshot, $companySnapshot);
+        parent::applyDocumentPayload($payload, $customer, $company);
 
         $this->dueDate = $payload->dueDate;
     }
@@ -177,7 +167,7 @@ class Invoice extends Document
         $this->recurrence = $recurrence;
     }
 
-    public function updateRecurrence(\App\Domain\Payload\Invoice\Recurrence\RecurrencePayload $payload): void
+    public function updateRecurrence(RecurrencePayload $payload): void
     {
         if (false === $this->hasRecurrence()) {
             throw new DocumentRuleViolationException('Invoice does not have a recurrence configured.');
@@ -215,7 +205,7 @@ class Invoice extends Document
         $this->installmentPlan = $plan;
     }
 
-    public function updateInstallmentPlan(\App\Domain\Payload\Invoice\Installment\InstallmentPlanPayload $payload): void
+    public function updateInstallmentPlan(InstallmentPlanPayload $payload): void
     {
         if (false === $this->hasInstallmentPlan()) {
             throw new DocumentRuleViolationException('Invoice does not have an installment plan.');

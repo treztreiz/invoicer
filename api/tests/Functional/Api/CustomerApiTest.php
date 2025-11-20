@@ -26,7 +26,7 @@ final class CustomerApiTest extends ApiTestCase
         $client = $this->createAuthenticatedClient();
 
         $response = $this->apiRequest($client, 'POST', '/api/customers', [
-            'json' => $this->createCustomerPayload('Charlie', 'Xavier', 'charlie.xavier@example.com'),
+            'json' => $this->createCustomerPayload('Charlie', 'Xavier', 'Stub Corp', 'charlie.xavier@example.com'),
         ]);
 
         self::assertResponseStatusCodeSame(201);
@@ -35,6 +35,7 @@ final class CustomerApiTest extends ApiTestCase
         static::assertArrayHasKey('customerId', $data);
         static::assertSame('Charlie', $data['firstName']);
         static::assertSame('Xavier', $data['lastName']);
+        static::assertSame('Stub Corp', $data['legalName']);
 
         CustomerFactory::assert()->exists([
             'id' => Uuid::fromString($data['customerId']),
@@ -86,7 +87,7 @@ final class CustomerApiTest extends ApiTestCase
         $customer = CustomerFactory::createOne();
 
         $response = $this->apiRequest($client, 'PUT', sprintf('/api/customers/%s', $customer->id->toRfc4122()), [
-            'json' => $this->createCustomerPayload('Evelyn', 'Vector', 'evelyn.vector@example.com'),
+            'json' => $this->createCustomerPayload('Evelyn', 'Vector', null, 'evelyn.vector@example.com'),
         ]);
 
         self::assertResponseIsSuccessful();
@@ -94,10 +95,12 @@ final class CustomerApiTest extends ApiTestCase
 
         static::assertSame('Evelyn', $data['firstName']);
         static::assertSame('evelyn.vector@example.com', $data['email']);
+        static::assertNull($data['legalName']);
         static::assertSame('22 rue des Lilas', $data['address']['streetLine1']);
 
         static::assertSame('Evelyn', $customer->name->firstName);
         static::assertSame('evelyn.vector@example.com', $customer->contact->email);
+        static::assertNull($customer->legalName);
         static::assertSame('22 rue des Lilas', $customer->address->streetLine1);
     }
 
@@ -135,11 +138,12 @@ final class CustomerApiTest extends ApiTestCase
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function createCustomerPayload(string $firstName, string $lastName, string $email): array
+    private function createCustomerPayload(string $firstName, string $lastName, ?string $legalName, string $email): array
     {
         return [
             'firstName' => $firstName,
             'lastName' => $lastName,
+            'legalName' => $legalName,
             'email' => $email,
             'phone' => '+33000000000',
             'address' => [

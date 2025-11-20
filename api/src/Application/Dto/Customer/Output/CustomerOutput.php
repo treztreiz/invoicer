@@ -23,6 +23,8 @@ final readonly class CustomerOutput
         #[Map(source: 'name.lastName')]
         private(set) string $lastName,
 
+        private(set) ?string $legalName,
+
         #[Map(source: 'contact.email')]
         private(set) ?string $email,
 

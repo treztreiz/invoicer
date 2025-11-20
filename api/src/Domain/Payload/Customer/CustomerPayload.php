@@ -12,6 +12,7 @@ final readonly class CustomerPayload
 {
     public function __construct(
         private(set) Name $name,
+        private(set) ?string $legalName,
         private(set) Contact $contact,
         private(set) Address $address,
     ) {

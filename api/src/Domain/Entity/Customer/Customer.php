@@ -25,6 +25,12 @@ class Customer
         #[ORM\Embedded(columnPrefix: false)]
         private(set) Name $name,
 
+        #[ORM\Column(type: 'string', length: 255, nullable: true)]
+        private(set) ?string $legalName {
+            get => $this->legalName ?? null;
+            set => $value;
+        },
+
         #[ORM\Embedded(columnPrefix: false)]
         private(set) Contact $contact,
 
@@ -37,12 +43,13 @@ class Customer
 
     public static function fromPayload(CustomerPayload $payload): self
     {
-        return new self($payload->name, $payload->contact, $payload->address);
+        return new self($payload->name, $payload->legalName, $payload->contact, $payload->address);
     }
 
     public function applyPayload(CustomerPayload $payload): void
     {
         $this->name = $payload->name;
+        $this->legalName = $payload->legalName;
         $this->contact = $payload->contact;
         $this->address = $payload->address;
     }

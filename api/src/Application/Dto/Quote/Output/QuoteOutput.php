@@ -22,8 +22,6 @@ final readonly class QuoteOutput
 {
     /**
      * @param list<DocumentLineOutput> $lines
-     * @param CustomerSnapshot         $customerSnapshot
-     * @param CompanySnapshot          $companySnapshot
      * @param list<string>             $availableTransitions
      */
     public function __construct(
@@ -51,8 +49,10 @@ final readonly class QuoteOutput
         #[Map(source: 'customer.id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $customerId,
 
+        /** @var CustomerSnapshot */
         private(set) array $customerSnapshot,
 
+        /** @var CompanySnapshot */
         private(set) array $companySnapshot,
 
         #[Map(transform: [OutputTransformer::class, 'dateTime'])]

@@ -7,7 +7,6 @@ namespace App\Application\UseCase\Quote;
 use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
 use App\Application\Service\Trait\CustomerRepositoryAwareTrait;
-use App\Application\Service\Trait\DocumentSnapshotFactoryAwareTrait;
 use App\Application\Service\Trait\QuoteRepositoryAwareTrait;
 use App\Application\Service\Trait\UserRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
@@ -18,7 +17,6 @@ use App\Domain\Entity\User\User;
 final class UpdateQuoteUseCase extends AbstractUseCase
 {
     use CustomerRepositoryAwareTrait;
-    use DocumentSnapshotFactoryAwareTrait;
     use UserRepositoryAwareTrait;
     use QuoteRepositoryAwareTrait;
 
@@ -33,8 +31,7 @@ final class UpdateQuoteUseCase extends AbstractUseCase
         $quote->applyPayload(
             payload: $payload,
             customer: $customer,
-            customerSnapshot: $this->documentSnapshotFactory->customerSnapshot($customer),
-            companySnapshot: $this->documentSnapshotFactory->companySnapshot($user)
+            company: $user->company
         );
 
         $this->quoteRepository->save($quote);
