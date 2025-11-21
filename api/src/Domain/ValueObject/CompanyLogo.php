@@ -11,10 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Embeddable]
 final class CompanyLogo
 {
-    private const int MAX_FILE_SIZE = 2_000_000; // 2 MiB
+    public const int MAX_FILE_SIZE = 2_000_000; // 2 MiB
 
     /** @param array{width?: int, height?: int}|null $dimensions */
-    public function __construct(
+    private function __construct(
         #[ORM\Column(length: 255, nullable: true)]
         private(set) ?string $name = null {
             set => DomainGuard::optionalNonEmpty($value, 'Logo filename');
@@ -36,15 +36,13 @@ final class CompanyLogo
         },
 
         #[ORM\Column(type: Types::JSON, nullable: true)]
-        private(set) ?array $dimensions = null,
+        private(set) ?array $dimensions = null {
+            set => self::guardDimensions($value);
+        },
     ) {
-        $this->dimensions = self::guardDimensions($this->dimensions);
     }
 
-    public static function empty(): self
-    {
-        return new self();
-    }
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** @param array{width?: int, height?: int}|null $dimensions */
     public static function fromUpload(
@@ -57,18 +55,23 @@ final class CompanyLogo
         return new self($storedName, $originalName, $size, $mimeType, $dimensions);
     }
 
+    public static function empty(): self
+    {
+        return new self();
+    }
+
     public function hasFile(): bool
     {
         return null !== $this->name;
     }
 
-    public function url(string $basePath = '/uploads/logos'): ?string
+    public function url(string $baseUrl = '/uploads/logos'): ?string
     {
         if (!$this->hasFile()) {
             return null;
         }
 
-        return rtrim($basePath, '/').'/'.$this->name;
+        return rtrim($baseUrl, '/').'/'.$this->name;
     }
 
     private static function guardSize(?int $size): ?int
