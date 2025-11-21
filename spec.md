@@ -321,7 +321,7 @@ InstallmentPlan ||--o{ Installment
     * **YEARLY**: `"2026"`.
     * Localize month names by `User.locale`.
 * **Overdue job** (daily): move `ISSUED` invoices with `due_date < today` to `OVERDUE`.
-* **Installment plan**: attach a percent-only plan (sums to 100%) to a Quote or Invoice; **generates one Draft invoice
+* **Installment plan**: attach a percent-only plan (sums to 100%) to an Invoice; **generates one Draft invoice
   per installment** (e.g., 30%, 30%, 40%) with its own reference & totals. Mark each **installment invoice** as `PAID`
   with a `paid_at` date. Show the project full total on each installment PDF for context. The **seed cannot be issued**.
 
@@ -334,11 +334,7 @@ InstallmentPlan ||--o{ Installment
 * `/me/company-logo` (POST) – VichUploaderBundle endpoint for company logo upload; returns updated path stored in
   embedded profile
 * `/customers` (CRUD, archive)
-* `/documents` (list with filters: type, status, dates, customer)
-* `/documents/{id}` (CRUD)
-* `/documents/{id}/actions`: `convert-to-invoice`, `duplicate`, `issue`, `reissue`, `void`, mark-paid — `issue` is
-  blocked if the document has an InstallmentPlan (use plan → generate).
-* `/documents/{id}/installment-plan` (GET/POST)
+* `/quotes` and `/invoices` expose their own collection/item endpoints with per-type transition actions (issue, void, mark-paid, etc.) instead of a shared `/documents` surface. Shared semantics (filters, status changes) are implemented per resource.
 * `/installment-plans/{plan_id}/generate` (POST → per‑installment invoices as Draft)
 * `/recurrences` (CRUD)
 * `/reports/revenue.csv?from&to&customer_id&sort`
