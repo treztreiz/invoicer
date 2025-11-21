@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Functional\Api;
+namespace App\Tests\Functional\Api\User;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Tests\Factory\User\UserFactory;

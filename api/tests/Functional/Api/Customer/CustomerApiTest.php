@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Functional\Api;
+namespace App\Tests\Functional\Api\Customer;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Tests\Factory\Customer\CustomerFactory;
@@ -116,7 +116,7 @@ final class CustomerApiTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
-        static::assertTrue($data['isArchived']);
+        static::assertTrue($data['archived']);
         static::assertTrue($customer->isArchived);
     }
 
@@ -132,7 +132,7 @@ final class CustomerApiTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
-        static::assertFalse($data['isArchived']);
+        static::assertFalse($data['archived']);
         static::assertFalse($customer->isArchived);
     }
 

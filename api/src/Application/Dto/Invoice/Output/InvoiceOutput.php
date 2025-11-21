@@ -62,9 +62,6 @@ final readonly class InvoiceOutput
         private(set) array $companySnapshot,
 
         #[Map(transform: [OutputTransformer::class, 'dateTime'])]
-        private(set) string $createdAt,
-
-        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
         private(set) ?string $issuedAt,
 
         #[Map(transform: [OutputTransformer::class, 'date'])]
@@ -81,6 +78,9 @@ final readonly class InvoiceOutput
 
         #[Map(source: 'status', transform: InvoiceOutputTransitionsTransformer::class)]
         private(set) array $availableTransitions,
+
+        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
+        private(set) string $createdAt,
 
         #[Map(source: 'isArchived')]
         private(set) bool $archived,

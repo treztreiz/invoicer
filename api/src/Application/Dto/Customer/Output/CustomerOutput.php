@@ -17,13 +17,13 @@ final readonly class CustomerOutput
         #[Map(source: 'id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $customerId,
 
+        private(set) ?string $legalName,
+
         #[Map(source: 'name.firstName')]
         private(set) string $firstName,
 
         #[Map(source: 'name.lastName')]
         private(set) string $lastName,
-
-        private(set) ?string $legalName,
 
         #[Map(source: 'contact.email')]
         private(set) ?string $email,
@@ -31,10 +31,14 @@ final readonly class CustomerOutput
         #[Map(source: 'contact.phone')]
         private(set) ?string $phone,
 
-        private(set) bool $isArchived,
-
         #[Map(transform: AddressOutputTransformer::class)]
         private(set) AddressOutput $address,
+
+        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
+        private(set) string $createdAt,
+
+        #[Map(source: 'isArchived')]
+        private(set) bool $archived,
     ) {
     }
 }

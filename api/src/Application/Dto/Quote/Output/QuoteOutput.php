@@ -57,11 +57,11 @@ final readonly class QuoteOutput
         /** @var CompanySnapshot */
         private(set) array $companySnapshot,
 
-        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
-        private(set) string $createdAt,
-
         #[Map(source: 'status', transform: QuoteOutputTransitionsTransformer::class)]
         private(set) array $availableTransitions,
+
+        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
+        private(set) string $createdAt,
 
         #[Map(source: 'isArchived')]
         private(set) bool $archived,
