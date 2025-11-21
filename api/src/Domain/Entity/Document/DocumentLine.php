@@ -17,7 +17,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'document_line')]
-#[ORM\UniqueConstraint(name: 'UNIQ_DOCUMENT_LINE_DOCUMENT_POSITION', fields: ['document', 'position'])]
 #[EnumCheck(property: 'rateUnit', name: 'CHK_DOCUMENT_LINE_RATE_UNIT')]
 class DocumentLine
 {

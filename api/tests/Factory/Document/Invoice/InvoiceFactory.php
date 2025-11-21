@@ -56,7 +56,11 @@ class InvoiceFactory extends DocumentFactory
         $installmentPlan = InstallmentPlanFactory::build();
         $installments = InstallmentFactory::build([
             'installmentPlan' => $installmentPlan,
-        ])->many($numberOfInstallments);
+        ])->sequence(static function () use ($numberOfInstallments) {
+            for ($i = 0; $i < $numberOfInstallments; ++$i) {
+                yield ['position' => $i];
+            }
+        });
 
         return $this->with([
             'installmentPlan' => $installmentPlan->with([
