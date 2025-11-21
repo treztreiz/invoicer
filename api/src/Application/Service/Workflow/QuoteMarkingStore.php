@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Service\Workflow;
 
 use App\Application\Guard\TypeGuard;
-use App\Domain\Entity\Document\Quote;
+use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\Workflow\Marking;
 use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 

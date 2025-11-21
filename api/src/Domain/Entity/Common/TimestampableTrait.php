@@ -13,12 +13,14 @@ trait TimestampableTrait
     #[Gedmo\Timestampable(on: 'create')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
     protected(set) \DateTimeImmutable $createdAt {
-        get => $this->createdAt ?? new \DateTimeImmutable();
+        get => $this->createdAt ?? $this->createdAt = new \DateTimeImmutable();
+        set => $value;
     }
 
     #[Gedmo\Timestampable(on: 'update')]
     #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE)]
     protected(set) \DateTimeImmutable $updatedAt {
-        get => $this->updatedAt ?? new \DateTimeImmutable();
+        get => $this->updatedAt ?? $this->updatedAt = new \DateTimeImmutable();
+        set => $value;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +29,7 @@ final class AmountBreakdownTest extends TestCase
 
     public function test_instantiation_fails_when_totals_do_not_match(): void
     {
-        static::expectException(\InvalidArgumentException::class);
+        static::expectException(DomainGuardException::class);
         static::expectExceptionMessage('Gross amount must equal net plus tax.');
 
         new AmountBreakdown(

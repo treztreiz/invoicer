@@ -7,33 +7,29 @@ namespace App\Tests\Unit\Domain\Entity\Document;
 use App\Domain\Entity\Document\Document;
 use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\RateUnit;
+use App\Domain\Exception\DomainGuardException;
+use App\Domain\Payload\Document\ComputedLinePayload;
+use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
+use App\Tests\Unit\Domain\Entity\Document\Invoice\InvoiceTest;
+use App\Tests\Unit\Domain\Entity\Document\Quote\QuoteTest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @testType solitary-unit
  */
 final class DocumentLineTest extends TestCase
 {
+    use Factories;
+
     #[DataProvider('documentsProvider')]
     public function test_construct_stores_values(Document $document): void
     {
-        $line = new DocumentLine(
-            document: $document,
-            description: 'Development work',
-            quantity: new Quantity('10'),
-            rateUnit: RateUnit::HOURLY,
-            rate: new Money('100'),
-            amount: new AmountBreakdown(
-                net: new Money('1000'),
-                tax: new Money('200'),
-                gross: new Money('1200'),
-            ),
-            position: 1
-        );
+        $line = $this->createDocumentLine($document, 1);
 
         static::assertSame($document, $line->document);
         static::assertSame(1, $line->position);
@@ -42,44 +38,37 @@ final class DocumentLineTest extends TestCase
     #[DataProvider('documentsProvider')]
     public function test_blank_description_is_rejected(Document $document): void
     {
-        static::expectException(\InvalidArgumentException::class);
+        static::expectException(DomainGuardException::class);
 
-        new DocumentLine(
-            document: $document,
-            description: '   ',
-            quantity: new Quantity('1'),
-            rateUnit: RateUnit::HOURLY,
-            rate: new Money('10'),
-            amount: new AmountBreakdown(
-                net: new Money('10'),
-                tax: new Money('2'),
-                gross: new Money('12'),
-            ),
-            position: 0
-        );
+        $this->createDocumentLine($document, description: '   ');
     }
 
     #[DataProvider('documentsProvider')]
     public function test_negative_position_is_rejected(Document $document): void
     {
-        static::expectException(\InvalidArgumentException::class);
+        static::expectException(DomainGuardException::class);
 
-        new DocumentLine(
-            document: $document,
-            description: 'Item',
-            quantity: new Quantity('1'),
-            rateUnit: RateUnit::DAILY,
-            rate: new Money('10'),
-            amount: new AmountBreakdown(
-                net: new Money('10'),
-                tax: new Money('2'),
-                gross: new Money('12'),
-            ),
-            position: -1
-        );
+        $this->createDocumentLine($document, -1);
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function createDocumentLine(Document $document, int $position = 0, string $description = 'Item'): DocumentLine
+    {
+        $payload = new ComputedLinePayload(
+            payload: new DocumentLinePayload(
+                id: null,
+                description: $description,
+                quantity: new Quantity('1'),
+                rateUnit: RateUnit::DAILY,
+                rate: new Money('10'),
+            ),
+            amount: AmountBreakdown::fromValues('10', '2', '12'),
+            position: $position
+        );
+
+        return DocumentLine::fromPayload($document, $payload);
+    }
 
     public static function documentsProvider(): iterable
     {

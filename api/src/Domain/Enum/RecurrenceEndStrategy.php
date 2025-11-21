@@ -6,9 +6,9 @@ namespace App\Domain\Enum;
 
 enum RecurrenceEndStrategy: string
 {
+    case NEVER = 'NEVER';
     case UNTIL_DATE = 'UNTIL_DATE';
     case UNTIL_COUNT = 'UNTIL_COUNT';
-    case NEVER = 'NEVER';
 
     /** @return list<string> */
     public static function endStrategies(): array

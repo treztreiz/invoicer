@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -22,7 +23,7 @@ final readonly class AmountBreakdown
         $sum = \bcadd($net->value, $tax->value, 2);
 
         if ($sum !== $gross->value) {
-            throw new \InvalidArgumentException('Gross amount must equal net plus tax.');
+            throw new DomainGuardException('Gross amount must equal net plus tax.');
         }
     }
 
@@ -38,5 +39,12 @@ final readonly class AmountBreakdown
             tax: new Money($tax),
             gross: new Money($gross),
         );
+    }
+
+    public function equals(self $amount): bool
+    {
+        return $amount->net->value === $this->net->value
+            && $amount->tax->value === $this->tax->value
+            && $amount->gross->value === $this->gross->value;
     }
 }

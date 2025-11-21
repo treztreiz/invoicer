@@ -6,15 +6,15 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Domain\Contracts\InvoiceRepositoryInterface;
-use App\Domain\Entity\Document\Invoice;
+use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
+use App\Domain\Entity\Document\Invoice\Invoice;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @extends ServiceEntityRepository<Invoice>
+ * @extends ServiceEntityRepository<\App\Domain\Entity\Document\Invoice\Invoice>
  */
 final class InvoiceRepository extends ServiceEntityRepository implements InvoiceRepositoryInterface
 {

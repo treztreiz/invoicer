@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\ApiPlatform\EventSubscriber;
 
-use App\Application\Exception\DomainRuleViolationException;
 use App\Application\Exception\ResourceNotFoundException;
+use App\Domain\Exception\DomainException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -26,7 +26,7 @@ final class ApplicationExceptionSubscriber implements EventSubscriberInterface
     {
         $throwable = $event->getThrowable();
 
-        if ($throwable instanceof DomainRuleViolationException) {
+        if ($throwable instanceof DomainException) {
             $event->setThrowable(new HttpException(Response::HTTP_BAD_REQUEST, $throwable->getMessage(), $throwable));
 
             return;

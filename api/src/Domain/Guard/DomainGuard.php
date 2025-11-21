@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Guard;
 
+use App\Domain\Exception\DomainGuardException;
+use App\Domain\Service\MoneyMath;
+
 final class DomainGuard
 {
     private function __construct()
@@ -15,7 +18,7 @@ final class DomainGuard
         $trimmed = trim($value);
 
         if ('' === $trimmed) {
-            throw new \InvalidArgumentException(sprintf('%s cannot be blank.', $label));
+            throw new DomainGuardException(sprintf('%s cannot be blank.', $label));
         }
 
         return $trimmed;
@@ -37,7 +40,7 @@ final class DomainGuard
         $name = self::nonEmpty($value, sprintf('%s cannot be blank.', $label));
 
         if (!preg_match("/^[\p{L}'\-\s]+$/u", $name)) {
-            throw new \InvalidArgumentException(sprintf('%s contains invalid characters.', $label));
+            throw new DomainGuardException(sprintf('%s contains invalid characters.', $label));
         }
 
         return $name;
@@ -52,7 +55,7 @@ final class DomainGuard
         $normalized = strtolower(self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
         if (!filter_var($normalized, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException(sprintf('%s is not valid.', $label));
+            throw new DomainGuardException(sprintf('%s is not valid.', $label));
         }
 
         return $normalized;
@@ -67,7 +70,7 @@ final class DomainGuard
         $normalized = preg_replace('/\s+/', '', self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
         if (null === $normalized || !preg_match('/^\+?[0-9().-]{6,20}$/', $normalized)) {
-            throw new \InvalidArgumentException(sprintf('%s is not valid.', $label));
+            throw new DomainGuardException(sprintf('%s is not valid.', $label));
         }
 
         return $normalized;
@@ -78,7 +81,7 @@ final class DomainGuard
         $code = strtoupper(self::nonEmpty($value, sprintf('%s cannot be blank.', $label)));
 
         if (!preg_match('/^[A-Z]{2}$/', $code)) {
-            throw new \InvalidArgumentException(sprintf('%s must be a two-letter ISO 3166-1 alpha-2 code.', $label));
+            throw new DomainGuardException(sprintf('%s must be a two-letter ISO 3166-1 alpha-2 code.', $label));
         }
 
         return $code;
@@ -89,7 +92,7 @@ final class DomainGuard
         $code = strtoupper(self::nonEmpty($value, sprintf('%s code is required.', $label)));
 
         if (3 !== strlen($code)) {
-            throw new \InvalidArgumentException(sprintf('%s must be a 3-letter ISO 4217 code.', $label));
+            throw new DomainGuardException(sprintf('%s must be a 3-letter ISO 4217 code.', $label));
         }
 
         return $code;
@@ -107,16 +110,25 @@ final class DomainGuard
     public static function nonNegativeInt(int $value, string $label = 'Value'): int
     {
         if ($value < 0) {
-            throw new \InvalidArgumentException(sprintf('%s cannot be negative.', $label));
+            throw new DomainGuardException(sprintf('%s cannot be negative.', $label));
         }
 
         return $value;
     }
 
+    public static function optionalPositiveInt(?int $value, string $label = 'Value'): ?int
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return self::positiveInt($value, $label);
+    }
+
     public static function positiveInt(int $value, string $label = 'Value'): int
     {
         if ($value <= 0) {
-            throw new \InvalidArgumentException(sprintf('%s must be greater than zero.', $label));
+            throw new DomainGuardException(sprintf('%s must be greater than zero.', $label));
         }
 
         return $value;
@@ -135,36 +147,36 @@ final class DomainGuard
         $normalized = self::normalizeDecimalSeparator($normalized);
 
         if ('' === $normalized) {
-            throw new \InvalidArgumentException(sprintf('%s must be provided.', $label));
+            throw new DomainGuardException(sprintf('%s must be provided.', $label));
         }
 
         if (!is_numeric($normalized)) {
-            throw new \InvalidArgumentException(sprintf('%s must be numeric.', $label));
+            throw new DomainGuardException(sprintf('%s must be numeric.', $label));
         }
 
         $number = (float) $normalized;
 
         if (!$allowNegative && $number < 0) {
-            throw new \InvalidArgumentException(sprintf('%s cannot be negative.', $label));
+            throw new DomainGuardException(sprintf('%s cannot be negative.', $label));
         }
 
         if (null !== $min && $number < $min) {
-            throw new \InvalidArgumentException(sprintf('%s must be at least %s.', $label, $min));
+            throw new DomainGuardException(sprintf('%s must be at least %s.', $label, $min));
         }
 
         if (null !== $max && $number > $max) {
-            throw new \InvalidArgumentException(sprintf('%s must be %s or less.', $label, $max));
+            throw new DomainGuardException(sprintf('%s must be %s or less.', $label, $max));
         }
 
         $parts = explode('.', $normalized);
         if (isset($parts[1])) {
             $decimals = rtrim($parts[1], '0');
             if (strlen($decimals) > $scale) {
-                throw new \InvalidArgumentException(sprintf('%s must have at most %d decimal places.', $label, $scale));
+                throw new DomainGuardException(sprintf('%s must have at most %d decimal places.', $label, $scale));
             }
         }
 
-        return number_format($number, $scale, '.', '');
+        return MoneyMath::decimal($number, $scale);
     }
 
     private static function normalizeDecimalSeparator(string $value): string

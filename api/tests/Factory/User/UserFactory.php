@@ -7,6 +7,7 @@ namespace App\Tests\Factory\User;
 use App\Domain\Entity\User\User;
 use App\Tests\Factory\Common\BuildableFactoryTrait;
 use App\Tests\Factory\ValueObject\CompanyFactory;
+use App\Tests\Factory\ValueObject\CompanyLogoFactory;
 use App\Tests\Factory\ValueObject\ContactFactory;
 use App\Tests\Factory\ValueObject\NameFactory;
 use Symfony\Component\Uid\Uuid;
@@ -35,6 +36,7 @@ class UserFactory extends PersistentObjectFactory
             'name' => NameFactory::new(),
             'contact' => ContactFactory::new(),
             'company' => CompanyFactory::new(),
+            'companyLogo' => CompanyLogoFactory::new(),
             'userIdentifier' => self::faker()->email(),
             'roles' => [],
             'password' => self::HASHED_PASSWORD,

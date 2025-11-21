@@ -7,7 +7,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Domain\Entity\Document;
 
 use App\Tests\Factory\Document\DocumentLineFactory;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;

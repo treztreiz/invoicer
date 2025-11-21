@@ -11,10 +11,13 @@ use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\InvoiceStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\DocumentLineFactory;
-use App\Tests\Factory\Document\InvoiceFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @testType functional
+ */
 final class InvoiceApiTest extends ApiTestCase
 {
     use ApiClientHelperTrait;
@@ -53,6 +56,20 @@ final class InvoiceApiTest extends ApiTestCase
         $data = $response->toArray(false);
 
         static::assertCount(10, $data['member']);
+    }
+
+    public function test_get_invoice_returns_single_invoice(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $invoice = InvoiceFactory::createOne(['title' => 'New invoice']);
+
+        $response = $this->apiRequest($client, 'GET', sprintf('/api/invoices/%s', $invoice->id->toRfc4122()));
+
+        self::assertResponseIsSuccessful();
+        $data = $response->toArray(false);
+
+        static::assertSame('New invoice', $data['title']);
     }
 
     public function test_issue_invoice_transitions_to_issued(): void
@@ -100,8 +117,19 @@ final class InvoiceApiTest extends ApiTestCase
                     'title' => 'Updated invoice',
                     'currency' => 'USD',
                     'lines' => [
-                        ['description' => 'Consulting'],
-                        ['description' => 'Marketing', 'lineId' => $firstLine->id->toRfc4122()],
+                        [
+                            'description' => 'Consulting',
+                            'quantity' => 2,
+                            'rateUnit' => 'DAILY',
+                            'rate' => 600,
+                        ],
+                        [
+                            'lineId' => $firstLine->id->toRfc4122(),
+                            'description' => 'Marketing',
+                            'quantity' => 10,
+                            'rateUnit' => 'HOURLY',
+                            'rate' => 80,
+                        ],
                     ],
                 ]
             ),

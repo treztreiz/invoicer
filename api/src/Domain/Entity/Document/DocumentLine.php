@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Document;
 
-use App\Domain\DTO\DocumentLinePayload;
 use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Enum\RateUnit;
 use App\Domain\Guard\DomainGuard;
+use App\Domain\Payload\Document\ComputedLinePayload;
 use App\Domain\ValueObject\AmountBreakdown;
 use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Quantity;
@@ -23,7 +23,7 @@ class DocumentLine
 {
     use UuidTrait;
 
-    public function __construct(
+    private function __construct(
         #[ORM\ManyToOne(targetEntity: Document::class, inversedBy: 'lines')]
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         private(set) readonly Document $document,
@@ -52,7 +52,9 @@ class DocumentLine
     ) {
     }
 
-    public static function fromPayload(Document $document, DocumentLinePayload $payload): self
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static function fromPayload(Document $document, ComputedLinePayload $payload): self
     {
         return new self(
             document: $document,
@@ -65,7 +67,7 @@ class DocumentLine
         );
     }
 
-    public function applyPayload(DocumentLinePayload $payload): void
+    public function applyPayload(ComputedLinePayload $payload): void
     {
         $this->description = $payload->description;
         $this->quantity = $payload->quantity;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
@@ -21,14 +22,14 @@ final class MoneyTest extends TestCase
 
     public function test_rejects_more_than_two_decimals(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Money('10.123');
     }
 
     public function test_rejects_negative_amount(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Money('-5.00');
     }

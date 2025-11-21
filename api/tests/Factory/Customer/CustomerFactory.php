@@ -29,6 +29,7 @@ final class CustomerFactory extends PersistentObjectFactory
     {
         return [
             'name' => NameFactory::new(),
+            'legalName' => static::faker()->company(),
             'contact' => ContactFactory::new(),
             'address' => AddressFactory::new(),
         ];

@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Repository;
 
-use App\Domain\Contracts\UserRepositoryInterface;
+use App\Domain\Contracts\Repository\UserRepositoryInterface;
 use App\Domain\Entity\User\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

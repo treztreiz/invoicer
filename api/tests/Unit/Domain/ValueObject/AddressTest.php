@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\ValueObject;
 
+use App\Domain\Exception\DomainGuardException;
 use App\Domain\ValueObject\Address;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +23,7 @@ final class AddressTest extends TestCase
 
     public function test_blank_street_line_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Address(
             streetLine1: '   ',
@@ -36,7 +37,7 @@ final class AddressTest extends TestCase
 
     public function test_invalid_country_code_is_rejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(DomainGuardException::class);
 
         new Address(
             streetLine1: '1 rue Test',

@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Application\Dto\User\Input\PasswordInput;
+use App\Application\Dto\User\Input\UserInput;
+use App\Application\Dto\User\Output\UserOutput;
+use App\Domain\Entity\User\User;
+use App\Infrastructure\ApiPlatform\State\User\UpdatePasswordProcessor;
+use App\Infrastructure\ApiPlatform\State\User\UpdateUserProcessor;
+use Symfony\Component\HttpFoundation\Response;
+
+return new ApiResource(
+    uriTemplate: '',
+    shortName: 'Me',
+    operations: [
+        new Get(
+            stateOptions: new Options(User::class)
+        ),
+        new Put(
+            read: false,
+            processor: UpdateUserProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/password',
+            status: Response::HTTP_NO_CONTENT,
+            input: PasswordInput::class,
+            output: false,
+            read: false,
+            processor: UpdatePasswordProcessor::class,
+        ),
+    ],
+    routePrefix: '/me',
+    class: UserOutput::class,
+    input: UserInput::class
+);

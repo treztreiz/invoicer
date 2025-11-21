@@ -13,11 +13,13 @@ class InstallmentPlanFactory extends PersistentObjectFactory
 {
     use BuildableFactoryTrait;
 
+    #[\Override]
     public static function class(): string
     {
         return InstallmentPlan::class;
     }
 
+    #[\Override]
     protected function defaults(): array|callable
     {
         return [];

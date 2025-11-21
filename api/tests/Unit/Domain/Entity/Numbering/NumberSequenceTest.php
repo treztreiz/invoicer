@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Domain\Entity\Numbering;
 
 use App\Domain\Entity\Numbering\NumberSequence;
 use App\Domain\Enum\DocumentType;
+use App\Domain\Exception\DomainGuardException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +30,7 @@ final class NumberSequenceTest extends TestCase
     #[DataProvider('documentTypesProvider')]
     public function test_negative_year_is_rejected(DocumentType $documentType): void
     {
-        static::expectException(\InvalidArgumentException::class);
+        static::expectException(DomainGuardException::class);
         new NumberSequence($documentType, -1);
     }
 
