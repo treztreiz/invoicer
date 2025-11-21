@@ -21,7 +21,7 @@ abstract class DocumentFactory extends PersistentObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'title' => static::faker()->title(),
+            'title' => static::faker()->word(),
             'currency' => static::faker()->currencyCode(),
             'vatRate' => VatRateFactory::new(),
             'total' => AmountBreakdownFactory::new(),

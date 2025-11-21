@@ -17,6 +17,7 @@ use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Dto\Quote\Input\TransitionQuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
 use App\Domain\Entity\Document\Quote\Quote;
+use App\Infrastructure\ApiPlatform\Filter\CustomerSearchFilter;
 use App\Infrastructure\ApiPlatform\State\Quote\CreateQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\TransitionQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\UpdateQuoteProcessor;
@@ -32,6 +33,7 @@ return new ApiResource(
                 'createdAt' => new QueryParameter(key: 'createdAt', filter: new DateFilter(), property: 'createdAt'),
                 'status' => new QueryParameter(key: 'status', filter: new BackedEnumFilter(), property: 'status'),
                 'customerId' => new QueryParameter(key: 'customerId', filter: new ExactFilter(), property: 'customer'),
+                'search' => new QueryParameter(key: 'search', filter: CustomerSearchFilter::class, property: 'search'),
             ]
         ),
         new Get(

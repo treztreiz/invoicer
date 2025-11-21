@@ -8,11 +8,12 @@ namespace App\Tests\Functional\Api\Quote;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Domain\Entity\Customer\Customer;
+use App\Domain\Entity\Document\Quote\Quote;
 use App\Domain\Enum\QuoteStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\Quote\QuoteFactory;
+use App\Tests\Factory\ValueObject\NameFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
-
 use function Zenstruck\Foundry\Persistence\flush_after;
 
 /**
@@ -98,6 +99,57 @@ final class QuoteFilterApiTest extends ApiTestCase
         foreach ($data['member'] as $quote) {
             static::assertGreaterThanOrEqual($startDate, new \DateTimeImmutable($quote['createdAt']));
             static::assertLessThanOrEqual($endDate, new \DateTimeImmutable($quote['createdAt']));
+        }
+    }
+
+    public function test_quotes_can_be_filtered_via_customer_search(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $expectedQuotes = flush_after(function () {
+            QuoteFactory::createOne([
+                'customer' => CustomerFactory::createOne([
+                    'legalName' => 'Hopper Industries',
+                    'name' => NameFactory::new(['firstName' => 'Grace', 'lastName' => 'Hopper']),
+                ]),
+            ]); // ❌
+
+            return [
+                QuoteFactory::createOne([
+                    'customer' => CustomerFactory::createOne([
+                        'legalName' => 'Ada Consulting',
+                        'name' => NameFactory::new(['firstName' => 'Nora', 'lastName' => 'Jones']),
+                    ]),
+                ]), // ✔️ legal name
+                QuoteFactory::createOne([
+                    'customer' => CustomerFactory::createOne([
+                        'legalName' => 'Pixel Studio',
+                        'name' => NameFactory::new(['firstName' => 'Ada', 'lastName' => 'Smith']),
+                    ]),
+                ]), // ✔️ first name
+                QuoteFactory::createOne([
+                    'customer' => CustomerFactory::createOne([
+                        'name' => NameFactory::new(['lastName' => 'Adam']),
+                    ]),
+                ]), // ✔️ last name
+            ];
+        });
+
+        $response = $this->apiRequest($client, 'GET', '/api/quotes?search=ada');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(3, $data['member']);
+
+        $expectedQuoteIds = array_map(fn(Quote $expectedQuote) => $expectedQuote->id->toRfc4122(), $expectedQuotes);
+
+        foreach ($data['member'] as $quote) {
+            static::assertContains(
+                $quote['quoteId'],
+                $expectedQuoteIds,
+                'Returned quote should match the search term on customer identity.'
+            );
         }
     }
 }
