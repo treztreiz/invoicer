@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Integration\Domain\Entity\Document;
+namespace App\Tests\Integration\Domain\Entity\Document\Invoice;
 
 use App\Tests\Factory\Document\Invoice\InstallmentFactory;
 use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
@@ -14,7 +14,6 @@ use Doctrine\DBAL\Exception\DriverException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
-
 use function Zenstruck\Foundry\Persistence\flush_after;
 use function Zenstruck\Foundry\Persistence\save;
 

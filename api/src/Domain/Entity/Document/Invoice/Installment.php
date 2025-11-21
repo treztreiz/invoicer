@@ -16,6 +16,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'installment')]
+#[ORM\UniqueConstraint(name: 'UNIQ_INSTALLMENT_PLAN_POSITION', fields: ['installmentPlan', 'position'])]
 class Installment
 {
     use UuidTrait;

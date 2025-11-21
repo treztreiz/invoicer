@@ -56,4 +56,13 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function exists(): bool
+    {
+        return (bool) $this->createQueryBuilder('user')
+            ->select('1')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

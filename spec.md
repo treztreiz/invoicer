@@ -471,34 +471,34 @@ InstallmentPlan ||--o{ Installment
 
 **M1 – Foundations (week 1)**
 
-* Repos, CI, Dockerfiles, compose (dev) + Swarm stack (prod), base Symfony app, Vite React TS + Tailwind scaffold.
+- [x] Repos, CI, Dockerfiles, compose (dev) + Swarm stack (prod), base Symfony app, Vite React TS + Tailwind scaffold.
 
 **M2 – Domain & Persistence (week 2)**
 
-* Entities (User+embedded CompanyProfile, Customer, Document STI, DocumentLine, Recurrence/Installments,
+- [x] Entities (User+embedded CompanyProfile, Customer, Document STI, DocumentLine, Recurrence/Installments,
   NumberSequence) + migrations.
-* STI constraints & triggers, repositories, basic fixtures.
-* Company logo uploads handled via custom storage service (no Vich). Service validates file (≤2 MB, allowed MIME), stores under `public/uploads/logos` with unique filename, extracts metadata, and hydrates the `CompanyLogo` value object.
+- [x] STI constraints & triggers, repositories, basic fixtures.
+- [ ] Company logo uploads handled via custom storage service (no Vich). Service validates file (≤2 MB, allowed MIME), stores under `public/uploads/logos` with unique filename, extracts metadata, and hydrates the `CompanyLogo` value object.
 
 **M3 – API Resources & Auth (week 3)**
 
-* API Platform resources, filters, `/me` provider/processor (+ password change), logo upload endpoint.
-* Document actions processors (`issue`, `convert`, etc.).
+- [x] API Platform resources, filters, `/me` provider/processor (+ password change), logo upload endpoint.
+- [ ] Document actions processors (`issue`, `convert`, etc.).
 
 **M4 – Frontend MVP (week 4)**
 
-* Routes & pages: Settings (company+user), Customers, Quotes, Invoices.
-* Forms with RHF+Zod, list tables with filters, PDF streaming.
+- [ ] Routes & pages: Settings (company+user), Customers, Quotes, Invoices.
+- [ ] Forms with RHF+Zod, list tables with filters, PDF streaming.
 
 **M5 – Jobs & PDF (week 5)**
 
-* Recurrence & overdue schedulers, subtitle generation.
-* Browsershot PDF renderer with minimal theme.
+- [ ] Recurrence & overdue schedulers, subtitle generation.
+- [ ] Browsershot PDF renderer with minimal theme.
 
 **M6 – Hardening (week 6)**
 
-* Tests (unit/API/E2E smoke), a11y pass, performance pass on lists & PDF, logging/metrics.
-* Swarm deploy script & checklist.
+- [ ] Tests (unit/API/E2E smoke), a11y pass, performance pass on lists & PDF, logging/metrics.
+- [ ] Swarm deploy script & checklist.
 
 ## Git Workflow & CI Expectations
 
