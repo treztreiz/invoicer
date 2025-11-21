@@ -6,6 +6,7 @@ use ApiPlatform\Doctrine\Orm\Filter\BackedEnumFilter;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
+use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
 use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
 use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
@@ -53,6 +54,13 @@ return new ApiResource(
                 'status' => new QueryParameter(key: 'status', filter: new BackedEnumFilter(), property: 'status'),
                 'archived' => new QueryParameter(key: 'archived', filter: new BooleanFilter(), property: 'isArchived'),
                 'createdAt' => new QueryParameter(key: 'createdAt', filter: new DateFilter(), property: 'createdAt'),
+                'issuedAt' => new QueryParameter(key: 'issuedAt', filter: new DateFilter(), property: 'issuedAt'),
+                'dueDate' => new QueryParameter(key: 'dueDate', filter: new DateFilter(), property: 'dueDate'),
+                'paidAt' => new QueryParameter(key: 'paidAt', filter: new DateFilter(), property: 'paidAt'),
+                'recurrence' => new QueryParameter(key: 'recurrence', filter: new ExistsFilter(), property: 'recurrence'),
+                'installmentPlan' => new QueryParameter(key: 'installmentPlan', filter: new ExistsFilter(), property: 'installmentPlan'),
+                'recurrenceSeedId' => new QueryParameter(key: 'recurrenceSeedId', filter: new ExactFilter(), property: 'recurrenceSeedId'),
+                'installmentSeedId' => new QueryParameter(key: 'installmentSeedId', filter: new ExactFilter(), property: 'installmentSeedId'),
             ]
         ),
         new Get(

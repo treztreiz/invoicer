@@ -15,6 +15,7 @@ use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Factory\ValueObject\NameFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
+use Symfony\Component\Uid\Uuid;
 
 use function Zenstruck\Foundry\Persistence\flush_after;
 
@@ -270,5 +271,179 @@ final class InvoiceFilterApiTest extends ApiTestCase
         $data = $response->toArray(false);
         static::assertCount(1, $data['member']);
         static::assertTrue($data['member'][0]['archived']);
+    }
+
+    public function test_invoices_can_be_filtered_by_issued_at(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        InvoiceFactory::createSequence([
+            ['issuedAt' => new \DateTimeImmutable('2024-12-31')], // ❌
+            ['issuedAt' => new \DateTimeImmutable('2025-01-01')], // ✔️
+            ['issuedAt' => new \DateTimeImmutable('2025-06-15')], // ✔️
+            ['issuedAt' => new \DateTimeImmutable('2025-12-31')], // ✔️
+            ['issuedAt' => new \DateTimeImmutable('2026-01-01')], // ❌
+        ]);
+
+        $response = $this->apiRequest($client, 'GET', '/api/invoices?issuedAt[after]=2025-01-01&issuedAt[before]=2025-12-31');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(3, $data['member']);
+
+        $startDate = new \DateTimeImmutable('2025-01-01')->setTime(0, 0);
+        $endDate = new \DateTimeImmutable('2025-12-31')->setTime(23, 59, 59);
+
+        foreach ($data['member'] as $invoice) {
+            static::assertNotNull($invoice['issuedAt']);
+            $issuedAt = new \DateTimeImmutable($invoice['issuedAt']);
+            static::assertGreaterThanOrEqual($startDate, $issuedAt);
+            static::assertLessThanOrEqual($endDate, $issuedAt);
+        }
+    }
+
+    public function test_invoices_can_be_filtered_by_due_date(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        InvoiceFactory::createSequence([
+            ['dueDate' => new \DateTimeImmutable('2024-12-31')], // ❌
+            ['dueDate' => new \DateTimeImmutable('2025-02-01')], // ✔️
+            ['dueDate' => new \DateTimeImmutable('2025-05-01')], // ✔️
+            ['dueDate' => new \DateTimeImmutable('2025-11-01')], // ✔️
+            ['dueDate' => new \DateTimeImmutable('2026-01-01')], // ❌
+        ]);
+
+        $response = $this->apiRequest($client, 'GET', '/api/invoices?dueDate[after]=2025-01-01&dueDate[before]=2025-12-31');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(3, $data['member']);
+
+        $startDate = new \DateTimeImmutable('2025-01-01');
+        $endDate = new \DateTimeImmutable('2025-12-31');
+
+        foreach ($data['member'] as $invoice) {
+            static::assertNotNull($invoice['dueDate']);
+            $dueDate = new \DateTimeImmutable($invoice['dueDate']);
+            static::assertGreaterThanOrEqual($startDate, $dueDate);
+            static::assertLessThanOrEqual($endDate, $dueDate);
+        }
+    }
+
+    public function test_invoices_can_be_filtered_by_paid_at(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        InvoiceFactory::createSequence([
+            ['paidAt' => new \DateTimeImmutable('2024-12-31')], // ❌
+            ['paidAt' => new \DateTimeImmutable('2025-02-15')], // ✔️
+            ['paidAt' => new \DateTimeImmutable('2025-07-20')], // ✔️
+            ['paidAt' => new \DateTimeImmutable('2025-11-05')], // ✔️
+            ['paidAt' => new \DateTimeImmutable('2026-01-10')], // ❌
+        ]);
+
+        $response = $this->apiRequest($client, 'GET', '/api/invoices?paidAt[after]=2025-01-01&paidAt[before]=2025-12-31');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(3, $data['member']);
+
+        $startDate = new \DateTimeImmutable('2025-01-01')->setTime(0, 0);
+        $endDate = new \DateTimeImmutable('2025-12-31')->setTime(23, 59, 59);
+
+        foreach ($data['member'] as $invoice) {
+            static::assertNotNull($invoice['paidAt']);
+            $paidAt = new \DateTimeImmutable($invoice['paidAt']);
+            static::assertGreaterThanOrEqual($startDate, $paidAt);
+            static::assertLessThanOrEqual($endDate, $paidAt);
+        }
+    }
+
+    public function test_invoices_can_be_filtered_by_recurrence_presence(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $expectedInvoice = flush_after(function () {
+            InvoiceFactory::createOne(); // ❌
+
+            return InvoiceFactory::new()->withRecurrence()->create();
+        });
+
+        $response = $this->apiRequest($client, 'GET', '/api/invoices?recurrence=true');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(1, $data['member']);
+        static::assertSame($expectedInvoice->id->toRfc4122(), $data['member'][0]['invoiceId']);
+        static::assertNotNull($data['member'][0]['recurrence']);
+    }
+
+    public function test_invoices_can_be_filtered_by_installment_plan_presence(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $expectedInvoice = flush_after(function () {
+            InvoiceFactory::createOne(); // ❌
+
+            return InvoiceFactory::new()->withInstallmentPlan(2)->create();
+        });
+
+        $response = $this->apiRequest($client, 'GET', '/api/invoices?installmentPlan=true');
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(1, $data['member']);
+        static::assertSame($expectedInvoice->id->toRfc4122(), $data['member'][0]['invoiceId']);
+        static::assertNotNull($data['member'][0]['installmentPlan']);
+    }
+
+    public function test_invoices_can_be_filtered_by_recurrence_seed_id(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $seedId = Uuid::v7();
+        $expectedInvoiceId = null;
+
+        flush_after(function () use ($seedId, &$expectedInvoiceId) {
+            $match = InvoiceFactory::createOne(['recurrenceSeedId' => $seedId]); // ✔️
+            InvoiceFactory::createOne(['recurrenceSeedId' => Uuid::v7()]); // ❌
+            InvoiceFactory::createOne(); // ❌
+            $expectedInvoiceId = $match->id->toRfc4122();
+        });
+
+        $response = $this->apiRequest($client, 'GET', sprintf('/api/invoices?recurrenceSeedId=%s', $seedId->toRfc4122()));
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(1, $data['member']);
+        static::assertSame($expectedInvoiceId, $data['member'][0]['invoiceId']);
+    }
+
+    public function test_invoices_can_be_filtered_by_installment_seed_id(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $seedId = Uuid::v7();
+        $expectedInvoiceId = null;
+
+        flush_after(function () use ($seedId, &$expectedInvoiceId) {
+            $match = InvoiceFactory::createOne(['installmentSeedId' => $seedId]); // ✔️
+            InvoiceFactory::createOne(['installmentSeedId' => Uuid::v7()]); // ❌
+            InvoiceFactory::createOne(); // ❌
+            $expectedInvoiceId = $match->id->toRfc4122();
+        });
+
+        $response = $this->apiRequest($client, 'GET', sprintf('/api/invoices?installmentSeedId=%s', $seedId->toRfc4122()));
+
+        self::assertResponseIsSuccessful();
+
+        $data = $response->toArray(false);
+        static::assertCount(1, $data['member']);
+        static::assertSame($expectedInvoiceId, $data['member'][0]['invoiceId']);
     }
 }
