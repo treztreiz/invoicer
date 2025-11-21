@@ -37,14 +37,16 @@ ops/            # Dockerfiles, nginx configs, cert scripts
 
 ## Docs
 
-- [Configuration Overview](doc/config.md)
+- [Configuration overview](doc/config.md)
 - [TLS certificates & scripts](doc/certs.md)
 - [nginx runtime & templating](doc/nginx.md)
 - [Docker images & stages](doc/images.md)
 - [PHP runtime & Xdebug](doc/php-runtime.md)
 - [Doctrine check-aware layer](doc/check-aware.md)
 - [CI blueprint](doc/ci.md)
-- [API Platform infra conventions](doc/api-platform.md)
+- [API Platform configuration](doc/api-platform.md)
+- [Application mapping (DTOs/ObjectMapper)](doc/application-mapping.md)
+- [Domain aggregates overview](doc/domain-aggregates.md)
 
 ## Toolchain
 
