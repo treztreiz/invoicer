@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Integration\Domain\Entity\Document;
+namespace App\Tests\Integration\Domain\Entity\Document\Invoice;
 
 use App\Tests\Factory\Document\Invoice\InstallmentFactory;
 use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;

@@ -38,10 +38,16 @@ final readonly class CreateUserCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument('Email')] ?string $userIdentifier = null,
-        #[Argument('Plain password')] ?string $password = null,
+        #[Argument(description: 'Email', name: 'user-identifier')] ?string $userIdentifier = null,
+        #[Argument(description: 'Plain password')] ?string $password = null,
     ): int {
         $io->title('User creation');
+
+        if ($this->userRepository->exists()) {
+            $io->error('A user already exists. Update it via `/me` instead of creating a new one.');
+
+            return Command::FAILURE;
+        }
 
         $userIdentifier = $userIdentifier ?? $io->ask('Choose an email', self::DEFAULT_USER_IDENTIFIER);
         $password = $password ?? $io->askHidden('Choose a password');

@@ -16,4 +16,6 @@ interface UserRepositoryInterface
     public function findOneById(Uuid $id): ?User;
 
     public function findOneByUserIdentifier(string $userIdentifier): ?User;
+
+    public function exists(): bool;
 }
