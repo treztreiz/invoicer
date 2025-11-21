@@ -32,6 +32,8 @@ final readonly class InvoiceOutput
         #[Map(source: 'id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $invoiceId,
 
+        private(set) ?string $reference,
+
         private(set) string $title,
 
         private(set) ?string $subtitle,
@@ -60,6 +62,9 @@ final readonly class InvoiceOutput
         private(set) array $companySnapshot,
 
         #[Map(transform: [OutputTransformer::class, 'dateTime'])]
+        private(set) string $createdAt,
+
+        #[Map(transform: [OutputTransformer::class, 'dateTime'])]
         private(set) ?string $issuedAt,
 
         #[Map(transform: [OutputTransformer::class, 'date'])]
@@ -69,13 +74,16 @@ final readonly class InvoiceOutput
         private(set) ?string $paidAt,
 
         #[Map(transform: RecurrenceOutputTransformer::class)]
-        private(set) ?RecurrenceOutput $recurrence = null,
+        private(set) ?RecurrenceOutput $recurrence,
 
         #[Map(transform: InstallmentPlanOutputTransformer::class)]
-        private(set) ?InstallmentPlanOutput $installmentPlan = null,
+        private(set) ?InstallmentPlanOutput $installmentPlan,
 
         #[Map(source: 'status', transform: InvoiceOutputTransitionsTransformer::class)]
-        private(set) array $availableTransitions = [],
+        private(set) array $availableTransitions,
+
+        #[Map(source: 'isArchived')]
+        private(set) bool $archived,
     ) {
     }
 }

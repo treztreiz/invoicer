@@ -31,7 +31,7 @@ final class CustomerSearchFilter extends AbstractFilter
         QueryNameGeneratorInterface $queryNameGenerator,
         string $resourceClass,
         ?Operation $operation = null,
-        array $context = []
+        array $context = [],
     ): void {
         if ('search' !== $property) {
             return;

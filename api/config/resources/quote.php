@@ -3,8 +3,13 @@
 declare(strict_types=1);
 
 use ApiPlatform\Doctrine\Orm\Filter\BackedEnumFilter;
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -30,10 +35,15 @@ return new ApiResource(
         new GetCollection(
             stateOptions: new Options(Quote::class),
             parameters: [
-                'createdAt' => new QueryParameter(key: 'createdAt', filter: new DateFilter(), property: 'createdAt'),
-                'status' => new QueryParameter(key: 'status', filter: new BackedEnumFilter(), property: 'status'),
+                'reference' => new QueryParameter(key: 'reference', filter: new PartialSearchFilter(), property: 'reference'),
+                'title' => new QueryParameter(key: 'title', filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['title', 'subtitle']),
                 'customerId' => new QueryParameter(key: 'customerId', filter: new ExactFilter(), property: 'customer'),
-                'search' => new QueryParameter(key: 'search', filter: CustomerSearchFilter::class, property: 'search'),
+                'customer' => new QueryParameter(key: 'customer', filter: CustomerSearchFilter::class, property: 'search'),
+                'totalNet' => new QueryParameter(key: 'totalNet', filter: new RangeFilter(), property: 'total.net.value'),
+                'totalGross' => new QueryParameter(key: 'totalGross', filter: new RangeFilter(), property: 'total.gross.value'),
+                'status' => new QueryParameter(key: 'status', filter: new BackedEnumFilter(), property: 'status'),
+                'archived' => new QueryParameter(key: 'archived', filter: new BooleanFilter(), property: 'isArchived'),
+                'createdAt' => new QueryParameter(key: 'createdAt', filter: new DateFilter(), property: 'createdAt'),
             ]
         ),
         new Get(

@@ -28,6 +28,8 @@ final readonly class QuoteOutput
         #[Map(source: 'id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $quoteId,
 
+        private(set) ?string $reference,
+
         private(set) string $title,
 
         private(set) ?string $subtitle,
@@ -59,7 +61,10 @@ final readonly class QuoteOutput
         private(set) string $createdAt,
 
         #[Map(source: 'status', transform: QuoteOutputTransitionsTransformer::class)]
-        private(set) array $availableTransitions = [],
+        private(set) array $availableTransitions,
+
+        #[Map(source: 'isArchived')]
+        private(set) bool $archived,
     ) {
     }
 }
