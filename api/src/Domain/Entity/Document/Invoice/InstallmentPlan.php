@@ -68,6 +68,8 @@ class InstallmentPlan
         foreach ($this->installments as $installment) {
             if ($installment->id) {
                 $existingInstallments[$installment->id->toRfc4122()] = $installment;
+            } else {
+                $this->removeInstallment($installment);
             }
         }
 
@@ -81,7 +83,9 @@ class InstallmentPlan
             $id = $payload->id?->toRfc4122();
 
             if (null !== $id && isset($existingInstallments[$id])) {
-                $existingInstallments[$id]->applyPayload($computedInstallment);
+                if (false === $existingInstallments[$id]->equals($computedInstallment)) {
+                    $existingInstallments[$id]->applyPayload($computedInstallment);
+                }
                 unset($existingInstallments[$id]);
             } else {
                 $this->addInstallment($computedInstallment);
@@ -89,8 +93,7 @@ class InstallmentPlan
         }
 
         foreach ($existingInstallments as $installment) {
-            $installment->assertMutable();
-            $this->installments->removeElement($installment);
+            $this->removeInstallment($installment);
         }
     }
 
@@ -152,6 +155,12 @@ class InstallmentPlan
         }
 
         return $installment;
+    }
+
+    private function removeInstallment(Installment $installment): void
+    {
+        $installment->assertMutable();
+        $this->installments->removeElement($installment);
     }
 
     // GUARDS //////////////////////////////////////////////////////////////////////////////////////////////////////////

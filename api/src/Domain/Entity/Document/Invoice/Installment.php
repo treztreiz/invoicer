@@ -68,6 +68,14 @@ class Installment
         $this->dueDate = $payload->dueDate;
     }
 
+    public function equals(ComputedInstallmentPayload $payload): bool
+    {
+        return $this->position === $payload->position
+            && $this->percentage === $payload->percentage
+            && $this->amount->equals($payload->amount)
+            && $this->dueDate === $payload->dueDate;
+    }
+
     // GUARDS //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public function assertMutable(): void

@@ -43,7 +43,9 @@ class Recurrence
         private(set) ?\DateTimeImmutable $endDate = null,
 
         #[ORM\Column(type: Types::SMALLINT, nullable: true)]
-        private(set) ?int $occurrenceCount = null,
+        private(set) ?int $occurrenceCount = null {
+            set => DomainGuard::optionalPositiveInt($value, 'Occurrence count');
+        },
 
         #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
         private(set) readonly ?\DateTimeImmutable $nextRunAt = null,

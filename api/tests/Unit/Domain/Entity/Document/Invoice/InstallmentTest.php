@@ -8,6 +8,7 @@ use App\Domain\Entity\Document\Invoice\Installment;
 use App\Domain\Exception\DomainGuardException;
 use App\Domain\Payload\Invoice\Installment\ComputedInstallmentPayload;
 use App\Domain\Payload\Invoice\Installment\InstallmentPayload;
+use App\Tests\Factory\Document\Invoice\InstallmentPlanFactory;
 use App\Tests\Factory\ValueObject\AmountBreakdownFactory;
 use PHPUnit\Framework\TestCase;
 use Zenstruck\Foundry\Test\Factories;
@@ -44,8 +45,6 @@ class InstallmentTest extends TestCase
             amount: AmountBreakdownFactory::createOne()
         );
 
-        $installmentPlan = InstallmentPlanTest::createInstallmentPlan();
-
-        return Installment::fromPayload($payload, $installmentPlan);
+        return Installment::fromPayload($payload, InstallmentPlanFactory::build()->create());
     }
 }

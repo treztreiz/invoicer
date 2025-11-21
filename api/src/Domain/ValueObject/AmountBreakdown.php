@@ -40,4 +40,11 @@ final readonly class AmountBreakdown
             gross: new Money($gross),
         );
     }
+
+    public function equals(self $amount): bool
+    {
+        return $amount->net->value === $this->net->value
+            && $amount->tax->value === $this->tax->value
+            && $amount->gross->value === $this->gross->value;
+    }
 }

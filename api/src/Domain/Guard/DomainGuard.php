@@ -116,6 +116,15 @@ final class DomainGuard
         return $value;
     }
 
+    public static function optionalPositiveInt(?int $value, string $label = 'Value'): ?int
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return self::positiveInt($value, $label);
+    }
+
     public static function positiveInt(int $value, string $label = 'Value'): int
     {
         if ($value <= 0) {
