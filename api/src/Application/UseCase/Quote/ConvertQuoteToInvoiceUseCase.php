@@ -39,7 +39,7 @@ final class ConvertQuoteToInvoiceUseCase extends AbstractUseCase
 
         $invoice = Invoice::fromPayload(
             payload: $payload,
-            customer: $quote->customer,
+            customer: $payload->customer,
             company: $user->company,
         );
 

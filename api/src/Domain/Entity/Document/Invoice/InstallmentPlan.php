@@ -163,6 +163,13 @@ class InstallmentPlan
         $this->installments->removeElement($installment);
     }
 
+    public function getNextPendingInstallment(): ?Installment
+    {
+        return $this->installments->findFirst(
+            fn (int $i, Installment $installment) => !$installment->isGenerated()
+        ) ?: null;
+    }
+
     // GUARDS //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -181,6 +188,15 @@ class InstallmentPlan
     {
         foreach ($this->installments as $installment) {
             $installment->assertMutable();
+        }
+    }
+
+    public function assertNextInstallment(Installment $installment): void
+    {
+        $next = $this->getNextPendingInstallment();
+
+        if (null === $next || $next !== $installment) {
+            throw new DocumentRuleViolationException('Installments must be generated sequentially.');
         }
     }
 }

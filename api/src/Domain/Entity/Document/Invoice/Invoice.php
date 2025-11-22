@@ -64,6 +64,25 @@ class Invoice extends Document
         return $invoice;
     }
 
+    public static function fromInstallmentSeed(
+        Invoice $seed,
+        Installment $installment,
+        InvoicePayload $payload,
+    ): self {
+        $installment->installmentPlan->assertNextInstallment($installment);
+
+        $invoice = self::fromDocumentPayload($payload, $seed->customerSnapshot, $seed->companySnapshot);
+        $invoice->id = Uuid::v7();
+
+        $installment->markGeneratedInvoice($invoice);
+
+        $invoice->total = $installment->amount;
+        $invoice->dueDate = $installment->dueDate;
+        $invoice->markGeneratedFromInstallment($seed->id);
+
+        return $invoice;
+    }
+
     public function applyPayload(
         InvoicePayload $payload,
         Customer $customer,
@@ -71,6 +90,10 @@ class Invoice extends Document
     ): void {
         if (InvoiceStatus::DRAFT !== $this->status) {
             throw new DocumentRuleViolationException('Only draft invoices can be updated.');
+        }
+
+        if (null !== $this->installmentSeedId) {
+            throw new DocumentRuleViolationException('Invoices generated from installment seeds cannot be updated.');
         }
 
         parent::applyDocumentPayload($payload, $customer, $company);

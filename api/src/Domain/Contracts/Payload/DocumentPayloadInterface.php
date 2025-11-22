@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contracts\Payload;
 
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\VatRate;
 
@@ -15,6 +16,11 @@ interface DocumentPayloadInterface
     }
 
     protected(set) ?string $subtitle {
+        get;
+        set;
+    }
+
+    protected(set) Customer $customer {
         get;
         set;
     }

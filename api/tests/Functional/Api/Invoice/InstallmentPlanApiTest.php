@@ -128,6 +128,36 @@ final class InstallmentPlanApiTest extends ApiTestCase
         static::assertStringContainsString('Generated invoices cannot attach new scheduling rules.', $response->toArray(false)['detail'] ?? '');
     }
 
+    public function test_generate_installment_invoice_creates_child_invoice(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $invoice = InvoiceFactory::new()->withInstallmentPlan(2)->withSnapshots()->create();
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan/generate', $invoice->id->toRfc4122()));
+
+        self::assertResponseStatusCodeSame(201);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('invoiceId', $data);
+        $installments = $invoice->installmentPlan->installments->getValues();
+
+        static::assertNotNull($installments[0]->generatedInvoiceId);
+        static::assertNull($installments[1]->generatedInvoiceId);
+    }
+
+    public function test_generate_installment_invoice_rejected_when_all_generated(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $invoice = InvoiceFactory::new()->withInstallmentPlan(1)->withSnapshots()->create();
+
+        $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan/generate', $invoice->id->toRfc4122()));
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/installment-plan/generate', $invoice->id->toRfc4122()));
+
+        self::assertResponseStatusCodeSame(400);
+        static::assertStringContainsString('All installments have been generated', $response->toArray(false)['detail'] ?? '');
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private function installmentPayload(array $installments = []): array

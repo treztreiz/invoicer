@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Dto\Invoice\Input;
 
+use App\Application\Dto\Document\Input\DocumentCustomerInputTransformer;
 use App\Application\Dto\Document\Input\DocumentLineInput;
 use App\Application\Dto\Document\Input\DocumentLineInputTransformer;
 use App\Application\Service\Transformer\InputTransformer;
@@ -26,6 +27,7 @@ final class InvoiceInput
 
         #[Assert\NotBlank]
         #[Assert\Uuid(strict: true)]
+        #[Map(target: 'customer', transform: DocumentCustomerInputTransformer::class)]
         private(set) readonly string $customerId,
 
         #[Assert\Currency]

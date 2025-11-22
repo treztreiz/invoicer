@@ -183,6 +183,7 @@ final class InvoiceTest extends TestCase
             payload: new InvoicePayload(
                 title: 'Initial scope',
                 subtitle: 'Phase 1',
+                customer: $customer,
                 currency: 'EUR',
                 vatRate: new VatRate('20.00'),
                 linesPayload: [
@@ -234,6 +235,7 @@ final class InvoiceTest extends TestCase
         $updatePayload = new InvoicePayload(
             title: 'Updated invoice',
             subtitle: 'Phase 2',
+            customer: $customer,
             currency: 'USD',
             vatRate: new VatRate('10.00'),
             linesPayload: [
@@ -307,16 +309,18 @@ final class InvoiceTest extends TestCase
 
     public static function createInvoice(): Invoice
     {
+        $customer = CustomerFactory::build()->create();
+
         return Invoice::fromPayload(
             payload: new InvoicePayload(
                 title: 'Sample invoice',
                 subtitle: null,
+                customer: $customer,
                 currency: 'EUR',
                 vatRate: new VatRate('20'),
-                linesPayload: [],
-                dueDate: null
+                linesPayload: [], dueDate: null
             ),
-            customer: CustomerFactory::build()->create(),
+            customer: $customer,
             company: CompanyFactory::createOne()
         );
     }
