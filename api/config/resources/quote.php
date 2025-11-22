@@ -23,6 +23,7 @@ use App\Application\Dto\Quote\Input\TransitionQuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
 use App\Domain\Entity\Document\Quote\Quote;
 use App\Infrastructure\ApiPlatform\Filter\CustomerSearchFilter;
+use App\Infrastructure\ApiPlatform\State\Quote\ConvertQuoteToInvoiceProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\CreateQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\TransitionQuoteProcessor;
 use App\Infrastructure\ApiPlatform\State\Quote\UpdateQuoteProcessor;
@@ -66,6 +67,14 @@ return new ApiResource(
             input: TransitionQuoteInput::class,
             read: false,
             processor: TransitionQuoteProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/{quoteId}/convert-to-invoice',
+            status: Response::HTTP_CREATED,
+            input: false,
+            read: false,
+            deserialize: false,
+            processor: ConvertQuoteToInvoiceProcessor::class,
         ),
     ],
     routePrefix: '/quotes',

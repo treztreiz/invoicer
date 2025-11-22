@@ -8,9 +8,11 @@ use App\Application\Dto\Invoice\Input\InvoiceInput;
 use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Service\Trait\ObjectMapperAwareTrait;
 use App\Domain\Payload\Document\DocumentLinePayload;
+use App\Domain\Payload\Invoice\InvoicePayload;
+use App\Domain\Payload\Quote\QuotePayload;
 use Symfony\Component\ObjectMapper\TransformCallableInterface;
 
-/** @implements TransformCallableInterface<InvoiceInput|QuoteInput, \App\Domain\Payload\Invoice\InvoicePayload|\App\Domain\Payload\Quote\QuotePayload> */
+/** @implements TransformCallableInterface<InvoiceInput|QuoteInput, InvoicePayload|QuotePayload> */
 final class DocumentLineInputTransformer implements TransformCallableInterface
 {
     use ObjectMapperAwareTrait;
