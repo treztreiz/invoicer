@@ -35,7 +35,7 @@ final readonly class UserOutput
         #[Map(transform: CompanyOutputTransformer::class)]
         private(set) CompanyOutput $company,
 
-        #[Map(source: 'companyLogo.url')]
+        #[Map(source: 'companyLogo', transform: UserOutputLogoTransformer::class)]
         private(set) ?string $logoUrl,
     ) {
     }

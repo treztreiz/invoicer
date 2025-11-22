@@ -33,10 +33,14 @@ abstract class DocumentFactory extends PersistentObjectFactory
 
     public function withLines(int $numberOfLines): static
     {
-        $lines = DocumentLineFactory::build([
-            'document' => $this,
-        ])->many($numberOfLines);
-
-        return $this->with(['lines' => $lines]);
+        return $this->with([
+            'lines' => DocumentLineFactory::build([
+                'document' => $this,
+            ])->sequence(static function () use ($numberOfLines) {
+                for ($i = 0; $i < $numberOfLines; ++$i) {
+                    yield ['position' => $i];
+                }
+            }),
+        ]);
     }
 }

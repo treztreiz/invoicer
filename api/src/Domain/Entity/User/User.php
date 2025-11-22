@@ -37,7 +37,7 @@ class User
         private(set) Company $company,
 
         #[ORM\Embedded]
-        private(set) readonly CompanyLogo $companyLogo,
+        private(set) CompanyLogo $companyLogo,
 
         #[ORM\Column(length: 180, unique: true)]
         private(set) string $userIdentifier {
@@ -80,5 +80,10 @@ class User
     public function updatePassword(string $password): void
     {
         $this->password = $password;
+    }
+
+    public function updateCompanyLogo(CompanyLogo $companyLogo): void
+    {
+        $this->companyLogo = $companyLogo;
     }
 }
