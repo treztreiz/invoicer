@@ -70,7 +70,6 @@ return new ApiResource(
         ),
         new Post(
             uriTemplate: '/{quoteId}/convert-to-invoice',
-            status: Response::HTTP_CREATED,
             input: false,
             read: false,
             deserialize: false,

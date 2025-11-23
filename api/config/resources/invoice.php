@@ -133,7 +133,6 @@ return new ApiResource(
         ),
         new Post(
             uriTemplate: '/{invoiceId}/installment-plan/generate',
-            status: Response::HTTP_CREATED,
             input: false,
             read: false,
             deserialize: false,
