@@ -19,6 +19,29 @@ services:
         volumes:
             - uploads:/app/public/uploads
 
+    messenger_worker:
+        extends:
+            service: api
+        depends_on:
+            api:
+                condition: service_healthy
+        image: ${PROJECT_NAME}-api:${PROD_TAG}
+        ports: !override [ ]
+        volumes: !override [ ]
+        healthcheck: !override
+            test: exit 0
+        command:
+          [
+              "bin/console",
+              "messenger:consume",
+              "async",
+              "scheduler_default",
+              "-vv",
+              "--time-limit=60",
+              "--limit=10",
+              "--memory-limit=128M",
+          ]
+
     web:
         image: ${PROJECT_NAME}-web:${PROD_TAG}
         environment:

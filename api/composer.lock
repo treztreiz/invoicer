@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d42d3cd5710e9c2a441130aaa550c0c",
+    "content-hash": "7423b5f53eb3bbc343e78d3a342f4811",
     "packages": [
         {
             "name": "api-platform/doctrine-common",
@@ -2365,6 +2365,70 @@
                 "source": "https://github.com/doctrine/sql-formatter/tree/1.5.3"
             },
             "time": "2025-10-26T09:35:14+00:00"
+        },
+        {
+            "name": "dragonmantank/cron-expression",
+            "version": "v3.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dragonmantank/cron-expression.git",
+                "reference": "d61a8a9604ec1f8c3d150d09db6ce98b32675013"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dragonmantank/cron-expression/zipball/d61a8a9604ec1f8c3d150d09db6ce98b32675013",
+                "reference": "d61a8a9604ec1f8c3d150d09db6ce98b32675013",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2|^8.3|^8.4|^8.5"
+            },
+            "replace": {
+                "mtdowling/cron-expression": "^1.0"
+            },
+            "require-dev": {
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan": "^1.12.32|^2.1.31",
+                "phpunit/phpunit": "^8.5.48|^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Cron\\": "src/Cron/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Chris Tankersley",
+                    "email": "chris@ctankersley.com",
+                    "homepage": "https://github.com/dragonmantank"
+                }
+            ],
+            "description": "CRON for PHP: Calculate the next or previous run date and determine if a CRON expression is due",
+            "keywords": [
+                "cron",
+                "schedule"
+            ],
+            "support": {
+                "issues": "https://github.com/dragonmantank/cron-expression/issues",
+                "source": "https://github.com/dragonmantank/cron-expression/tree/v3.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/dragonmantank",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-10-31T18:51:33+00:00"
         },
         {
             "name": "gedmo/doctrine-extensions",
@@ -6820,6 +6884,91 @@
                 }
             ],
             "time": "2025-09-11T15:31:28+00:00"
+        },
+        {
+            "name": "symfony/scheduler",
+            "version": "v7.3.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/scheduler.git",
+                "reference": "e44f8b0907fdfb6f5126c00ab02f0e08de9014d6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/scheduler/zipball/e44f8b0907fdfb6f5126c00ab02f0e08de9014d6",
+                "reference": "e44f8b0907fdfb6f5126c00ab02f0e08de9014d6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/clock": "^6.4|^7.0"
+            },
+            "require-dev": {
+                "dragonmantank/cron-expression": "^3.1",
+                "symfony/cache": "^6.4|^7.0",
+                "symfony/console": "^6.4|^7.0",
+                "symfony/dependency-injection": "^6.4|^7.0",
+                "symfony/event-dispatcher": "^6.4|^7.0",
+                "symfony/lock": "^6.4|^7.0",
+                "symfony/messenger": "^6.4|^7.0",
+                "symfony/serializer": "^6.4|^7.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Scheduler\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sergey Rabochiy",
+                    "email": "upyx.00@gmail.com"
+                },
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides scheduling through Symfony Messenger",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "cron",
+                "schedule",
+                "scheduler"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/scheduler/tree/v7.3.5"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-09-29T08:38:43+00:00"
         },
         {
             "name": "symfony/security-bundle",
@@ -13013,6 +13162,82 @@
                 }
             ],
             "time": "2025-11-09T13:01:31+00:00"
+        },
+        {
+            "name": "zenstruck/messenger-test",
+            "version": "v1.12.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zenstruck/messenger-test.git",
+                "reference": "d889c26683c6a85eedb8eeb354105d860f5030c8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zenstruck/messenger-test/zipball/d889c26683c6a85eedb8eeb354105d860f5030c8",
+                "reference": "d889c26683c6a85eedb8eeb354105d860f5030c8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/deprecation-contracts": "^2.2|^3.0",
+                "symfony/framework-bundle": "^5.4.44|^6.0|^7.0|^8.0",
+                "symfony/messenger": "^5.4|^6.0|^7.0|^8.0",
+                "zenstruck/assert": "^1.0"
+            },
+            "conflict": {
+                "symfony/framework-bundle": "5.4.5|6.0.5"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^9.6.0",
+                "symfony/browser-kit": "^5.4|^6.0|^7.0|^8.0",
+                "symfony/clock": "^6.3|^7.0|^8.0",
+                "symfony/phpunit-bridge": "^5.4|^6.0|^7.0|^8.0",
+                "symfony/yaml": "^5.4|^6.0|^7.0"
+            },
+            "suggest": {
+                "symfony/clock": "A PSR-20 clock implementation in order to support DelayStamp."
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Zenstruck\\Messenger\\Test\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kevin Bond",
+                    "email": "kevinbond@gmail.com"
+                }
+            ],
+            "description": "Assertions and helpers for testing your symfony/messenger queues.",
+            "homepage": "https://github.com/zenstruck/messenger-test",
+            "keywords": [
+                "Messenger",
+                "dev",
+                "queue",
+                "symfony",
+                "test"
+            ],
+            "support": {
+                "issues": "https://github.com/zenstruck/messenger-test/issues",
+                "source": "https://github.com/zenstruck/messenger-test/tree/v1.12.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/kbond",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nikophil",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-11-02T16:49:54+00:00"
         }
     ],
     "aliases": [],
