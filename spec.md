@@ -478,12 +478,12 @@ InstallmentPlan ||--o{ Installment
 - [x] Entities (User+embedded CompanyProfile, Customer, Document STI, DocumentLine, Recurrence/Installments,
   NumberSequence) + migrations.
 - [x] STI constraints & triggers, repositories, basic fixtures.
-- [ ] Company logo uploads handled via custom storage service (no Vich). Service validates file (≤2 MB, allowed MIME), stores under `public/uploads/logos` with unique filename, extracts metadata, and hydrates the `CompanyLogo` value object.
+- [x] Company logo uploads handled via custom storage service (no Vich). Service validates file (≤2 MB, allowed MIME), stores under `public/uploads/logos` with unique filename, extracts metadata, and hydrates the `CompanyLogo` value object.
 
 **M3 – API Resources & Auth (week 3)**
 
 - [x] API Platform resources, filters, `/me` provider/processor (+ password change), logo upload endpoint.
-- [ ] Document actions processors (`issue`, `convert`, etc.).
+- [x] Document actions processors (`issue`, `convert`, etc.).
 
 **M4 – Frontend MVP (week 4)**
 
