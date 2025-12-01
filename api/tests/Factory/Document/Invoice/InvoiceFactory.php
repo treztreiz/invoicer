@@ -51,7 +51,7 @@ class InvoiceFactory extends DocumentFactory
     public function withRecurrence(array $attributes = []): self
     {
         $default = ['nextRunAt' => new \DateTimeImmutable('tomorrow')];
-        
+
         return $this->with([
             'recurrence' => RecurrenceFactory::build([
                 ...$default,

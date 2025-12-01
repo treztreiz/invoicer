@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Scheduler;
 
 use App\Application\Message\RunRecurringInvoicesMessage;

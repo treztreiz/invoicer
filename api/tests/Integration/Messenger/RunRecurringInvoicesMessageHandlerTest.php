@@ -34,7 +34,7 @@ final class RunRecurringInvoicesMessageHandlerTest extends ApiTestCase
         $bus = self::getContainer()->get(MessageBusInterface::class);
         $bus->dispatch(new RunRecurringInvoicesMessage());
 
-        $this->transport()->process();
+        $this->transport('async')->process();
 
         InvoiceFactory::assert()->count(2);
     }

@@ -48,7 +48,7 @@ class Recurrence
         #[ORM\Column(type: Types::SMALLINT, nullable: true)]
         private(set) ?int $occurrenceCount = null {
             set => DomainGuard::optionalPositiveInt($value, 'Occurrence count');
-        }
+        },
     ) {
         $this->assertPropertiesMatchStrategy();
     }
@@ -88,8 +88,8 @@ class Recurrence
         $strategy = $this->endStrategy;
 
         if (
-            ($strategy === RecurrenceEndStrategy::UNTIL_COUNT && $this->occurrenceCount <= 0)
-            || ($strategy === RecurrenceEndStrategy::UNTIL_DATE && $this->endDate <= $today)
+            (RecurrenceEndStrategy::UNTIL_COUNT === $strategy && $this->occurrenceCount <= 0)
+            || (RecurrenceEndStrategy::UNTIL_DATE === $strategy && $this->endDate <= $today)
             || null === $this->nextRunAt
         ) {
             return false;
@@ -116,9 +116,9 @@ class Recurrence
         $months = $this->frequency->asMonth() * $this->interval;
         $next = $this->nextRunAt->add(new \DateInterval(sprintf('P%dM', $months)));
 
-        if ($this->endStrategy === RecurrenceEndStrategy::UNTIL_COUNT) {
+        if (RecurrenceEndStrategy::UNTIL_COUNT === $this->endStrategy) {
             $remaining = $this->occurrenceCount ?? 1;
-            $remaining--;
+            --$remaining;
             $this->occurrenceCount = $remaining;
 
             if ($remaining <= 0) {

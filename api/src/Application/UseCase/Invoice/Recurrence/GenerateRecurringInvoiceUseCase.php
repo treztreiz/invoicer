@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\UseCase\Invoice\Recurrence;
 
 use App\Application\Dto\Invoice\Descriptor\InvoiceDescriptor;

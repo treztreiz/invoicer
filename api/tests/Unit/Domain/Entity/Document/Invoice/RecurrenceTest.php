@@ -17,14 +17,29 @@ use PHPUnit\Framework\TestCase;
  */
 final class RecurrenceTest extends TestCase
 {
-    public function test_from_payload_creates_entity(): void
-    {
-        $recurrence = static::createRecurrence();
+    #[DataProvider('validStrategiesProvider')]
+    public function test_from_payload_creates_entity(
+        RecurrenceEndStrategy $endStrategy,
+        ?\DateTimeImmutable $endDate,
+        ?int $occurrenceCount,
+    ): void {
+        $recurrence = static::createRecurrence(
+            new RecurrencePayload(
+                frequency: RecurrenceFrequency::MONTHLY,
+                interval: 1,
+                anchorDate: new \DateTimeImmutable('2025-01-01'),
+                endStrategy: $endStrategy,
+                endDate: $endDate,
+                occurrenceCount: $occurrenceCount,
+            )
+        );
 
         static::assertSame(RecurrenceFrequency::MONTHLY, $recurrence->frequency);
         static::assertSame(1, $recurrence->interval);
         static::assertEquals(new \DateTimeImmutable('2025-01-01'), $recurrence->anchorDate);
-        static::assertSame(RecurrenceEndStrategy::NEVER, $recurrence->endStrategy);
+        static::assertSame($endStrategy, $recurrence->endStrategy);
+        static::assertSame($endDate, $recurrence->endDate);
+        static::assertSame($occurrenceCount, $recurrence->occurrenceCount);
     }
 
     public function test_interval_must_be_positive(): void
@@ -83,7 +98,7 @@ final class RecurrenceTest extends TestCase
         static::assertSame(2, $recurrence->interval);
         static::assertSame($endStrategy, $recurrence->endStrategy);
         static::assertSame($endDate, $recurrence->endDate);
-        static::assertSame($occurrenceCount, $recurrence->occurrenceCount);
+        static::assertSame($occurrenceCount ? $occurrenceCount - 1 : null, $recurrence->occurrenceCount);
     }
 
     #[DataProvider('invalidStrategiesProvider')]
@@ -126,17 +141,17 @@ final class RecurrenceTest extends TestCase
         yield 'UNTIL_COUNT without count' => [RecurrenceEndStrategy::UNTIL_COUNT, null, null];
     }
 
-    public static function createRecurrence(): Recurrence
+    public static function createRecurrence(?RecurrencePayload $payload = null): Recurrence
     {
-        return Recurrence::fromPayload(
-            new RecurrencePayload(
-                frequency: RecurrenceFrequency::MONTHLY,
-                interval: 1,
-                anchorDate: new \DateTimeImmutable('2025-01-01'),
-                endStrategy: RecurrenceEndStrategy::NEVER,
-                endDate: null,
-                occurrenceCount: null,
-            )
+        $payload = $payload ?: new RecurrencePayload(
+            frequency: RecurrenceFrequency::MONTHLY,
+            interval: 1,
+            anchorDate: new \DateTimeImmutable('2025-01-01'),
+            endStrategy: RecurrenceEndStrategy::NEVER,
+            endDate: null,
+            occurrenceCount: null,
         );
+
+        return Recurrence::fromPayload($payload);
     }
 }
