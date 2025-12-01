@@ -164,6 +164,33 @@ final class InvoiceApiTest extends ApiTestCase
         static::assertSame('Only draft invoices can be updated.', $response->toArray(false)['detail'] ?? null);
     }
 
+    public function test_generate_recurring_invoice_creates_child(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $invoice = InvoiceFactory::new()->withSnapshots()->withRecurrence()->create();
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/recurrence/generate', $invoice->id->toRfc4122()));
+
+        self::assertResponseStatusCodeSame(201);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('invoiceId', $data);
+        InvoiceFactory::assert()->exists(['id' => Uuid::fromString($data['invoiceId'])]);
+    }
+
+    public function test_generate_recurring_invoice_rejected_when_not_runnable(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $invoice = InvoiceFactory::new()->withSnapshots()->withRecurrence([
+            'nextRunAt' => new \DateTimeImmutable('+ 10 years'),
+        ])->create();
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/invoices/%s/recurrence/generate', $invoice->id->toRfc4122()));
+
+        self::assertResponseStatusCodeSame(400);
+        static::assertSame('The recurrence is not runnable.', $response->toArray(false)['detail'] ?? null);
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private function invoicePayload(string $customerId, array $override = []): array

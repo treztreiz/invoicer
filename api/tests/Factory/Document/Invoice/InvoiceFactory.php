@@ -48,9 +48,16 @@ class InvoiceFactory extends DocumentFactory
         return $this->with(['status' => InvoiceStatus::VOIDED]);
     }
 
-    public function withRecurrence(): self
+    public function withRecurrence(array $attributes = []): self
     {
-        return $this->with(['recurrence' => RecurrenceFactory::build()]);
+        $default = ['nextRunAt' => new \DateTimeImmutable('tomorrow')];
+        
+        return $this->with([
+            'recurrence' => RecurrenceFactory::build([
+                ...$default,
+                ...$attributes,
+            ]),
+        ]);
     }
 
     public function withInstallmentPlan(int $numberOfInstallments = 0): self

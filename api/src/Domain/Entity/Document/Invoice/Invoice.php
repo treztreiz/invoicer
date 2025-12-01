@@ -66,19 +66,43 @@ class Invoice extends Document
 
     public static function fromInstallmentSeed(
         Invoice $seed,
-        Installment $installment,
         InvoicePayload $payload,
     ): self {
-        $installment->installmentPlan->assertNextInstallment($installment);
+        $plan = $seed->installmentPlan;
+        if (null === $plan) {
+            throw new DocumentRuleViolationException('The seed does not have an installment plan configured.');
+        }
+
+        $installment = $plan->getNextPendingInstallment();
+        if (null === $installment) {
+            throw new DocumentRuleViolationException('All installments have been generated.');
+        }
 
         $invoice = self::fromDocumentPayload($payload, $seed->customerSnapshot, $seed->companySnapshot);
+
         $invoice->id = Uuid::v7();
-
-        $installment->markGeneratedInvoice($invoice);
-
         $invoice->total = $installment->amount;
         $invoice->dueDate = $installment->dueDate;
         $invoice->markGeneratedFromInstallment($seed->id);
+
+        $installment->markGeneratedInvoice($invoice);
+
+        return $invoice;
+    }
+
+    public static function fromRecurrenceSeed(
+        Invoice $seed,
+        InvoicePayload $payload,
+    ): self {
+        $recurrence = $seed->recurrence;
+        if (!$recurrence) {
+            throw new DocumentRuleViolationException('The seed does not have a recurrence configured.');
+        }
+
+        $invoice = self::fromDocumentPayload($payload, $seed->customerSnapshot, $seed->companySnapshot);
+        $invoice->markGeneratedFromRecurrence($seed->id);
+
+        $recurrence->updateNextRunAt();
 
         return $invoice;
     }

@@ -12,6 +12,14 @@ enum RecurrenceFrequency: string
     /** @return list<string> */
     public static function frequencies(): array
     {
-        return array_map(static fn (self $frequency) => $frequency->value, self::cases());
+        return array_map(static fn(self $frequency) => $frequency->value, self::cases());
+    }
+
+    public function asMonth(): int
+    {
+        return match ($this) {
+            self::MONTHLY => 1,
+            self::QUARTERLY => 3,
+        };
     }
 }
