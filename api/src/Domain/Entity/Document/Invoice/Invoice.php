@@ -64,6 +64,49 @@ class Invoice extends Document
         return $invoice;
     }
 
+    public static function fromInstallmentSeed(
+        Invoice $seed,
+        InvoicePayload $payload,
+    ): self {
+        $plan = $seed->installmentPlan;
+        if (null === $plan) {
+            throw new DocumentRuleViolationException('The seed does not have an installment plan configured.');
+        }
+
+        $installment = $plan->getNextPendingInstallment();
+        if (null === $installment) {
+            throw new DocumentRuleViolationException('All installments have been generated.');
+        }
+
+        $invoice = self::fromDocumentPayload($payload, $seed->customerSnapshot, $seed->companySnapshot);
+
+        $invoice->id = Uuid::v7();
+        $invoice->total = $installment->amount;
+        $invoice->dueDate = $installment->dueDate;
+        $invoice->markGeneratedFromInstallment($seed->id);
+
+        $installment->markGeneratedInvoice($invoice);
+
+        return $invoice;
+    }
+
+    public static function fromRecurrenceSeed(
+        Invoice $seed,
+        InvoicePayload $payload,
+    ): self {
+        $recurrence = $seed->recurrence;
+        if (!$recurrence) {
+            throw new DocumentRuleViolationException('The seed does not have a recurrence configured.');
+        }
+
+        $invoice = self::fromDocumentPayload($payload, $seed->customerSnapshot, $seed->companySnapshot);
+        $invoice->markGeneratedFromRecurrence($seed->id);
+
+        $recurrence->updateNextRunAt();
+
+        return $invoice;
+    }
+
     public function applyPayload(
         InvoicePayload $payload,
         Customer $customer,
@@ -71,6 +114,10 @@ class Invoice extends Document
     ): void {
         if (InvoiceStatus::DRAFT !== $this->status) {
             throw new DocumentRuleViolationException('Only draft invoices can be updated.');
+        }
+
+        if (null !== $this->installmentSeedId) {
+            throw new DocumentRuleViolationException('Invoices generated from installment seeds cannot be updated.');
         }
 
         parent::applyDocumentPayload($payload, $customer, $company);

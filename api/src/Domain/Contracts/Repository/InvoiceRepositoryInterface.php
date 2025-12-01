@@ -19,4 +19,9 @@ interface InvoiceRepositoryInterface
      * @return list<Invoice>
      */
     public function list(): array;
+
+    /**
+     * @return list<Invoice>
+     */
+    public function findRecurrenceSeeds(\DateTimeImmutable $date): array;
 }

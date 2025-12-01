@@ -46,6 +46,16 @@ class Installment
     ) {
     }
 
+    public function isGenerated(): bool
+    {
+        return null !== $this->generatedInvoiceId;
+    }
+
+    public function markGeneratedInvoice(Invoice $invoice): void
+    {
+        $this->generatedInvoiceId = $invoice->id;
+    }
+
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public static function fromPayload(ComputedInstallmentPayload $payload, InstallmentPlan $installmentPlan): self

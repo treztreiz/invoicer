@@ -9,12 +9,13 @@ namespace App\Infrastructure\Doctrine\Repository;
 use App\Domain\Contracts\Repository\InvoiceRepositoryInterface;
 use App\Domain\Entity\Document\Invoice\Invoice;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * @extends ServiceEntityRepository<\App\Domain\Entity\Document\Invoice\Invoice>
+ * @extends ServiceEntityRepository<Invoice>
  */
 final class InvoiceRepository extends ServiceEntityRepository implements InvoiceRepositoryInterface
 {
@@ -56,6 +57,18 @@ final class InvoiceRepository extends ServiceEntityRepository implements Invoice
     {
         return $this->createQueryBuilder('invoice')
             ->orderBy('invoice.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findRecurrenceSeeds(\DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('invoice')
+            ->innerJoin('invoice.recurrence', 'recurrence')
+            ->addSelect('recurrence')
+            ->andWhere('recurrence.nextRunAt IS NOT NULL')
+            ->andWhere('recurrence.nextRunAt <= :date')
+            ->setParameter('date', $date, Types::DATETIMETZ_IMMUTABLE)
             ->getQuery()
             ->getResult();
     }

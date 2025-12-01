@@ -9,14 +9,9 @@ use App\Application\Dto\Document\Output\AmountBreakdownOutputTransformer;
 use App\Application\Dto\Document\Output\DocumentLineOutput;
 use App\Application\Dto\Document\Output\DocumentLineOutputTransformer;
 use App\Application\Service\Transformer\OutputTransformer;
-use App\Domain\Entity\Document\Document;
 use App\Domain\Entity\Document\Quote\Quote;
 use Symfony\Component\ObjectMapper\Attribute\Map;
 
-/**
- * @phpstan-import-type CustomerSnapshot from Document
- * @phpstan-import-type CompanySnapshot from Document
- */
 #[Map(source: Quote::class)]
 final readonly class QuoteOutput
 {
@@ -51,10 +46,10 @@ final readonly class QuoteOutput
         #[Map(source: 'customer.id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $customerId,
 
-        /** @var CustomerSnapshot */
+        /** @var array<string, mixed> */
         private(set) array $customerSnapshot,
 
-        /** @var CompanySnapshot */
+        /** @var array<string, mixed> */
         private(set) array $companySnapshot,
 
         #[Map(source: 'status', transform: QuoteOutputTransitionsTransformer::class)]

@@ -11,6 +11,7 @@ use App\Domain\Entity\Document\DocumentLine;
 use App\Domain\Enum\QuoteStatus;
 use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\Factory\Document\DocumentLineFactory;
+use App\Tests\Factory\Document\Invoice\InvoiceFactory;
 use App\Tests\Factory\Document\Quote\QuoteFactory;
 use App\Tests\Functional\Api\Common\ApiClientHelperTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -200,6 +201,52 @@ final class QuoteApiTest extends ApiTestCase
         ]);
 
         self::assertResponseStatusCodeSame(400);
+    }
+
+    public function test_convert_quote_to_invoice_creates_invoice_once(): void
+    {
+        $client = $this->createAuthenticatedClient();
+
+        $quote = QuoteFactory::new()->accepted()->withLines(2)->create();
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/convert-to-invoice', $quote->id->toRfc4122()));
+
+        self::assertResponseStatusCodeSame(201);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('invoiceId', $data);
+
+        InvoiceFactory::assert()->exists(['id' => Uuid::fromString($data['invoiceId'])]);
+        QuoteFactory::assert()->exists([
+            'id' => $quote->id,
+            'convertedInvoiceId' => Uuid::fromString($data['invoiceId']),
+        ]);
+
+        // Ensure quote can't be converted twice
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/convert-to-invoice', $quote->id->toRfc4122()));
+
+        static::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('detail', $data);
+        static::assertStringContainsString('Quote has already been converted.', $data['detail']);
+        InvoiceFactory::assert()->count(1);
+        QuoteFactory::assert()->count(1);
+    }
+
+    public function test_convert_quote_rejected_when_not_accepted(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $quote = QuoteFactory::new()->draft()->create();
+
+        $response = $this->apiRequest($client, 'POST', sprintf('/api/quotes/%s/convert-to-invoice', $quote->id->toRfc4122()));
+
+        static::assertResponseStatusCodeSame(400);
+        $data = $response->toArray(false);
+
+        static::assertArrayHasKey('detail', $data);
+        static::assertStringContainsString('Only accepted quotes can be converted to an invoice.', $data['detail']);
+        InvoiceFactory::assert()->count(0);
     }
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////

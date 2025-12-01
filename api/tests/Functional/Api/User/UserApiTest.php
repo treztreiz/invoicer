@@ -31,9 +31,10 @@ final class UserApiTest extends ApiTestCase
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
-        static::assertSame($user?->userIdentifier, $data['email']);
-        static::assertSame($user?->locale, $data['locale']);
-        static::assertSame($user?->company->legalName, $data['company']['legalName']);
+        static::assertNotNull($user);
+        static::assertSame($user->userIdentifier, $data['email']);
+        static::assertSame($user->locale, $data['locale']);
+        static::assertSame($user->company->legalName, $data['company']['legalName']);
         static::assertArrayHasKey('logoUrl', $data);
         static::assertNull($data['logoUrl']);
     }

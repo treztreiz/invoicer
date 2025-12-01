@@ -19,15 +19,19 @@ use App\Domain\ValueObject\Money;
 use App\Domain\ValueObject\Name;
 use App\Domain\ValueObject\Quantity;
 use App\Domain\ValueObject\VatRate;
+use App\Tests\Factory\Customer\CustomerFactory;
 use App\Tests\TestHelper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Uid\Uuid;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @testType solitary-unit
  */
 final class DocumentTest extends TestCase
 {
+    use Factories;
+
     public function test_from_payload_computes_line_amounts_and_totals(): void
     {
         ['entity' => $customer] = $this->createCustomerFixture();
@@ -254,6 +258,7 @@ final class DocumentTest extends TestCase
         return new QuotePayload(
             title: $title,
             subtitle: $subtitle,
+            customer: CustomerFactory::build()->create(),
             currency: $currency,
             vatRate: new VatRate($vatRate),
             linesPayload: array_map(

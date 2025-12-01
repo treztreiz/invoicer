@@ -24,6 +24,9 @@ class Recurrence
     #[ORM\OneToOne(targetEntity: Invoice::class, mappedBy: 'recurrence')]
     private(set) ?Invoice $invoice = null;
 
+    #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
+    private(set) ?\DateTimeImmutable $nextRunAt = null;
+
     private function __construct(
         #[ORM\Column(enumType: RecurrenceFrequency::class)]
         private(set) RecurrenceFrequency $frequency,
@@ -46,9 +49,6 @@ class Recurrence
         private(set) ?int $occurrenceCount = null {
             set => DomainGuard::optionalPositiveInt($value, 'Occurrence count');
         },
-
-        #[ORM\Column(type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
-        private(set) readonly ?\DateTimeImmutable $nextRunAt = null,
     ) {
         $this->assertPropertiesMatchStrategy();
     }
@@ -57,7 +57,7 @@ class Recurrence
 
     public static function fromPayload(RecurrencePayload $payload): self
     {
-        return new self(
+        $recurrence = new self(
             frequency: $payload->frequency,
             interval: $payload->interval,
             anchorDate: $payload->anchorDate,
@@ -65,6 +65,9 @@ class Recurrence
             endDate: $payload->endDate,
             occurrenceCount: $payload->occurrenceCount,
         );
+        $recurrence->updateNextRunAt();
+
+        return $recurrence;
     }
 
     public function applyPayload(RecurrencePayload $payload): void
@@ -76,6 +79,66 @@ class Recurrence
         $this->endDate = $payload->endDate;
         $this->occurrenceCount = $payload->occurrenceCount;
         $this->assertPropertiesMatchStrategy();
+        $this->updateNextRunAt();
+    }
+
+    public function isRunnable(bool $allowBeforeNextRun = false): bool
+    {
+        $today = new \DateTimeImmutable('today');
+        $strategy = $this->endStrategy;
+
+        if (
+            (RecurrenceEndStrategy::UNTIL_COUNT === $strategy && $this->occurrenceCount <= 0)
+            || (RecurrenceEndStrategy::UNTIL_DATE === $strategy && $this->endDate <= $today)
+            || null === $this->nextRunAt
+        ) {
+            return false;
+        }
+
+        if (false === $allowBeforeNextRun) {
+            return $this->nextRunAt <= $today;
+        }
+
+        $months = $this->frequency->asMonth() * $this->interval;
+        $minimalRunDate = $this->nextRunAt->sub(new \DateInterval(sprintf('P%sM', $months)));
+
+        return $minimalRunDate <= $today;
+    }
+
+    public function updateNextRunAt(): void
+    {
+        if (null === $this->nextRunAt) {
+            $this->nextRunAt = $this->anchorDate;
+
+            return;
+        }
+
+        $months = $this->frequency->asMonth() * $this->interval;
+        $next = $this->nextRunAt->add(new \DateInterval(sprintf('P%dM', $months)));
+
+        if (RecurrenceEndStrategy::UNTIL_COUNT === $this->endStrategy) {
+            $remaining = $this->occurrenceCount ?? 1;
+            --$remaining;
+            $this->occurrenceCount = $remaining;
+
+            if ($remaining <= 0) {
+                $this->nextRunAt = null;
+
+                return;
+            }
+        }
+
+        if (
+            RecurrenceEndStrategy::UNTIL_DATE === $this->endStrategy
+            && null !== $this->endDate
+            && $next > $this->endDate
+        ) {
+            $this->nextRunAt = null;
+
+            return;
+        }
+
+        $this->nextRunAt = $next;
     }
 
     // GUARDS //////////////////////////////////////////////////////////////////////////////////////////////////////////

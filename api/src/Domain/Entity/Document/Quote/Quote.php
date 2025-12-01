@@ -105,6 +105,10 @@ class Quote extends Document
             throw new DocumentRuleViolationException('Only accepted quotes can be converted to an invoice.');
         }
 
+        if ($this->convertedInvoiceId) {
+            throw new DocumentRuleViolationException('Quote has already been converted.');
+        }
+
         $this->convertedInvoiceId = $invoiceId;
 
         return $this;

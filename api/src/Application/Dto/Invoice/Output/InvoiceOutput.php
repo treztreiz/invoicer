@@ -13,14 +13,9 @@ use App\Application\Dto\Invoice\Output\Installment\InstallmentPlanOutputTransfor
 use App\Application\Dto\Invoice\Output\Recurrence\RecurrenceOutput;
 use App\Application\Dto\Invoice\Output\Recurrence\RecurrenceOutputTransformer;
 use App\Application\Service\Transformer\OutputTransformer;
-use App\Domain\Entity\Document\Document;
 use App\Domain\Entity\Document\Invoice\Invoice;
 use Symfony\Component\ObjectMapper\Attribute\Map;
 
-/**
- * @phpstan-import-type CustomerSnapshot from Document
- * @phpstan-import-type CompanySnapshot from Document
- */
 #[Map(source: Invoice::class)]
 final readonly class InvoiceOutput
 {
@@ -55,10 +50,10 @@ final readonly class InvoiceOutput
         #[Map(source: 'customer.id', transform: [OutputTransformer::class, 'uuid'])]
         private(set) string $customerId,
 
-        /** @var CustomerSnapshot */
+        /** @var array<string, mixed> */
         private(set) array $customerSnapshot,
 
-        /** @var CompanySnapshot */
+        /** @var array<string, mixed> */
         private(set) array $companySnapshot,
 
         #[Map(transform: [OutputTransformer::class, 'dateTime'])]

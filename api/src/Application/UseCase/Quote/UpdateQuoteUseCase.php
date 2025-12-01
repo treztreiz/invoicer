@@ -6,17 +6,15 @@ namespace App\Application\UseCase\Quote;
 
 use App\Application\Dto\Quote\Input\QuoteInput;
 use App\Application\Dto\Quote\Output\QuoteOutput;
-use App\Application\Service\Trait\CustomerRepositoryAwareTrait;
 use App\Application\Service\Trait\QuoteRepositoryAwareTrait;
 use App\Application\Service\Trait\UserRepositoryAwareTrait;
 use App\Application\UseCase\AbstractUseCase;
-use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Quote\Quote;
 use App\Domain\Entity\User\User;
+use App\Domain\Payload\Quote\QuotePayload;
 
 final class UpdateQuoteUseCase extends AbstractUseCase
 {
-    use CustomerRepositoryAwareTrait;
     use UserRepositoryAwareTrait;
     use QuoteRepositoryAwareTrait;
 
@@ -24,13 +22,12 @@ final class UpdateQuoteUseCase extends AbstractUseCase
     {
         $quote = $this->findOneById($this->quoteRepository, $quoteId, Quote::class);
         $user = $this->findOneById($this->userRepository, $userId, User::class);
-        $customer = $this->findOneById($this->customerRepository, $input->customerId, Customer::class);
 
-        $payload = $this->map($input, \App\Domain\Payload\Quote\QuotePayload::class);
+        $payload = $this->map($input, QuotePayload::class);
 
         $quote->applyPayload(
             payload: $payload,
-            customer: $customer,
+            customer: $payload->customer,
             company: $user->company
         );
 

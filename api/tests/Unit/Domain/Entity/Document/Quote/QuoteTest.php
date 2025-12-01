@@ -95,15 +95,18 @@ final class QuoteTest extends TestCase
 
     public static function createQuote(): Quote
     {
+        $customer = CustomerFactory::build()->create();
+
         return Quote::fromPayload(
             payload: new QuotePayload(
                 title: 'Sample quote',
                 subtitle: null,
+                customer: $customer,
                 currency: 'EUR',
                 vatRate: new VatRate('20'),
-                linesPayload: [],
+                linesPayload: []
             ),
-            customer: CustomerFactory::build()->create(),
+            customer: $customer,
             company: CompanyFactory::createOne()
         );
     }

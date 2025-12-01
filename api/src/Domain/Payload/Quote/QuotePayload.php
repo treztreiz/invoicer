@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Payload\Quote;
 
 use App\Domain\Contracts\Payload\DocumentPayloadInterface;
+use App\Domain\Entity\Customer\Customer;
 use App\Domain\Payload\Document\DocumentLinePayload;
 use App\Domain\ValueObject\VatRate;
 
@@ -14,6 +15,7 @@ final class QuotePayload implements DocumentPayloadInterface
     public function __construct(
         protected(set) string $title,
         protected(set) ?string $subtitle,
+        protected(set) Customer $customer,
         protected(set) string $currency,
         protected(set) VatRate $vatRate,
         protected(set) array $linesPayload,

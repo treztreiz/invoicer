@@ -30,6 +30,7 @@ use App\Infrastructure\ApiPlatform\Filter\CustomerSearchFilter;
 use App\Infrastructure\ApiPlatform\State\Invoice\CreateInvoiceProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Installment\AttachInstallmentPlanProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Installment\DetachInstallmentPlanProcessor;
+use App\Infrastructure\ApiPlatform\State\Invoice\Installment\GenerateInstallmentInvoiceProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Installment\UpdateInstallmentPlanProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\AttachRecurrenceProcessor;
 use App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\DetachRecurrenceProcessor;
@@ -129,6 +130,21 @@ return new ApiResource(
             read: false,
             deserialize: false,
             processor: DetachInstallmentPlanProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/{invoiceId}/installment-plan/generate',
+            input: false,
+            read: false,
+            deserialize: false,
+            processor: GenerateInstallmentInvoiceProcessor::class,
+        ),
+        new Post(
+            uriTemplate: '/{invoiceId}/recurrence/generate',
+            status: Response::HTTP_CREATED,
+            input: false,
+            read: false,
+            deserialize: false,
+            processor: App\Infrastructure\ApiPlatform\State\Invoice\Recurrence\GenerateRecurringInvoiceProcessor::class,
         ),
     ],
     routePrefix: '/invoices',

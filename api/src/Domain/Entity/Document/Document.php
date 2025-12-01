@@ -11,6 +11,7 @@ use App\Domain\Entity\Common\UuidTrait;
 use App\Domain\Entity\Customer\Customer;
 use App\Domain\Entity\Document\Invoice\Invoice;
 use App\Domain\Entity\Document\Quote\Quote;
+use App\Domain\Exception\DocumentRuleViolationException;
 use App\Domain\Guard\DomainGuard;
 use App\Domain\Payload\Document\ComputedLinePayload;
 use App\Domain\Service\MoneyMath;
@@ -24,12 +25,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @phpstan-consistent-constructor
- *
- * @phpstan-type NameSnapshot array{first: string, last: string}
- * @phpstan-type ContactSnapshot array{email: string|null, phone: string|null}
- * @phpstan-type AddressSnapshot array{streetLine1: string, streetLine2: string|null, postalCode: string, city: string, region: string|null, countryCode: string}
- * @phpstan-type CustomerSnapshot array{}|array{id: string|null, legalName: string|null, name: NameSnapshot, contact: ContactSnapshot, address: AddressSnapshot}
- * @phpstan-type CompanySnapshot array{}|array{legalName: string, contact: ContactSnapshot, address: AddressSnapshot, defaultCurrency: string, defaultHourlyRate: string, defaultDailyRate: string, defaultVatRate: string, legalMention: string|null}
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'document')]
@@ -59,11 +54,11 @@ abstract class Document
     #[ORM\Embedded]
     protected(set) AmountBreakdown $total;
 
-    /** @var CustomerSnapshot $customerSnapshot */
+    /** @var array<string, mixed> $customerSnapshot */
     #[ORM\Column(type: Types::JSON)]
     protected(set) array $customerSnapshot = [];
 
-    /** @var CompanySnapshot $companySnapshot */
+    /** @var array<string, mixed> $companySnapshot */
     #[ORM\Column(type: Types::JSON)]
     protected(set) array $companySnapshot = [];
 
@@ -95,40 +90,46 @@ abstract class Document
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @param Customer|array<string, mixed> $customer
+     * @param Company|array<string, mixed>  $company
+     */
     protected static function fromDocumentPayload(
         DocumentPayloadInterface $payload,
-        Customer $customer,
-        Company $company,
+        Customer|array $customer,
+        Company|array $company,
     ): static {
         $document = new static(
             title: $payload->title,
             subtitle: $payload->subtitle,
             currency: $payload->currency,
             vatRate: $payload->vatRate,
-            customer: $customer,
+            customer: $customer instanceof Customer ? $customer : $payload->customer,
         );
 
         $document->computePayload($payload);
-        $document->computeCustomerSnapshot($customer);
-        $document->computeCompanySnapshot($company);
+        $document->updateSnapshots($customer, $company);
 
         return $document;
     }
 
+    /**
+     * @param Customer|array<string, mixed> $customer
+     * @param Company|array<string, mixed>  $company
+     */
     protected function applyDocumentPayload(
         DocumentPayloadInterface $payload,
-        Customer $customer,
-        Company $company,
+        Customer|array $customer,
+        Company|array $company,
     ): void {
         $this->title = $payload->title;
         $this->subtitle = $payload->subtitle;
         $this->currency = $payload->currency;
         $this->vatRate = $payload->vatRate;
-        $this->customer = $customer;
+        $this->customer = $customer instanceof Customer ? $customer : $payload->customer;
 
         $this->computePayload($payload);
-        $this->computeCustomerSnapshot($customer);
-        $this->computeCompanySnapshot($company);
+        $this->updateSnapshots($customer, $company);
     }
 
     private function computePayload(DocumentPayloadInterface $payload): void
@@ -203,9 +204,31 @@ abstract class Document
 
     // SNAPSHOTS ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private function computeCustomerSnapshot(Customer $customer): void
+    /**
+     * @param Customer|array<string, mixed> $customerSnapshot
+     * @param Company|array<string, mixed>  $companySnapshot
+     */
+    private function updateSnapshots(Customer|array $customerSnapshot, Company|array $companySnapshot): void
     {
-        $this->customerSnapshot = [
+        if ($customerSnapshot instanceof Customer) {
+            $customerSnapshot = $this->computeCustomerSnapshot($customerSnapshot);
+        }
+
+        $this->customerSnapshot = $this->assertCustomerSnapshot($customerSnapshot);
+
+        if ($companySnapshot instanceof Company) {
+            $companySnapshot = $this->computeCompanySnapshot($companySnapshot);
+        }
+
+        $this->companySnapshot = $this->assertCompanySnapshot($companySnapshot);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function computeCustomerSnapshot(Customer $customer): array
+    {
+        return [
             'id' => $customer->id?->toRfc4122(),
             'legalName' => $customer->legalName,
             'name' => [
@@ -227,9 +250,36 @@ abstract class Document
         ];
     }
 
-    private function computeCompanySnapshot(Company $company): void
+    /**
+     * @param array<string, mixed> $snapshot
+     *
+     * @return array<string, mixed>
+     */
+    private function assertCustomerSnapshot(array $snapshot): array
     {
-        $this->companySnapshot = [
+        $snapshotKeys = ['id', 'legalName', 'contact', 'address'];
+        $nameKeys = ['first', 'last'];
+        $contactKeys = ['email', 'phone'];
+        $addressKeys = ['streetLine1', 'streetLine2', 'city', 'postalCode', 'region', 'countryCode'];
+
+        if (
+            [] !== array_diff($snapshotKeys, array_keys($snapshot))
+            || [] !== array_diff($nameKeys, array_keys($snapshot['name']))
+            || [] !== array_diff($contactKeys, array_keys($snapshot['contact']))
+            || [] !== array_diff($addressKeys, array_keys($snapshot['address']))
+        ) {
+            throw new DocumentRuleViolationException('Customer snapshot is invalid.');
+        }
+
+        return $snapshot;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function computeCompanySnapshot(Company $company): array
+    {
+        return [
             'legalName' => $company->legalName,
             'contact' => [
                 'email' => $company->contact->email,
@@ -249,5 +299,27 @@ abstract class Document
             'defaultVatRate' => $company->defaultVatRate->value,
             'legalMention' => $company->legalMention,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $snapshot
+     *
+     * @return array<string, mixed>
+     */
+    private function assertCompanySnapshot(array $snapshot): array
+    {
+        $snapshotKeys = ['legalName', 'contact', 'address', 'defaultCurrency', 'defaultHourlyRate', 'defaultDailyRate', 'defaultVatRate', 'legalMention'];
+        $contactKeys = ['email', 'phone'];
+        $addressKeys = ['streetLine1', 'streetLine2', 'city', 'postalCode', 'region', 'countryCode'];
+
+        if (
+            [] !== array_diff($snapshotKeys, array_keys($snapshot))
+            || [] !== array_diff($contactKeys, array_keys($snapshot['contact']))
+            || [] !== array_diff($addressKeys, array_keys($snapshot['address']))
+        ) {
+            throw new DocumentRuleViolationException('Company snapshot is invalid.');
+        }
+
+        return $snapshot;
     }
 }

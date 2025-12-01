@@ -22,11 +22,12 @@ return new ApiResource(
     shortName: 'Me',
     operations: [
         new Get(
-            stateOptions: new Options(User::class)
+            stateOptions: new Options(User::class),
         ),
         new Put(
+            input: UserInput::class,
             read: false,
-            processor: UpdateUserProcessor::class,
+            processor: UpdateUserProcessor::class
         ),
         new Post(
             uriTemplate: '/password',
@@ -48,5 +49,4 @@ return new ApiResource(
     ],
     routePrefix: '/me',
     class: UserOutput::class,
-    input: UserInput::class
 );
