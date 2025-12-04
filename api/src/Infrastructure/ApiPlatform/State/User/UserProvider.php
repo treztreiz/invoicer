@@ -6,12 +6,12 @@ namespace App\Infrastructure\ApiPlatform\State\User;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Application\Dto\User\Output\UserOutput;
 use App\Application\UseCase\User\GetUserUseCase;
+use App\Domain\Entity\User\User;
 use App\Infrastructure\Security\SecurityGuard;
 use Symfony\Bundle\SecurityBundle\Security;
 
-/** @implements ProviderInterface<UserOutput> */
+/** @implements ProviderInterface<User> */
 final readonly class UserProvider implements ProviderInterface
 {
     public function __construct(
@@ -20,7 +20,7 @@ final readonly class UserProvider implements ProviderInterface
     ) {
     }
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): UserOutput
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): User
     {
         $securityUser = SecurityGuard::assertAuth($this->security->getUser());
 

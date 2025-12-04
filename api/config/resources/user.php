@@ -15,6 +15,7 @@ use App\Domain\Entity\User\User;
 use App\Infrastructure\ApiPlatform\State\User\UpdatePasswordProcessor;
 use App\Infrastructure\ApiPlatform\State\User\UpdateUserProcessor;
 use App\Infrastructure\ApiPlatform\State\User\UploadCompanyLogoProcessor;
+use App\Infrastructure\ApiPlatform\State\User\UserProvider;
 use Symfony\Component\HttpFoundation\Response;
 
 return new ApiResource(
@@ -22,6 +23,7 @@ return new ApiResource(
     shortName: 'Me',
     operations: [
         new Get(
+            provider: UserProvider::class,
             stateOptions: new Options(User::class),
         ),
         new Put(
