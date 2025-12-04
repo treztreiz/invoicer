@@ -27,7 +27,6 @@ final class UserApiTest extends ApiTestCase
         $user = $this->authenticatedUser($client);
 
         $response = $this->apiRequest($client, 'GET', '/api/me');
-
         self::assertResponseIsSuccessful();
         $data = $response->toArray(false);
 
